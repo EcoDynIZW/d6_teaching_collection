@@ -1,0 +1,104 @@
+---
+title: "Tutorial Part II — R goes spatial: Exercise 3"
+author: "Stephanie Kramer-Schadt & Cédric Scherer"
+date: "`r Sys.setlocale('LC_TIME','C'); paste('Last Update', format(Sys.time(), '%B %e, %Y'))`"
+output:
+  rmdformats::readthedown:
+    highlight: kate
+    toc_depth: 2
+    toc_float: true
+editor_options:
+  chunk_output_type: console
+params:
+  date: !r Sys.Date()
+---
+
+<style>
+h1 {
+  color: Orange ;
+}
+h2, h3, h4, h5, h6, legend {
+  color: Indigo ;
+}
+p {
+  line-height:170%;
+}
+#sidebar h2 {
+  background-color: Indigo;
+}
+code {
+  color: Indigo ;
+}
+.exercise {
+  color: #824b00;
+}
+</style>
+
+# <span class='exercise'> Course 2 Exercise 3</span>
+
+## Exercise 3.1  
+
+**The data set `birds_berlin_exercise_planillo2021.csv` contains counts of bird individuals, classified per species, for 29 sites in Berlin. Import and inspect the data. How many individuals, independent of the species, where observed per site? How many on average across all sites?**
+
+Individual Steps:
+
+* a. Load the bird observations (`birds_berlin_exercise_planillo2021.csv`) and the transect data (`birds_transects_coordinates_3035.csv`).
+* b. Combine both data sets. To do so, you have to find the matching columns (here: `site`) and make sure they contain the same values. In our case, we need to turn the site IDs in the bird data set to lower case to match the site IDs from the transects.
+* c. Determine number of *individuals* (sum of counts) per site.
+* d. Estimate average across all sites.
+
+---
+
+## Exercise 3.2
+
+**Using our data set on tree cover across Berlin, calculate the average tree cover for each site with a buffer of 500 (UNITS??).**
+
+Individual Steps:
+
+* a. Turn the bird–transect data set into simple features object. Don't forget to set the correct CRS! (Remember: the correct projection is, in the best case, added to the file name!)
+* b. Add a buffer around each site location (if you don't know how: there is a function from the `{sf}` package with a very intuitive name...)
+* c. Load the tree cover data set (`tree_cover_density_2012_100m_3035.asc` in `_DataBerlin`).
+* d. Calculate average tree cover per buffer by extracting the mean tree cover per polygon.
+* e. Visualize the results as map with the point color encoding the average tree cover for each site.
+* f. Explore the relationship of bird counts and average tree cover per site by visualizing the data as scatter plot (advanced: add a linear fitting).
+
+---
+
+## Exercise 3.3
+
+**Calculate the share of the area covered by green spaces (using the vector data from the `{d6berlin}` package) inside each of the buffered sites.**
+
+* a. Load data for green spaces in Berlin and project it with the same CRS as our bird data.
+* b. Extract green spaces inside the buffered sites.
+* c. Calculate the area of green spaces for each buffer.
+* d. Turn the estimates into shares by dividing the values by the area of a buffer.
+
+---
+
+## Exercise 3.4
+
+*for the fast ones*
+
+**What is the average tree cover per site <u>within forests</u>? How large is the difference between both metrics?**
+
+Individual Steps:
+
+* a. Load green space data from `{d6berlin}` package and filter it for forests only.
+* b. Use the forest polygons to "mask" the tree cover raster so we only keep tree cover information for those areas.
+* c. Inspect the result. Is there something one needs to account for before calculating summary statistics? (Hint: If we ask that way, the answer is likely yes 😉 — to deal with the issue, you have to use `ifel`from the `{terra}` package and the `is.na()` function.)
+* d. Extract average tree cover values for each site incl. the buffer and add the outcome as new column.
+* e. Using the tree cover average from Exercise 3.2, calculate the difference and explore it's range.
+* f. Finally, plot the differences in tree cover estimates on the map (note that all values should be either positive or negative, respectively).
+
+# END
+
+---
+
+<details><summary>Session Info</summary>
+
+```{r sessionInfo}
+Sys.time()
+sessionInfo()
+```
+
+</details>

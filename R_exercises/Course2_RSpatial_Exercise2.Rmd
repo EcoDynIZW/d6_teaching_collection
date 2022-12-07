@@ -1,0 +1,100 @@
+---
+title: "Tutorial Part II — R goes spatial: Exercise 2"
+author: "Stephanie Kramer-Schadt & Cédric Scherer"
+date: "`r Sys.setlocale('LC_TIME','C'); paste('Last Update', format(Sys.time(), '%B %e, %Y')) `" 
+        #"`r Sys.Date()`" # 
+output:
+  rmdformats::readthedown:
+    highlight: kate
+    code_folding: show
+    toc_depth: 4
+    toc_float: true
+editor_options:
+  chunk_output_type: inline
+params:
+  date: !r Sys.Date()
+---
+
+<style>
+h1 {
+  color: Orange ;
+}
+h2, h3, h4, h5, h6, legend {
+  color: Indigo ;
+}
+p {
+  line-height:170%;
+}
+#sidebar h2 {
+  background-color: Indigo;
+}
+code {
+  color: Indigo ;
+}
+.exercise {
+  color: #824b00;
+}
+</style>
+
+# <span class='exercise'> Course 2 Exercise 2</span>
+
+## Exercise 2.1
+
+**Using data on green spaces in Berlin, estimate the number of wild boars observed inside green areas that are 1 ha or larger. What is the proportion of wild boars outside large green areas? Visualize the observations on a map showing the green spaces and the observations encoded by their location inside or outside the green spaces.**
+
+Individual Steps:
+
+* a. Store the simple feature data `sf_green` which is provided by the `{d6berlin}` package in a local object.
+* b. Calculate the area for each green space polygon and filter for green spaces that are equal or greater than 1 ha.
+* c. Load the wild boar data (`data_wb_melden_en.csv`) and turn it into a simple feature object. Remember to set the correct CRS!
+* d. Intersect the wild boar data with the filtered green spaces and extract the number of unique observations.
+* e. Use the new data to visualize observations inside and outside the green spaces that are 1 ha or larger as a map.
+
+---
+
+## Exercise 2.2
+
+**Calculate the average distance (in km) from each wild boar observation to water.**
+
+Individual Steps:
+
+* a. Store the simple feature data `sf_water` in a local object. The data set is also provided by the `{d6berlin}` package.
+* b. To ease the handling of the data set, filter for large water bodies only (area >= 100000 m^2).
+* c. Calculate the distance between the wild boar data and the water bodies and add the information as a new column to your wild boar data set. Afterwards, convert the unit to km. 
+* d. Calculate the mean of all estimated distances. 
+
+Hint: To calculate the minimum distance per wild boar observation, you need to "union" all polygon features into a single multipolygon first! (otherwise you get all distances from all observations to every single polygon feature!)
+
+---
+
+## Exercise 2.3
+
+*for the fast ones*
+
+**What is the average and median distance (in km) to natural reserves...**  
+
+* **a) for all wild boar observations?**  
+* **b) for wild boars seen outside of nature reserves?**  
+
+Hint: The information on nature reserves is contained in the green space data set. Check the help if you do not know what to look for.
+
+---
+
+## Exercise 2.4
+
+*for the fast ones*
+
+**What is the average distance (in km) to natural reserves that contain water bodies for all wild boar observations?**  
+
+# END
+
+---
+
+<details><summary>Session Info</summary>
+
+```{r sessionInfo}
+Sys.time()
+sessionInfo()
+```
+
+</details>
