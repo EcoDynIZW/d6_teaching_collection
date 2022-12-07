@@ -1,0 +1,1007 @@
+---
+title: "Tutorial Part IV — Getting started with animal movement"
+author: "Stephanie Kramer-Schadt"
+date: "`r Sys.setlocale('LC_TIME','C'); paste('Last Update', format(Sys.time(), '%B %e, %Y')) `" 
+        #"`r Sys.Date()`" # 
+output:
+  rmdformats::readthedown:
+    highlight: kate
+    code_folding: show
+    toc_depth: 4
+    toc_float: true
+editor_options:
+  chunk_output_type: console
+params:
+  date: !r Sys.Date()
+---
+
+<style>
+h1 {
+  color: Orange ;
+}
+h2, h3, h4, h5, h6, legend {
+  color: Indigo ;
+}
+p {
+  line-height:170%;
+}
+#sidebar h2 {
+  background-color: Indigo;
+}
+code {
+  color: Indigo ;
+}
+.exercise {
+  color: #824b00;
+}
+</style>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, 
+                      fig.width = 9, fig.height = 6, dev = "ragg_png")
+#knitr::opts_knit$set(root.dir = 'C:/Users/kramer/PopDynIZW Dropbox/Steph Kramer/_GitHub')
+```
+
+# Introduction
+
+To start with, I would like to express my deep thanks to Cedric Scherer for his help in designing and ameliorating the course scripts. <br>
+
+In this tutorial, we will show you how to get started with (real) animal movement data. 
+To put it simple, animal movement data are just points in time and space, i.e. re-locations
+of an individual that can be provided as a *data.frame* with four columns. An
+identifier for the individual is only needed if you have various animals in one 
+data set, i.e. if you have collared several individuals with the same collar or
+already appended several data sets:
+
+Identifier    | Timestamp           | x_coordinate    | y_coordinate    
+------------- | ------------------- | --------------- | ---------------   
+Fox_1         | 2022-01-01 08:10:04 | 13.47027        | 52.497802
+Fox_1         | 2022-01-01 08:15:04 | 13.47015        | 52.497813
+
+
+From [Course2_SpatialR](https://github.com/stephkramer/Course2_SpatialR), 
+you might remember that such data sets can be imported 
+as simple .txt or .csv files. Once you know in which coordinate reference system (CRS)
+your coordinates are stemming from, you can **assign** it to the *data.frame*, thereby
+you are creating a geo-referenced data set: a *SpatialPointsDataframe*-Object (if
+you work with the R-package `{sp}`) or an *sf*-Object (with package `{sf}`). 
+Looking at these x- and y-coordinates, you might remember that they look like 
+angular units, e.g. decimal degrees, and the x-coordinate refers to longitude and 
+the y-coordinate to latitude. Hence, we are dealing with EPSG-code 4326. 
+Once you have imported and geo-referenced your data, you can plot and thoroughly check the data.
+
+**Checking your data is a mandatory prerequisite** before any analysis (see 
+[Zuur et al. 2010](https://dair.nl/wp-content/uploads/2017/03/Zuur_et_al-2010-Methods_in_Ecology_and_Evolution.pdf)). 
+With your movement data, you might have outliers in space 
+(e.g. when you test your collars in location A which might be hundreds of kilometers from your actual trapping site), your data might not have been regularly sampled because the animal was hiding and
+there was no access to the satellite (weak GPS-signal) etc etc. This uneven 
+sampling can affect calculations of speed, for example, and therefore a series of packages
+have been developed to deal with those issues in movement data, like `{move}`. 
+
+The most prominent movement analyses comprise **home range estimation**, calculations of
+**habitat preference**, **behavioral analyses** (e.g. [Hertel et al. 2021](https://doi.org/10.1111/1365-2656.13406)) and
+detection of **movement syndromes** (personality differences) ([Michelangeli et al. 2021](https://doi.org/10.1111/1365-2656.13616)).
+Some of the packages listed in the next chapter are designed for these analyses. 
+
+```{r,eval=FALSE,echo=FALSE,results='hide'}
+
+[TODO later - exchange Q with Caro's foxes for habitat selection, ref PhD C Scholz and paper by Schlaegel et al. in prep.]
+
+```
+
+
+In the following, we will step by step start with loading and exploring movement data
+of the female red fox (*Vulpes vulpes*) 'Q von Stralau', who had a small home range 
+in Berlin, Germany. She was collared in January 2018 and had a very stable daily routine
+as shown by 4 (20) min relocation intervals. Her location data are stored 
+in the file with the tag number `tag5334_gps.txt`. For any details on the data please refer to [Kimmig (2021)](https://refubium.fu-berlin.de/handle/fub188/32478) and [Scholz (2020)](https://refubium.fu-berlin.de/handle/fub188/29984).
+
+We will, however, only use the data of one month in this exercise, 
+as data sets quickly get too big. Please note: the courses
+[Course1_IntroR](https://github.com/stephkramer/Course1_IntroR) and [Course2_SpatialR](https://github.com/stephkramer/Course2_SpatialR) are 
+obligatory for this tutorial.
+
+ 
+## Useful (web)sites and reading
+
+*  For analysis of telemetry data: packages **adehabitatHR, adehabitatLT, move,recurse, momentuHMM, moveHMM, ctmm, amt**
+<br>
+
+**Methods papers** <br>
+
+* Joo, R, Boone, ME, Clay, TA, Patrick, SC, Clusella-Trullas, S, Basille, M. Navigating through the r packages for movement. J Anim Ecol. 2020; 89: 248– 267. https://doi.org/10.1111/1365-2656.13116
+* Zuur, A.F., Ieno, E.N. and Elphick, C.S. (2010), A protocol for data exploration to avoid common statistical problems. Methods in Ecology and Evolution, 1: 3-14. https://doi.org/10.1111/j.2041-210X.2009.00001.x
+
+**Example papers** <br>
+
+* Hertel, AG, Royauté, R, Zedrosser, A, Mueller, T. Biologging reveals individual variation in behavioural predictability in the wild. J Anim Ecol. 2021; 90: 723– 737. https://doi.org/10.1111/1365-2656.13406
+
+* Kimmig, S (2021). The ecology of red foxes (*Vulpes vulpes*) in urban environments, PhD thesis, FU Berlin. https://refubium.fu-berlin.de/handle/fub188/32478
+
+*  Michelangeli, M., Payne, E., Spiegel, O., Sinn, D. L., Leu, S. T., Gardner, M. G., & Sih, A. (2021). Personality, spatiotemporal ecological variation and resident/explorer movement syndromes in the sleepy lizard. Journal of Animal Ecology, 00, 1– 14. https://doi.org/10.1111/1365-2656.13616
+
+* Scholz, C (2020). The ecology of red foxes (*Vulpes vulpes*) in anthropogenic
+landscapes. PhD thesis, FU Berlin. https://refubium.fu-berlin.de/handle/fub188/29984
+
+   
+
+# Getting started
+
+To follow the tutorial, you can either clone or download the repository at
+https://github.com/stephkramer/Course4_MoveQ
+or you create your own R-project, copy the raw data and type the code chunks into an R-Script.
+Please refer to the section on using R-projects in [Course2_RSpatial](https://github.com/stephkramer/Course2_SpatialR).
+
+If you start with your own R-project, I strongly recommend to use the [`{d6}`-package](https://github.com/EcoDynIZW/d6) 
+Cedric Scherer provided. This package automatically sets up the ideal folder structure:
+https://github.com/EcoDynIZW/d6
+
+In any case, the course folder has the following structure:  
+
+```{text}
+.
+└── Course4_MoveQ         – (root folder)
+    ├─── data-raw         – (contains the file with the GPS locations)
+    ├─── docs
+    ├─── output           – (contains the cleaned files and processed data)
+    ├─── plots
+    ├─── R                – (contains the R-script)
+    └ Course4_MoveQ.Rproj – (the RStudio-Project file location)
+```
+<br>
+
+## Necessary packages to install and load
+
+We first have to install the packages and load them before we can use the
+functions we need.
+
+```{r}
+## package names:
+pkgs = c("here", "lubridate", "sf", "sp", "raster", "rgeos", "ggplot2", "tmap", "circular", "move", "adehabitatHR", "viridis", "devtools", "plotly") 
+
+# install.packages(pkgs) # only run this line once! for installing the packages!
+# update.packages()
+```
+
+**Tip of the day:** If you have already installed some of the packages above, you can
+first check which ones are already installed, and save the ones *not installed* in 
+an object called 'my_packages' and only install the missing ones:
+
+```{r}
+my_packages <- pkgs[!(pkgs %in% installed.packages()[,"Package"])]
+my_packages
+if(length(my_packages) > 0) install.packages(my_packages)
+```
+
+Now load the packages:
+
+```{r libraries, warning=FALSE, message=FALSE}
+library(here)          ## for easy directory management
+library(lubridate)     ## for date handling
+library(sf)            ## for handling simple feature objects
+library(sp)            ## for handling Spatial* objects
+library(raster)        ## for handling raster objects
+library(rgeos)         ## retiring end of 2023 -> use sf
+library(ggplot2)       ## for nice static plots
+library(tmap)          ## for nice interactive maps
+library(circular)      ## for circular stats + plots
+library(move)          ## for `move` objects
+library(adehabitatHR)  ## adehabitatLT  #adehabitatMA                           
+library(viridis)       ## for perceptually uniform color palettes
+```
+
+## Set the working environment
+
+Now that we are working inside an R-project, we can use the easy functionality
+of the `{here}` package, which is automatically pointing to your project's root
+folder, e.g.:
+
+```{r, eval=FALSE}
+here::here() 
+```
+
+Hence, there is no need to use the function `setwd()` any more.
+Note: if it does not work, please close RStudio, go to your Explorer and 
+double-click on the .Rproj file. Then, under 'files' (usually lower right panel) 
+double-click on the R folder and open the script.
+
+## Load data
+
+The movement data are stored in the data-raw subfolder. Let's check which
+files are available. 
+
+```{r, results='hide'}
+lf <- list.files(path = here("data-raw"), full.names = TRUE) 
+lf
+```
+
+```{text}
+## [1] "C:/Users/admin/Course4_MoveQ/data-raw/DieTiere_32633.cpg"
+## [2] "C:/Users/admin/Course4_MoveQ/data-raw/DieTiere_32633.dbf"
+## [3] "C:/Users/admin/Course4_MoveQ/data-raw/DieTiere_32633.prj"
+## [4] "C:/Users/admin/Course4_MoveQ/data-raw/DieTiere_32633.qpj"
+## [5] "C:/Users/admin/Course4_MoveQ/data-raw/DieTiere_32633.shp"
+## [6] "C:/Users/admin/Course4_MoveQ/data-raw/DieTiere_32633.shx"
+## [7] "C:/Users/admin/Course4_MoveQ/data-raw/geo-raw"           
+## [8] "C:/Users/admin/Course4_MoveQ/data-raw/KettleHoles.txt"   
+## [9] "C:/Users/admin/Course4_MoveQ/data-raw/tag5334_gps.txt" 
+```
+
+The output lists two results, there is another subfolder, and many files. E.g.,
+the element 7 of the vector lf, `lf[7]`, is a folder. If
+you already know that your movement data contains e.g. 'gps' in its name or
+is stored as '.txt' or '.csv' files, you can directly search for those files with the
+*pattern* argument:
+
+```{r}
+## check the difference, and note: full.names is set to FALSE
+thefile <- list.files(path = here("data-raw"), pattern = "gps", full.names = FALSE)
+thefile
+```
+
+
+```{r, results='hide'}
+## ...and here to TRUE
+thefullfile <- list.files(path = here("data-raw"), pattern = "gps", full.names = TRUE)
+thefullfile
+```
+
+```{text2}
+## [1] "C:/Users/admin/Course4_MoveQ/data-raw/tag5334_gps.txt"
+```
+
+Now load the data file. Our first fox filename should be `tag5334_gps.txt`,
+which we stored under object 'thefullfilename'
+
+```{r}
+dat_anim <- read.table(file=thefullfile, header=TRUE, fill=TRUE, sep=',') 
+```
+<br>
+
+# Data check and cleaning
+
+## Checking for missing or incomplete information
+
+Let's have a look at the data. This is the typical way data are stored on e-obs collars:
+
+```{r}
+dat_anim[1:5,] ## recap: head(dat_anim) also works
+```
+
+For now, we will only work with few columns. **`tag.serial.number`** refers to the 
+individual identifier (collar ID). There are two columns with timestamps: 
+**`start.timestamp`** is the preprogrammed time-interval. Then there is the
+**`timestamp.of.fix`**, which is the real time the GPS-location was recorded. 
+This is usually a bit later, i.e.<br>
+( = **`start.timestamp`** + **`used.time.to.get.fix`** + 1 second), as it takes some
+time for the collar unit to connect to the satellite. The spatial info is stored
+in the columns **`longitude`** and **`latitude`**.
+
+Before you can transform the *data.frame* `dat_anim` into a georeferenced 
+spatial object, you need to check whether there are missing locations in your *data.frame*,
+otherwise you will get an error message on transformation.<br><br>
+**This can happen if no GPS-signal could be recorded. Or - importantly - some collars
+are only activated when the animal is moving to save battery life. In that case,
+the missing GPS coordinates would correspond with the last position (= be the same).
+Depending on which analysis you want to do, e.g. define resting places, you might need to fill
+the missing positions again.**
+
+In our case, there are a lot of missing values in the locations:
+
+```{r}
+## if the latitude-entry is missing, the longitude value will also be missing
+## so it is enough to only check the latitude
+which(is.na(dat_anim$latitude))
+```
+
+Delete rows with missing spatial info:
+
+```{r}
+dat_anim_na <- dat_anim[!is.na(dat_anim$latitude),] ## alternatively, use complete.cases()
+```
+
+Make the crosscheck if there is missing info in a row in longitude. This should NOT be
+the case after we had deleted those rows:
+
+```{r}
+which(is.na(dat_anim_na$longitude)) # none
+```
+
+
+## Checking for coarse spatial outliers
+
+It could happen the collar was tested e.g. in Berlin, but the animal was finally
+caught and collared far away. Make a quick check whether there are strange locations:
+
+```{r}
+plot(dat_anim_na$latitude ~ dat_anim_na$longitude)
+```
+
+There do not seem to be coarse outliers, data look compact. 
+
+
+## Working with the date format
+
+We will now add some additional columns, where separate days (numbered from 1 to
+365), the month (from 1 to 12) and the hour of the day are stored (from 0 to 23). Sunset and sunrise can be calculated based on dates and the location (latitude, longitude). This can be 
+done with the package `{lubridate}`. Check the [vignette](https://cran.r-project.org/web/packages/lubridate/vignettes/lubridate.html)!
+
+```{r}
+## have a look at the timestamp format, here the first row of the column start.timestamp
+dat_anim_na$start.timestamp[1]
+
+## define date-time format - the format is year-month-day_hour:min:sec:
+dat_anim_na$start.timestamp <- ymd_hms(dat_anim_na$start.timestamp, tz="Europe/Berlin") 
+dat_anim_na$start.timestamp[1]
+```
+
+Now append the information:
+
+```{r}
+dat_anim_na$yearday <- yday(dat_anim_na$start.timestamp)
+dat_anim_na$month   <- month(dat_anim_na$start.timestamp)
+dat_anim_na$hour    <- hour(dat_anim_na$start.timestamp)
+dat_anim_na$kweek   <- week(dat_anim_na$start.timestamp)
+dat_anim_na$date    <- date(dat_anim_na$start.timestamp)
+## crosscheck with
+# head(dat_anim_na)
+```
+
+In addition, we want to calculate the hours of sunset and sunrise as well as daylength.
+For this, we need to install a package that is still under development, i.e.
+which is not on CRAN. We therefore must download and install it locally:
+
+```{r}
+# devtools::install_github("bgctw/solartime") ## run only once to install package from GitHub
+library(solartime)
+```
+
+For computing sunset and sunrise, the latitude and longitude must be provided as well:
+
+```{r}
+dat_anim_na$sunrise   <- computeSunriseHour(timestamp = dat_anim_na$start.timestamp,
+                                            latDeg = dat_anim_na$latitude,
+                                            longDeg = dat_anim_na$longitude)
+
+dat_anim_na$sunset    <- computeSunsetHour(dat_anim_na$start.timestamp,
+                                           dat_anim_na$latitude,
+                                           dat_anim_na$longitude)
+
+dat_anim_na$daylength <- computeDayLength(dat_anim_na$start.timestamp,dat_anim_na$latitude)
+
+dat_anim_na$daytime   <- computeIsDayByLocation(dat_anim_na$start.timestamp,
+                                                dat_anim_na$latitude,
+                                                dat_anim_na$longitude)
+
+## check new variables
+# head(dat_anim_na)
+hist(dat_anim_na$daylength)
+unique(dat_anim_na$daytime) # gives the levels, i.e. 'TRUE' means daylight, 'FALSE' means nighttime and darkness
+```
+
+
+## Check for temporal outliers
+
+Check if there are strange dates, or dates before you collared the animal (e.g., 
+usually the collar is activated and tested before the animal is collared):
+
+```{r}
+table(dat_anim_na$date)
+```
+
+It might be easier to spot visually. We use the `{ggplot2}` package here as it recognizes and respects the date format:
+
+```{r}
+ggplot(dat_anim_na, aes(date)) +
+  geom_bar() +
+  theme_bw()
+
+## compare with plot(table(dat_anim_na$date))
+```
+
+There is a strange date &rarr; **2025-12-26**! 
+
+```{r, echo=FALSE}
+ggplot(dat_anim_na, aes(date)) +
+  geom_bar(aes(fill = date > ymd("2022-03-01"))) +
+  geom_segment(aes(xend = ymd("2025-12-26"), x = ymd("2025-12-26"), yend = 2, y = 25), 
+               color = "red", size = 1.5, arrow = arrow()) +
+  scale_fill_manual(values = c("#595959", "red"), guide = "none") +
+  theme_bw()
+```
+
+Delete this data row:
+
+```{r}
+delme <- which(dat_anim_na$date == "2025-12-26")
+dat_anim_na[delme,]                 ## check observation
+dat_anim_na <- dat_anim_na[-delme,] ## delete the strange date and 
+table(dat_anim_na$date)             ## check again
+plot(table(dat_anim_na$date))       ## plot the number of fixes per day
+```
+
+
+## Save the cleaned file
+
+Finally, we save the processed data file that we will use for exploration
+and analysis into the subfolder `.../output/data-proc`. There are two options we can use:
+
+* R data file - can only be opened/ read with R by using function readRDS()
+
+```{r}
+saveRDS(dat_anim_na, file = here("output", "data-proc", "tag5334_gps_proc.Rds"))
+```
+
+* interchange file format .csv
+
+```{r}
+write.csv(dat_anim_na, file = here("output", "data-proc", "tag5334_gps_proc.csv"))
+```
+
+Check your output folder for these files. The efficient '.Rds' file storage
+is about 3 times smaller than the '.csv' file. 
+<br>
+
+# <span class='exercise'>Exercise 4.1</span>
+
+**This is a recap from Course2. Please plot the animal relocations in two different 
+colours based on the column `daytime`, using one of 
+the options to create maps with `{ggplot2}`, `{ggpmap}`, `{leaflet}` or `{tmap}`.
+Use the processed file of fox Q (*tag5334_gps_proc*) and do it in a separate script. 
+Save your script as `Course4_Exercise1_*yourname*.R`.
+<br><br>
+Hint: Remember to load the relevant libraries.
+Note that you might want to plot the locations in the correct
+spatial dimensions by projecting it using the functions
+`st_as_sf()` and `st_transform()`.**
+
+<br><hr><br>
+
+
+# Data exploration
+
+## Load the cleaned data file
+
+I recommend that you store the raw file safely and continue with
+the cleaned and processed file after major data manipulations have been 
+conducted to minimize errors. I'd even suggest to make these steps
+in different R-scripts.
+
+```{r}
+anim_proc <- readRDS(file = here("output", "data-proc", "tag5334_gps_proc.Rds"))
+# head(anim_proc)
+```
+
+Have a look whether there are gaps/ missing days in the data, or whether we have
+approximately a regular number of fixes each day. We can use `{ggplot2}` to plot true dates:
+
+```{r}
+ggplot(anim_proc, aes(date)) +
+  geom_bar() +
+  theme_bw()
+
+# mind: is the same as already plotted above:
+# plot(table(anim_proc$date))
+```
+
+Now let's plot the *Julian day*, `yearday`:
+
+```{r}
+plot(table(anim_proc$yearday))  ## what is the difference to the plot above?
+```
+
+The number of fixes (locations taken) per day seems to be quite regular. Mind the 
+difference when plotting per date (sorted) and yearday (1-365), irrespective
+of the year.
+
+## Plot activity
+
+Now we can have a look at the distribution of the fixes during the day, which is
+a hint on the active phase of the animal:
+
+```{r}
+plot(table(anim_proc$hour))   ## plot the number of fixes per hour
+```
+
+More fixes during the night - this is the active phase. As these are circular 
+data, we can plot the number of fixes as sign for activity (knowing that our
+collars did not record when foxes were inactive! Otherwise, we cannot distinguish
+missing data from inactive times! -> bias). 
+
+```{r}
+## simple circular plot (rose diagram)
+timetoplot <- circular(anim_proc$hour %% 24, ## convert to 24 hrs = bins
+                       units = "hours", template = "clock24")
+
+## Note: use namespace `circular::` here as there are multiple functions called `rose.diag()`
+circular::rose.diag(timetoplot, bin = 24, col = "blue",
+                    main = "Events by Hour (sqrt scale)", prop = 3)
+```
+
+Check whether the activity during the day was before sunrise (our 'daytime' 
+column, which is either TRUE (=yes, daylight) or FALSE (dark hours):
+
+```{r}
+# with ggplot
+# code adapted from https://gist.github.com/mattbaggott/4361381
+ggplot(anim_proc, aes(x = hour,fill = daytime)) +
+  geom_bar(width = 1, color = "grey20") +
+  coord_polar(start = -0.15) + ## to center setchange start
+  theme_minimal() +
+  scale_x_continuous(breaks = 0:23) +
+  scale_fill_brewer(palette = "Set2", name = NULL, labels = c("Night", "Day")) +
+  labs(x = NULL, y = "Count", title = "Events by Time of the Day")
+
+ggsave(filename = 'plot_activity.png', path=here('plots'), 
+       width = 10, height = 10, units = "cm")
+```
+
+Apart from the outliers between 11 and 13 o'clock, the active phase was
+during the dark hours.
+
+```{r,echo=FALSE, eval=FALSE}
+# TODO under development: heatmap as activity plot #
+anim_proc_plot <- anim_proc
+anim_proc_plot$count <- 1 ## count observations per hour
+anim_proc_plot <- aggregate(anim_proc_plot$count, by = list(kweek = anim_proc_plot$kweek, hour = anim_proc_plot$hour), FUN = sum)
+
+ggplot(anim_proc_plot, aes(x = kweek, y = hour, fill = x)) +
+  geom_tile() +
+  coord_cartesian(expand = FALSE) +
+  theme_bw()
+```
+
+
+```{r,echo=FALSE, eval=FALSE}
+# Let's fix the yearly split (we could also work with dates but take a manual route here):
+# continued from above - activity as heatmap 
+anim_proc_plot$kweek_adj <- ifelse(anim_proc_plot$kweek < 40, max(anim_proc_plot$kweek) + anim_proc_plot$kweek, anim_proc_plot$kweek)
+
+ggplot(anim_proc_plot, aes(x = kweek_adj, y = hour, fill = x)) +
+  geom_tile(color = "white", size = .5) +
+  coord_cartesian(expand = FALSE) +
+  scale_x_continuous(breaks = c(44, 53, 58), labels = c("44/2018", "53/2018", "5/2019")) +
+  scale_fill_viridis_c(option = "rocket", direction = -1, name = "Observations") +
+  labs(x = "Week/Year", y = "Hour of the Day") +
+  theme_bw() +
+  theme(panel.grid = element_blank())
+```
+
+## Convert the data into a spatial object
+
+Now we transform the data into `sf` and `sp` objects and **assign** 
+the coordinate reference system:
+
+```{r}
+# transform into spatial simple feature sf object
+mydf_sf <- st_as_sf(x = data.frame(anim_proc),
+                       coords = c("longitude", "latitude"),
+                       crs = 4326,
+                       sf_column_name = "geometry" )
+
+# transform into SpatialPointsDataFrame  - for crosschecking
+mydf_sp <- as(mydf_sf, "Spatial") 
+```
+
+And then we **project** the reference system from angular units to a planar
+coordinate reference system in meters:
+
+```{r}
+# transform CRS to projected one in meter distance units
+mydf_sf_trans <-  st_transform(mydf_sf, 3035 )  # EPSG-code  
+mydf_sp_trans <-  spTransform(mydf_sp, CRS("+init=epsg:3035")) 
+```
+
+Recently, there are issues with the missing datum in the CRS-specifications. We
+ignore this for now. More on the issue of moving from proj4 to proj6 in the future: <br>
+* https://inbo.github.io/tutorials/tutorials/spatial_crs_coding/<br>
+* https://cran.r-project.org/web/packages/sp/vignettes/CRS_warnings.html<br>
+
+**Make a quick plot of the data**
+
+Recap for styling the plot:<br>
+https://www.r-bloggers.com/2021/12/introduction-to-geospatial-visualization-with-the-tmap-package/
+
+```{r}
+tmap_mode(mode = "view")
+
+tm_shape(shp = mydf_sf_trans) + 
+  tm_dots(size = 0.01, 
+          col = "daytime",  
+          alpha = 0.5)
+```
+
+Have a deep look at the data: did the fox really swim? (points in Lake Rummelsburg).
+Or are these outliers? No: the lake was frozen - check the date! Note: you really need to know your animals and the area before analysing data!
+<br>
+
+```{r,echo=FALSE, eval=FALSE}
+# TODO later - access date of the outlier and check ambient temperature 
+```
+
+# Basic movement metrics
+
+## Transform your data into a `{move}` object
+
+Check here for the possibilities of what to do with the package: 
+<br>
+* https://cran.r-project.org/web/packages/move/vignettes/move.html <br>
+* https://rdrr.io/cran/move/f/vignettes/move.Rmd <br>
+
+Because we are dealing with spatial measures (e.g. area, distance, perimeter,...),
+I recommend to work with projected coordinates. To create a move-object,
+the coordinates of the projected CRS need to be appended to a data.frame:
+```{r}
+## assign columns with coordinates to use later in data frame
+mydf_sf_trans$X_3035 <- st_coordinates(mydf_sf_trans)[,1]
+mydf_sf_trans$Y_3035 <- st_coordinates(mydf_sf_trans)[,2]
+
+## new object as data frame
+anim_for_move <- st_drop_geometry(mydf_sf_trans) 
+
+## now turn into move object
+my_fox <- move(x = anim_for_move$X_3035, y = anim_for_move$Y_3035,
+               time = as.POSIXct(anim_for_move$start.timestamp, format = "%Y-%m-%d %H:%M:%S"),
+               proj = CRS("+init=epsg:3035"),
+               data = anim_for_move,
+               animal = "FoxQvonStralau")  
+```
+
+
+```{r}
+## Alternative using data.frame with longitude-latitude columns
+# my_fox <- move(x = anim_proc$longitude, y = anim_proc$latitude,
+#                time=as.POSIXct(anim_proc$start.timestamp,format="%Y-%m-%d %H:%M:%S"),
+#                proj= CRS("+init=epsg:4326"),
+#                data=anim_proc,
+#                animal="FoxQvonStralau")  
+# head(my_fox); nrow(my_fox)
+```
+
+## Time lag, turning angle and speed
+
+### Time lags between the fixes:
+
+```{r}
+timeLag(my_fox, unit = "mins")[1:5] ## varies a lot, but minimum here 20 min
+min(timeLag(my_fox, units = "mins"))
+mean(timeLag(my_fox, units = "mins"))
+max(timeLag(my_fox, units = "mins"))
+```
+
+### Turning angles:
+
+The calculation of turning angles only makes sense with very high resolution data. 
+With 20 min intervals between fixes, turning angles do not make much sense any more,
+as the animals can have turned and moved a lot in between.
+
+```{r}
+turnang <- angle(my_fox)
+# turnang <- turnAngleGc(my_fox) # the same
+# using the absolute abs(), because -180 and 180 has similar meaning:
+# the animal keeps the direction
+hist(abs(turnang))
+```
+
+### Speed and step length:
+
+```{r}
+steplength <- distance(my_fox) ## know your units!
+hist(steplength)
+max(steplength) ## max 1 km in 20 min = 3 km / h
+
+hist(speed(my_fox)) ## units? -> check ?speed
+```
+
+# The homerange concept - MCP, kernel, aKDE
+
+
+See lecture!
+
+
+### Minimum Convex Polygon
+
+Unfortunately, we have to use `SpatialDataFrame`-Objects for activity range 
+calculation, as the package `{adehabitatHR}` is based on the old `sp` format.
+
+```{r, echo=FALSE, results='hide', eval=FALSE}
+# TODO - something is wrong here with the units despite using projected CRS 
+# !!!! check the crs warning online
+hrBootstrap(my_fox, rep = 5, level = 99, unout= 'km2', plot = TRUE) # units still wrong
+```
+
+You can calculate the total area covered, or, if you specify a column, you
+can calculate the activity range per daytime, animalID or months... Use the 
+`SpatialDataFrame`-Object from the `{sp}` package we created above.
+
+```{r}
+mcp_daytime <- mcp(mydf_sp_trans[,'daytime'], percent = 95, unout = "km2") # MCP (95%) 
+mcp_daytime ## area for both (daytime separated) polygons
+```
+The daytime activity (or better: hiding and resting) range is ten times smaller 
+than the nighttime activity. During the active nighttime, fox Q uses ~ 0.5 km2, 
+while during the day the range is restricted to 600 ha. 
+<br>
+The following plot shows the increase of the area for different MCP-levels:
+
+```{r}
+hrs <- mcp.area(mydf_sp_trans[,'daytime'], percent = seq(50, 100, by = 5), unout = "km2")
+hrs ## home range size in km2 for the different MCP-levels
+```
+
+And that's how it looks:
+```{r}
+plot(mcp_daytime)
+plot(mydf_sp_trans, add=TRUE, col= as.numeric(mydf_sp_trans$daytime)+1)
+```
+
+
+
+```{r}
+mcp_month <- mcp(mydf_sp_trans[,'month'], percent = 95, unout = "km2") ## MCP (95%) 
+mcp_month
+```
+
+Note that there is an activity range calculated for October (month 10), but the animal was only collared  30.10.! This definitely does not make sense.
+<br>
+Now save the MCPs as ESRI shapefiles. Mind: the object is a *SpatialPolygonsDataFrame*
+object from the '{sp}'-package; hence use writeOGR():
+
+```{r}
+writeOGR(mcp_daytime, dsn = here("output", "data-proc"), 
+         "mcp95_daytime_foxQ", "ESRI Shapefile", overwrite = TRUE)
+```
+
+### Kernel utility density
+
+Calculate the density kernel:
+
+```{r}
+## calculate kernel with h = "href", i.e. default smoothing
+kud <- kernelUD(mydf_sp_trans[,'daytime'], h = "href") 
+# the output is an object with lists, accessed via: str(kud)
+kernel.area(kud, unout = "km2") ## across all levels 5-95%
+```
+The area sizes are similar to the MCP95 values, however the daytime activity range
+is twice as large.
+
+Now, we create a contour line of the 90% KUD to export as shapefile:
+```{r}
+kud90 <- getverticeshr(kud, percent = 90) ## this creates the spatial object, units m2 
+gArea(kud90, byid = TRUE)/ 1e6            ## units km2
+```
+
+Make a plot and save it as spatial polygon:
+
+```{r, eval=FALSE, echo=FALSE,results='hide'}
+## This plot is too ugly
+# plot only the nighttime
+image(kud[[1]], col = viridis(100, direction = -1))
+xyz <- as.image.SpatialGridDataFrame(kud[[1]])
+contour(xyz, add = TRUE)
+points(mydf_sp_trans, cex = 0.01, col = "red")
+```
+
+
+```{r}
+# save it as shapefile - mind - here we can only save one contour line, 
+# in this case the 90% kernel:
+writeOGR(kud90, dsn = here("output","data-proc"), 
+         layer = "kernel_ud90", "ESRI Shapefile", overwrite = TRUE)
+```
+
+
+```{r}
+# make the crosscheck: load and plot
+kernel_ud90_sf <- st_read(dsn = here("output", "data-proc"), layer = "kernel_ud90")
+mcp95_sf       <- st_read(dsn = here("output", "data-proc"), layer = "mcp95_daytime_foxQ")
+# note: the CRS is lost and not defined! So assign it again:
+st_crs(kernel_ud90_sf) <- 3035
+st_crs(mcp95_sf)       <- 3035
+```
+
+
+```{r, fig.height=8}
+ggplot() +
+  geom_sf(data = kernel_ud90_sf, aes(fill = id)) +
+  geom_sf(data = mydf_sf_trans, size = 1.5, alpha = .1, color = "red3") +
+  scale_fill_manual(values = c("grey90", "grey70"), guide = "none") +
+  theme_bw(base_size = 16)
+```
+
+Do the following only on a fast computer:
+
+```{r, echo=TRUE}
+##### der krass coole 3D plot ####
+## code adapted from
+
+# install.packages("devtools")
+# devtools::install_github("ropensci/plotly")
+library(plotly)
+
+my_kud <- kud[[1]] ## or choose kud[[2]]
+
+xy <- coordinates(my_kud)
+z <- my_kud@data$ud
+df_kud <- data.frame(x = xy[,1], y = xy[,2], z = z)
+#persp(x=df_kud$x, y=df_kud$y, z= df_kud$z)
+#plot3d(x=xy[,1],y=xy[,2],z=z)
+
+my_kud@grid@cells.dim
+r <- raster(ncols = 60, nrows = 58)
+coordinates(df_kud) <- ~x + y
+r_kud <- rasterize(df_kud, r, "z", fun = max)
+
+myz <- matrix(z, nrow = my_kud@grid@cells.dim[[2]],
+              ncol = my_kud@grid@cells.dim[[1]], byrow = FALSE)
+# image(myz)
+kd.list <- list(x = xy[,1], y = xy[,2], z = myz)
+# with(kd.list, plot_ly(x = x, y = y, z = z, type = "surface"))
+plot_ly(z = myz, type = "surface") # click into plot and on icon 'turntable rotation' in plot upper right
+#########  ende krass cooler plot ########
+```
+
+
+# Nothing makes sense but in the light of environmental information
+
+-> go to
+
+## Exercise 4.2
+
+
+```{r, eval=FALSE, echo=FALSE, results='hide'}
+
+# TODO ignore this for now
+
+#############################################################################
+######## advanced home range analyses - variogram and  aKDE  ################
+#############################################################################
+
+library(ctmm)
+# please read the vignettes of ctmm package to understand what is done in the following
+# https://cran.r-project.org/web/packages/ctmm/vignettes/variogram.html
+# https://cran.r-project.org/web/packages/ctmm/vignettes/akde.html
+
+# This package needs a 'telemetry' object, which can either be created from a 
+# 'data.frame' or can use our move-Object from above.
+
+ # anim_proc$individual.local.identifier <- anim_proc$tag.serial.number
+ # anim_proc$timestamp                   <- anim_proc$timestamp.of.fix
+ # anim_proc$location.long               <- anim_proc$longitude
+ # anim_proc$location.lat                <- anim_proc$latitude
+ # ctmm_anim <- as.telemetry(anim_proc)
+
+## if we already hav a move-object, transformation is easy:
+# ctmm_anim <- as.telemetry(my_fox)
+
+
+ctmm_anim <- as.telemetry(my_fox[1:500,]) #I am restricting the data to the first points for saving computation time
+plot(ctmm_anim) # DOP large
+# https://cran.r-project.org/web/packages/ctmm/vignettes/error.html
+help(plot.telemetry)
+ctmm::plot(ctmm_anim, pch='.',lwd=0.1,cex=0.00001,xlim= c(-2000,2000)) #something does not work here....
+
+# please do the following steps for fitting the best model (movement process) to your data
+# https://cran.r-project.org/web/packages/ctmm/vignettes/variogram.html
+
+SVF <- variogram(ctmm_anim)
+plot(SVF,fraction=0.10) 
+title("zoomed in")
+# this info gives first parameters for sigma, tau etc for fitting m.ouf (see below)
+# restricted space use (plateau),
+# autocorrelated positions ()
+# and autocorrelated velocities (upward curvature)
+
+plot(SVF,fraction=0.55,level=c(0.5,0.95))
+#plot(SVF,fraction=1,level=c(0.5,0.95))
+title("zoomed out")
+
+
+m.ouf <- ctmm(sigma=6 %#% "hectares",tau=c(0.04 %#% "day",0.2 %#% "hour"))
+plot(SVF,CTMM=m.ouf,level=level,col.CTMM="blue",fraction=0.02) #does the blue line fit?
+title("Ornstein-Uhlenbeck-F movement")
+
+### please read the variogram-vignette for 'Irregular Sampling Schedules'
+# if your data was not sampled in regular intervals
+# 20, 40 min sampling intervals
+level <- c(0.5,0.95) # 50% and 95% CIs
+dt <- c(20,40) %#% "min"
+SVF3 <- variogram(ctmm_anim,dt=dt)
+plot(SVF3,fraction=0.55,level=level)
+title("Multi method")
+
+# students ignore this!
+#scale_length_ov_vector <- round(length(SVF3@.Data[[1]])*0.8,digits=0) - 1000
+#plot(SVF3@.Data[[1]][25:scale_length_ov_vector],type='l') #for fitting colour of noise
+#forcolor <- SVF3@.Data[[1]]
+#write.csv(forcolor, 'Q_forCol.csv')
+
+
+### Maximum likelihood fitting
+### for a first 'guessimate' of model parameters
+## not run! - takes a long time for many data points
+#GUESS <- ctmm.guess(ctmm_anim,interactive=FALSE)
+#FIT <- ctmm.fit(ctmm_anim,GUESS)
+#summary(FIT)
+
+
+########################   aKDE fit ####################
+# https://cran.r-project.org/web/packages/ctmm/vignettes/akde.html
+
+M.IID <- ctmm.fit(ctmm_anim) # no autocorrelation timescales - yields KUD
+summary(M.IID)
+
+M.OUF <- ctmm.fit(ctmm_anim,m.ouf) # m.ouf quickly fitted by hand - see above
+summary(M.OUF)
+
+m.ouf <- ctmm.guess(ctmm_anim,interactive=FALSE) # automated model guess
+M.OUF <- ctmm.fit(ctmm_anim,m.ouf)
+summary(M.OUF)
+
+UD0 <- akde(ctmm_anim,M.IID)
+UD2 <- akde(ctmm_anim,M.OUF)
+UD2w <- akde(ctmm_anim,M.OUF,weights=TRUE) # for irregular sampling intervals
+summary(UD0);summary(UD2);summary(UD2w)
+
+# calculate one extent for all UDs
+EXT <- extent(list(UD0,UD2,UD2w),level=0.95)
+EXT
+
+par(mfrow=c(2,2))
+plot(ctmm_anim,UD=UD0,xlim=EXT$x,ylim=EXT$y)
+title(expression("IID KDE"["C"]))
+plot(ctmm_anim,UD=UD2,xlim=EXT$x,ylim=EXT$y)
+title(expression("OUF AKDE"["C"]))
+plot(ctmm_anim,UD=UD2w,xlim=EXT$x,ylim=EXT$y)
+title(expression("weighted OUF AKDE"["C"]))
+
+
+
+############################################################################################
+library(amt)
+#continue with SSFs for selection analysis
+#https://cran.r-project.org/web/packages/amt/vignettes/p4_SSF.html
+
+# or discuss our paper Schlaegel et al. in prep.
+
+############################################################################################
+########## animate movement path with moveVis - take care, takes a lot of computation time !
+############################################################################################
+
+### not run!
+### aprox 30 min for 300 frames (in my computer)
+# http://movevis.org/index.html#get-started
+#move_data <- align_move(my_fox, res = 20, unit = "mins")
+#frames <- frames_spatial(move_data[1:100,], # restricted to only 100 data points!
+#                         path_colours = c("blue"),
+#                         map_service = "osm",
+#                         map_type = "topographic",
+#                         alpha = 0.5)
+## alternative with satellite data as background
+##frames <- frames_spatial(move_data[1:100,], map_service = "mapbox", map_type = "satellite",
+##                         map_token = "YOUR_MAPBOX_TOKEN")
+#length(frames)
+#animate_frames(frames, out_file = "example_1.gif",overwrite=TRUE)
+
+```
+
+```{r, echo=FALSE, eval=FALSE, results='hide'}
+## TODO later
+## work with d6berlin - load imperviousness and create random points and check the difference
+## recurse analysis - find favourite places of Q
+```
+
+
+# END
+
+Adding the session info can be very helpful when going back to old scripts or 
+using scripts of others:
+
+<details><summary>Session Info</summary>
+
+```{r session-info}
+sessionInfo()
+```
+
+</details>
+
