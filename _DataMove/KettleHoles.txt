@@ -1,4 +1,0 @@
-No	Wo	MyX	MyY	MyVar1	MyVar2
-1	Huette	3395079	5864750	37	PlantCommunity x
-2	MAN	3390991	5867647	42	PlantCommunity y
-3	Wiese	3393891	5864410	31	PlantCommunity z

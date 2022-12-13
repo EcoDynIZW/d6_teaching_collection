@@ -1,0 +1,3 @@
+<?xml version="1.0"?>
+<!--<!DOCTYPE metadata SYSTEM "http://www.esri.com/metadata/esriprof80.dtd">-->
+<metadata xml:lang="en"><Esri><MetaID>{D9992553-3B39-4603-8498-D1B0CCD44064}</MetaID><CreaDate>20161002</CreaDate><CreaTime>18504300</CreaTime><SyncOnce>TRUE</SyncOnce><DataProperties><lineage><Process ToolSource="C:\Program Files (x86)\ArcGIS\ArcToolbox\Toolboxes\Data Management Tools.tbx\AddXY" Date="20161002" Time="185043">AddXY FCsim FCsim</Process></lineage></DataProperties></Esri></metadata>

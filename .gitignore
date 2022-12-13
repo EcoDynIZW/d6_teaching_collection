@@ -1,15 +1,6 @@
 # Ignore the directory
 
-_DataBerlin/animal_data
-_DataBerlin/Raster_ascii
-_DataBerlin/Raster_future
-_DataBerlin/Raster_geotiff
-_DataBerlin/Shapefiles
-
-_DataBorneo/BaseMaps
-_DataBorneo/BaseRecords
-_DataBorneo/FutureMaps
-_DataBorneo/IUCN_Mammal_Ranges
+data_borneo/IUCN_Mammal_Ranges
 
 /R_helper_functions
 /img
