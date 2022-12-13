@@ -40,9 +40,10 @@ code {
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, 
                       fig.width = 9, fig.height = 6, dev = "ragg_png")
-#knitr::opts_knit$set(root.dir = 'C:/Users/kramer/PopDynIZW Dropbox/Steph Kramer')
+#knitr::opts_knit$set(root.dir = 'M:/IZW/github_local_Mdrive/d6_teaching_collection')
 #or on GUI: knit -> knit directory -> project directory
 ```
+
 
 
 # Basics
@@ -53,23 +54,29 @@ For deepening your R skills, I recommend the tutorials of
 
 * https://ourcodingclub.github.io/tutorials.html
 
-They provide screenshots and glossaries of the most important functions in the end.
+They provide screenshots and glossaries of the most important functions at the end.
+<br>
+I am actually a big fan of R cheat sheets which provide the basic functions in an overview format. For this course, please download and use the base R cheat sheet here: 
+* https://iqss.github.io/dss-workshops/R/Rintro/base-r-cheat-sheet.pdf
 
 
 ## Setting the work directory
 
-Please set your OWN working directory! That is, the path in your computer to the 
-folder where you want to save your course script and material. Use 
+Please set your OWN working directory if you have not used our folder structure. That is, the path in your computer to the folder where you want to save your course script and material. Use 
 function `paste()`.
 
 ```{r, eval=FALSE}
-getwd() #check where you are on your PC, change it to your folder
-# you can skip the following if you are already working in a project
-setwd('C:/Users/kramer/PopDynIZW Dropbox/Steph Kramer/_GitHub/Course1_IntroR')
+getwd() # check where you are on your PC, change the work directory (wd) to your folder
+
+# e.g. by setting the work directory (wd) explicitly:
+
+#setwd('M:/IZW/github_local_Mdrive/d6_teaching_collection') # adjust if needed and run the line!
 #-- no need to do so if you created an R-project! --
 
 # to keep folders clean, store all output in a separate folder
-output_wd <- paste("C:/Users/kramer/PopDynIZW Dropbox/Steph Kramer", "/", "output_to_delete", sep = '')
+# Please note: for now, this is just text/ a string 
+# pointing to a location in your directory, not yet a folder!
+#output_wd <- paste("M:/IZW/github_local_Mdrive/d6_teaching_collection", "/", "output", sep = '') #TODO funktioniert nicht
 ```
 
 
@@ -149,7 +156,7 @@ This function needs further parameters (called *Arguments* in the help)
 ### Assign values to the function
 
 ```{r}
-#- Use the command 'c' - it combines values into a vector or list
+#- Use the command 'c' - it combines values into a vector or list to create 'data'
 vector_of_numbers <- c(22, 65, 101, 86, 110)
 # e.g. wingspan of dragonflies in mm 
 vector_of_numbers
@@ -178,7 +185,7 @@ sum(x = vector_of_numbers)
 
 ```{r}
 # Assign the assigned values
-wsp_drfly <- vector_of_numbers #wingspan of dragonflies
+wsp_drfly <- vector_of_numbers # wingspan of dragonflies
 wsp_drfly
 mean(x = wsp_drfly)
 
@@ -460,10 +467,16 @@ For effective data manipulation, learn the 'tidyverse' piping language which com
 ## Saving and Reading Files 
 
 ```{r}
-getwd() # to change use setwd(), e.g. setwd('../Output')
+getwd() # check where your output will be saved
+# to change use setwd(), e.g. setwd('../Output')
 write.csv(x = wsp_table, file = "wsp.csv", row.names = FALSE)
 wsp <- read.csv(file = "wsp.csv", header = T)
 head(x = wsp)
+
+# the filename can be used to directly store the file under the output-folder
+#wsp_filename <- paste0(output_wd,"/","wsp.csv") # TODO - funktionierte nicht beim knitten
+#wsp_filename
+#write.csv(x = wsp_table, file = wsp_filename, row.names = FALSE)
 ```
 
 <br>
@@ -486,7 +499,7 @@ plot(x = wsp$wingspan)
 Use command *ifelse* to define colors PER species
 
 ```{r}
-color_for_insect_type <- ifelse(test = wsp$insect == 'dragonfly', yes = 'red', no = 'blue')
+color_for_insect_type <- ifelse(wsp$insect == 'dragonfly', yes = 'red', no = 'blue')
 # color_for_insect_type
 plot(x = wsp$wingspan, col= color_for_insect_type)
 ```
@@ -859,6 +872,10 @@ this bar plot with a header and column names as a pdf.<br><br>
 This is very helpful for understanding your own data (i.e. simulate data where
 you know exactly what happens and where you know what should come out) or
 when you have repeated operations to do.
+<br>
+@TUBerlin-Students , skip this part. You don't need to go through 
+the following without prior lectures in statistics.
+<br>
 
 ## Simulate your own data
 
