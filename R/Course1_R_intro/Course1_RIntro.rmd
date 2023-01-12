@@ -48,35 +48,73 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
 
 # Basics
 
-The first outline of this course has been developed in 2012 by Alex Courtiol and has ever since 'evolved' in courses I gave and polished by Moritz and Cedric. This short intro contains the most important commands and functions to handle and manipulate data and to follow the course 'biodiversity dynamics. Open your RStudio and type or paste the lines in the grey boxes into your R script, run the lines and follow the course... Or: Click on *Code/Download ZIP* and download and unzip the folder. However, for learning reasons, I actually recommend to even type the functions and commands by hand!
-
-For deepening your R skills, I recommend the tutorials of  
+The first outline of this course has been developed in 2012 by Alex Courtiol and has ever since 'evolved' in courses I gave and polished by Moritz and Cedric. This short intro contains the most important commands and functions to handle and manipulate data and to follow the course 'biodiversity dynamics.
+<br> 
+Disclaimer: This is not a beginner's course to learn R! To deepen your R skills, I recommend the tutorials of <br> 
 
 * https://ourcodingclub.github.io/tutorials.html
-
+<br>
 They provide screenshots and glossaries of the most important functions at the end.
 <br>
-I am actually a big fan of R cheat sheets which provide the basic functions in an overview format. For this course, please download and use the base R cheat sheet here: 
+I am actually a big fan of R cheat sheets which provide the basic functions in an overview format. For this course, please download and use the base R cheat sheet here: <br>
 * https://iqss.github.io/dss-workshops/R/Rintro/base-r-cheat-sheet.pdf
+
+<br>
+
+If you have downloaded the whole course folder, the easiest is to double-click on the 
+R-project file 'd6_teaching_collection.Rproj'. Go to File -> New File -> R Script (or R Markdown) 
+to open an empty script and save it under a different name.
+
+<br>
+
+Then type or copy-paste the code lines in the grey boxes of the provided Course1_RIntro.rmd OR Course1_RIntro.html file into your R script, run the lines and follow the course... For learning reasons, I actually recommend to even type the functions and commands 'by hand' and not only run the code by clicking the code lines from of the .rmd file.
+
 
 
 ## Setting the work directory
 
-Please set your OWN working directory if you have not used our folder structure. That is, the path in your computer to the folder where you want to save your course script and material. Use 
-function `paste()`.
+If you have opened the R-Project, the working directory is automatically set to the root directory (= d6_teaching_collection).
+
+### Optional - set work directory manually
+
+Please set your OWN working directory if you have **not** used our folder structure or opened the R-Project as described above. That is, you have to set manually the path in your computer to the folder where you want to save your course script and material. 
 
 ```{r, eval=FALSE}
-getwd() # check where you are on your PC, change the work directory (wd) to your folder
+# check where you are on your PC with getwd() = get working directory:
+getwd()
+```
 
-# e.g. by setting the work directory (wd) explicitly:
+E.g., the output could be: 'C:/yourname/somewhere'.
+Then, change the work directory (wd) to your folder by setting the work directory (wd) explicitly with the function `setwd()`.
 
-#setwd('M:/IZW/github_local_Mdrive/d6_teaching_collection') # adjust if needed and run the line!
-#-- no need to do so if you created an R-project! --
+```{r, eval=FALSE}
 
-# to keep folders clean, store all output in a separate folder
-# Please note: for now, this is just text/ a string 
-# pointing to a location in your directory, not yet a folder!
-#output_wd <- paste("M:/IZW/github_local_Mdrive/d6_teaching_collection", "/", "output", sep = '') #TODO funktioniert nicht
+# setwd('C:/IZW/github_local_Mdrive/d6_teaching_collection') # adjust and run the line!
+
+```
+
+To keep folders clean, store all output in a separate folder called 'output'. First, create the path to the folder:
+
+```{r}
+# output_wd <- "M:/IZW/github_local_Mdrive/d6_teaching_collection/output") 
+
+
+## More elegantly with the function paste0() which is pasting text strings together:
+## first store your root folder in a name object:
+
+root_wd <- get_wd() # which has been set in the previous step to the wanted location
+output_wd <- paste0(root_wd,"/","output_wd")
+
+```
+
+Please note: for now, this is just text/ a string pointing to a location in your directory, not yet a folder! Create the folder either in your explorer manually, or more elegantly with `dir.create()`. To avoid overwriting existing folders, ask first if the folder exists. 
+
+```{r}
+dir.exists(output_wd)
+# if it does not exist, then create it:
+
+dir.create(output_wd) # run line if needed
+ 
 ```
 
 
@@ -87,7 +125,7 @@ Use hashtags # for comments
 ```{r}
 # "comment"
 1 + 1
-# store calculus etc in an object
+# store calculus etc in an object called 'what_is_one_plus_one'
 what_is_one_plus_one <- 1 + 1
 # display result
 what_is_one_plus_one
@@ -129,6 +167,9 @@ what_is_one_plus_one <- 1 + 1
 
 ## Basics: Getting help
 
+
+Get used to working with ? or ?? in front of a function to learn to work with the R help. In the following, the example shows how to get help to know how R should be cited with the function citation().
+
 ```{r, eval=FALSE}
 # <function_name> or <function_name>() shows the function
 citation() # how to cite R
@@ -149,7 +190,9 @@ mean() # what's wrong?
 This function needs further parameters (called *Arguments* in the help)
 
 ```{r, eval=FALSE}
-?mean() # which parameters are needed?
+?mean() # which parameters are needed? 
+
+# The function actually needs data in form of a vector, that will be handed over with the argument x
 ```
 
 
@@ -168,6 +211,11 @@ mean(x = vector_of_numbers)
 
 ```{r}
 mean(x = vector_of_numbers) # n.b. better use argument names (x= ...)
+
+# since x is the first argument in the parentheses of the function, 
+# you could also omit it, e.g. simply write
+mean(vector_of_numbers)
+# but this is not recommended
 ```
 
 ```{r, eval = F}
@@ -178,13 +226,16 @@ mean(y = vector_of_numbers) # what's wrong?
 # analogously: more useful functions/ commands:
 sqrt(x = vector_of_numbers) # exp(), sin(), log()...
 sum(x = vector_of_numbers)
+
+# If you do not understand what the functions do, call help by running
+# ?sum()
 ```
 
 
 ### Applying functions
 
 ```{r}
-# Assign the assigned values
+# Assign the assigned values, i.e. simply 'copy' the values to a new object
 wsp_drfly <- vector_of_numbers # wingspan of dragonflies
 wsp_drfly
 mean(x = wsp_drfly)
