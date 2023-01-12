@@ -50,14 +50,15 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
 
 The first outline of this course has been developed in 2012 by Alex Courtiol and has ever since 'evolved' in courses I gave and polished by Moritz and Cedric. This short intro contains the most important commands and functions to handle and manipulate data and to follow the course 'biodiversity dynamics.
 <br> 
-Disclaimer: This is not a beginner's course to learn R! To deepen your R skills, I recommend the tutorials of <br> 
+Disclaimer: This is not a beginner's course to learn R! To deepen your R skills, I recommend one of the tutorials of <br> 
 
-* https://ourcodingclub.github.io/tutorials.html
+* https://ourcodingclub.github.io/tutorials.html <br>
+* https://cran.r-project.org/doc/contrib/Paradis-rdebuts_en.pdf  <br>
+* https://www.r-bloggers.com/list-of-free-online-r-tutorials/ <br>
+
 <br>
-They provide screenshots and glossaries of the most important functions at the end.
-<br>
-I am actually a big fan of R cheat sheets which provide the basic functions in an overview format. For this course, please download and use the base R cheat sheet here: <br>
-* https://iqss.github.io/dss-workshops/R/Rintro/base-r-cheat-sheet.pdf
+
+I am actually a big fan of R cheat sheets which provide the basic functions in an overview format. For this course, please download (and use) the [base R cheatsheet](https://iqss.github.io/dss-workshops/R/Rintro/base-r-cheat-sheet.pdf).
 
 <br>
 
@@ -286,9 +287,13 @@ wsp_drfly2 * 10 - 100
 ### Logical operators
 
 ```{r, eval=-1}
-?base::Logic 
-wsp_drfly2 > 10 # >=, <, <=, &, | , !=, ==
+?base::Logic     # overview over logical operations
+wsp_drfly2 > 10  # >=, <, <=, &, | , !=, ==
 wsp_drfly2 == 75 # n.b. difference to = or <- !!!!
+
+# wsp_drfly2 == 75  # IS the value (or which one) EQUAL to 75 ?
+# wsp_drfly2 <- 75  # assign the object wsp_drfly2 the value 75 # NOT RUN !
+# wsp_drfly2 = 75   # same as <-  # NOT RUN !
 ```
 <br>
 
@@ -299,10 +304,15 @@ wsp_drfly2 == 75 # n.b. difference to = or <- !!!!
 
 #### Repeat data with command *rep*
 
+Do the following so that we create a big data file:
 ```{r}
 # wingspan of butterflies in mm 
 wsp_butfly2 <- c(12, 48, 79, 135, 189, 88, 15, 63, 21, 81, 148, 50)
-data_length <- length(x = wsp_butfly2) #12
+```
+
+In the following code line, we extract the length of the data vector dynamically. You could of course directly write 12 into the code lines for creating the data set insect_type, but it is not recommended to write fixed values into code. Imagine you add one data point / measure into your data frame in the next field season: if you still would use the fixed value of 12, this new measurement would not be included into your dataframe or analysis. So please 
+```{r}
+data_length <- length(x = wsp_butfly2) # 12 
 wsp <- c(wsp_drfly2, wsp_butfly2)
 insect_type <- factor(x = c(rep('dragonfly', data_length),
                             rep('butterfly', data_length)))
