@@ -101,7 +101,7 @@ To keep folders clean, store all output in a separate folder called `output`. Fi
 ## first store your root folder in a name object:
 
 root_wd <- getwd() # which has been set in the previous step to the wanted location
-output_wd <- paste0(root_wd,"/","output_wd")
+output_wd <- paste0(root_wd,"/","output")
 
 ```
 
@@ -111,7 +111,7 @@ Please note: for now, this is just text (a character string denoted with ' ') po
 dir.exists(output_wd)
 # if it does not exist, then create it:
 
-# dir.create(output_wd) # run line if needed
+# dir.create(output_wd) # run line if needed -> creates folder 'output'
  
 ```
 
