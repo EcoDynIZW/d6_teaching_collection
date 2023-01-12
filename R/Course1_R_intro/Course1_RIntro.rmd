@@ -257,10 +257,18 @@ min(wsp_drfly2) #analogous max, var, sd, range, median
 
 ```{r}
 unique(x = wsp_drfly2) # n.b. - does not sort vector
-# n.b. - if you want to: sort(unique(x = wsp_drfly2)) # mind: you can nest functions!
+```
 
-length(x = wsp_drfly2)
-summary(object = wsp_drfly2)
+
+You can also nest functions in functions. The inner function is evaluated first: 
+```{r}
+sort(unique(x = wsp_drfly2)) # first get unique numbers, then sort them
+```
+
+
+```{r}
+length(x = wsp_drfly2) # length of data vector
+summary(object = wsp_drfly2) # helpful function for a quick summary statistics overview
 ```
 
 
