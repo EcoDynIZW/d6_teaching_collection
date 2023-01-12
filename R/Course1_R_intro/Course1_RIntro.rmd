@@ -56,20 +56,17 @@ Disclaimer: This is not a beginner's course to learn R! To deepen your R skills,
 * https://cran.r-project.org/doc/contrib/Paradis-rdebuts_en.pdf  <br>
 * https://www.r-bloggers.com/list-of-free-online-r-tutorials/ <br>
 
-<br>
 
 I am actually a big fan of R cheat sheets which provide the basic functions in an overview format. For this course, please download (and use) the [base R cheatsheet](https://iqss.github.io/dss-workshops/R/Rintro/base-r-cheat-sheet.pdf).
-
 <br>
 
 If you have downloaded the whole course folder, the easiest is to double-click on the 
 R-project file 'd6_teaching_collection.Rproj'. Go to File -> New File -> R Script (or R Markdown) 
 to open an empty script and save it under a different name.
-
 <br>
 
 Then type or copy-paste the code lines in the grey boxes of the provided Course1_RIntro.rmd OR Course1_RIntro.html file into your R script, run the lines and follow the course... For learning reasons, I actually recommend to even type the functions and commands 'by hand' and not only run the code by clicking the code lines from of the .rmd file.
-
+<br>
 
 
 ## Setting the work directory
@@ -103,7 +100,7 @@ To keep folders clean, store all output in a separate folder called 'output'. Fi
 ## More elegantly with the function paste0() which is pasting text strings together:
 ## first store your root folder in a name object:
 
-root_wd <- get_wd() # which has been set in the previous step to the wanted location
+root_wd <- getwd() # which has been set in the previous step to the wanted location
 output_wd <- paste0(root_wd,"/","output_wd")
 
 ```
