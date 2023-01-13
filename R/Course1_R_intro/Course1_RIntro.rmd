@@ -38,6 +38,7 @@ code {
 ---
 
 ```{r setup, include=FALSE}
+# DO NOT RUN IN R CONSOLE
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, 
                       fig.width = 9, fig.height = 6, dev = "ragg_png")
 #knitr::opts_knit$set(root.dir = 'M:/IZW/github_local_Mdrive/d6_teaching_collection')
@@ -73,9 +74,15 @@ Then type or copy-paste the code lines in the grey boxes of the provided `Course
 
 If you have opened the `R`-Project, the working directory is automatically set to the root directory (= `d6_teaching_collection`).
 
+
+
+
+<details><summary>Optional - set work directory manually</summary>
+
 ### Optional - set work directory manually
 
-Please set your OWN working directory if you have **not** used our folder structure or opened the R-Project as described above. That is, you have to set manually the path in your computer to the folder where you want to save your course script and material. 
+For advanced `R`users only: Please set your OWN working directory **only** if you have **not** used our folder structure or opened the R-Project as described above. That is, you have to set manually the path in your computer to the folder where you want to save your course script and material. In the following, I have disabled the command lines with `#` so that the
+course folder structure is not destroyed if you accidentally run the following lines.
 
 ```{r, eval=FALSE}
 # check where you are on your PC with getwd() = get working directory:
@@ -94,6 +101,7 @@ Then, change the work directory (wd) to your folder by setting the work director
 To keep folders clean, store all output in a separate folder called `output`. First, create the path to the folder:
 
 ```{r}
+## adjust and run the line if you are NOT using our folder structure
 # output_wd <- "M:/IZW/github_local_Mdrive/d6_teaching_collection/output") 
 
 
@@ -114,6 +122,8 @@ dir.exists(output_wd)
 # dir.create(output_wd) # run line if needed -> creates folder 'output'
  
 ```
+</details>
+
 
 
 ## Basics: R for calculus
@@ -190,14 +200,15 @@ This function needs further parameters (called *Arguments* in the help)
 ```{r, eval=FALSE}
 ?mean() # which parameters are needed? 
 
-# The function actually needs data in form of a vector, that will be handed over with the argument x
+# The function actually needs data (= x), e.g. in form of a data vector, that will be handed over with the argument x
 ```
 
 
 ### Assign values to the function
 
 ```{r}
-#- Use the command 'c' - it combines values into a vector or list to create 'data'
+#- Use the command 'c' (= concatenate)
+#- it combines values into a vector or list to create 'data'
 vector_of_numbers <- c(22, 65, 101, 86, 110)
 # e.g. wingspan of dragonflies in mm 
 vector_of_numbers
@@ -207,13 +218,15 @@ mean(x = vector_of_numbers)
 
 ### Arguments
 
+Arguments for functions are described in the help of `R`.
 ```{r}
 mean(x = vector_of_numbers) # n.b. better use argument names (x= ...)
 
 # since x is the first argument in the parentheses of the function, 
 # you could also omit it, e.g. simply write
 mean(vector_of_numbers)
-# but this is not recommended
+# but this is not recommended, because it leads to errors, 
+# especially when it comes to spatial plotting
 ```
 
 ```{r, eval = F}
@@ -232,6 +245,13 @@ sum(x = vector_of_numbers)
 
 ### Applying functions
 
+Very helpful if you want to add data or change the value of existing data. We are assigning our numbers now to an object which will contain the wingspans of dragonflies.
+
+
+![dragonfly](http://phylopic.org/assets/images/submissions/00415ca0-dbca-4312-b871-840fe1c7031b.512.png)
+
+
+
 ```{r}
 # Assign the assigned values, i.e. simply 'copy' the values to a new object
 wsp_drfly <- vector_of_numbers # wingspan of dragonflies
@@ -241,15 +261,19 @@ mean(x = wsp_drfly)
 # Adding data, e.g. new measurements
 wsp_drfly2 <- c(vector_of_numbers, wsp_drfly, 69 ,73)
 wsp_drfly2
+
+# tip of the day: when you want to see the output of a line directly, 
+# put everything into parentheses:
+(wsp_drfly2 <- c(vector_of_numbers, wsp_drfly, 69 ,73))
 ```
 
 
 ## Useful functions
 
 ```{r}
-table(wsp_drfly2) # returns the counts
+table(wsp_drfly2) # returns the counts of the measurements - like pivot in excel
 sort(x = wsp_drfly2)
-min(wsp_drfly2) #analogous max, var, sd, range, median
+min(wsp_drfly2) #analogously: max, var, sd, range, median
 ```
 
 
@@ -273,6 +297,8 @@ summary(object = wsp_drfly2) # helpful function for a quick summary statistics o
 ## Operators 
 
 ### Arithmetic operators
+
+What happens: the mathematical operation is applied to each pointer (= measurement) in your vector (note the difference to a function like `sum()`, which was summing the values of the vector).
 
 ```{r, eval=-1}
 ?Arithmetic
@@ -299,30 +325,37 @@ wsp_drfly2 == 75 # n.b. difference to = or <- !!!!
 
 ## Create Data Set with Vectors
 
-#### Repeat data with command *rep*
+Do the following so that we create a big data file, which will be called 'insect_type', and which will contain the wing spans of butterflies and dragonflies.
 
-Do the following so that we create a big data file:
+
+#### Repeat data with command `rep()`
+
+
 ```{r}
-# wingspan of butterflies in mm 
+#- wingspan of butterflies in mm 
 wsp_butfly2 <- c(12, 48, 79, 135, 189, 88, 15, 63, 21, 81, 148, 50)
 ```
 
-In the following code line, we extract the length of the data vector dynamically. You could of course directly write 12 into the code lines for creating the data set insect_type, but it is not recommended to write fixed values into code. Imagine you add one data point / measure into your data frame in the next field season: if you still would use the fixed value of 12, this new measurement would not be included into your dataframe or analysis. So please 
+In the following code line, we extract the length of this  data vector 'dynamically', that means depending on potential changes in the data. We have 12 measurements. You could of course directly write '12' into the code lines for creating the data set 'insect_type', but it is not recommended to write fixed values into code. Imagine you add one more measure into your `data.frame` in the next field season: if you still would use the fixed value of 12, this new measurement would not be included into your `data.frame` or analysis. So please code dynamically as much as possible (and if that is not possible, define the variable globally at the very beginning of your code. but this is another story which will be told another time).
 ```{r}
-data_length <- length(x = wsp_butfly2) # 12 
+data_length <- length(x = wsp_butfly2) # 12 -> dynamic variable data_length
 wsp <- c(wsp_drfly2, wsp_butfly2)
+
+#- code with dynamic variables:
 insect_type <- factor(x = c(rep('dragonfly', data_length),
                             rep('butterfly', data_length)))
-# n.b. correct position of parentheses when functions nested
+#- note the correct position of parentheses when functions are nested!
+#- The rainbow parenthesis option in RStudio helps (see main course homepage)
 insect_type
 ```
 
 
 ## Dataframe [df]
 
+Very helpful commands if you want to know what is stored in your object.
 ```{r, tidy=TRUE}
 wsp_table <- data.frame(wingspan = wsp, insect = insect_type)
-head(x = wsp_table) # head() returns first 6 rows # tail()
+head(x = wsp_table) # head() returns first rows # tail() - last rows
 wsp_table
 
 ## Retrieving data from df
@@ -1151,7 +1184,3 @@ sessionInfo()
 
 
 # END
-
-```{r session-info}
-sessionInfo()
-```
