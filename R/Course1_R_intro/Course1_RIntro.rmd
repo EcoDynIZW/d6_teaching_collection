@@ -245,7 +245,7 @@ sum(x = vector_of_numbers)
 
 ### Applying functions
 
-Very helpful if you want to add data or change the value of existing data. We are assigning our numbers now to an object which will contain the wingspans of dragonflies.
+Very helpful if you want to add data or change the value of existing data. We are assigning our numbers now to an object which will contain the wingspans (wsp) of dragonflies (drfly) (in mm).
 
 
 <img src="http://phylopic.org/assets/images/submissions/00415ca0-dbca-4312-b871-840fe1c7031b.512.png" width="100" />
@@ -299,7 +299,7 @@ summary(object = wsp_drfly2) # helpful function for a quick summary statistics o
 
 ### Arithmetic operators
 
-What happens: the mathematical operation is applied to each pointer (= measurement) in your vector (note the difference to a function like `sum()`, which was summing the values of the vector).
+What happens: the mathematical operation is applied to each element (= measurement) in your vector (note the difference to a function like `sum()`, which was summing the values of the vector).
 
 ```{r, eval=-1}
 ?Arithmetic
@@ -326,7 +326,7 @@ wsp_drfly2 == 75 # n.b. difference to = or <- !!!!
 
 ## Create Data Set with Vectors
 
-Do the following so that we create a big data file, which will be called 'insect_type', and which will contain the wing spans of butterflies and dragonflies.
+Do the following so that we create a big data file, which will be called 'wsp_table', and which will contain the wing spans of butterflies and dragonflies.
 
 
 #### Repeat data with command `rep()`
@@ -337,10 +337,13 @@ Do the following so that we create a big data file, which will be called 'insect
 wsp_butfly2 <- c(12, 48, 79, 135, 189, 88, 15, 63, 21, 81, 148, 50)
 ```
 
-In the following code line, we extract the length of this  data vector 'dynamically', that means depending on potential changes in the data. We have 12 measurements. You could of course directly write '12' into the code lines for creating the data set 'insect_type', but it is not recommended to write fixed values into code. Imagine you add one more measure into your `data.frame` in the next field season: if you still would use the fixed value of 12, this new measurement would not be included into your `data.frame` or analysis. So please code dynamically as much as possible (and if that is not possible, define the variable globally at the very beginning of your code. but this is another story which will be told another time).
+In the following code line, we extract the length of this  data vector 'dynamically', that means depending on potential changes in the data. We have 12 measurements. You could of course directly write '12' into the code lines for creating the vector 'insect_type' (see below), but it is not recommended to write fixed values into code. Imagine you add one more measure into your `data.frame` in the next field season: if you still would use the fixed value of 12, this new measurement would not be included into your `data.frame` or analysis. So please code dynamically as much as possible (and if that is not possible, define the variable globally at the very beginning of your code. but this is another story which will be told another time).
 ```{r}
 data_length <- length(x = wsp_butfly2) # 12 -> dynamic variable data_length
 wsp <- c(wsp_drfly2, wsp_butfly2)
+#- everything is in one line (vector) and we do not know whether 
+#- the measurement belongs to dragonfly or butterfly
+#- we therefore repeat the info 'data_length' (=12) times
 
 #- code with dynamic variables:
 insect_type <- factor(x = c(rep('dragonfly', data_length),
@@ -353,41 +356,59 @@ insect_type
 
 ## Dataframe [df]
 
-Very helpful commands if you want to know what is stored in your object.
+We now create a `data.frame`object, which is similar to an excel table with rows (= first dimension) and columns (= second dimension).
 ```{r, tidy=TRUE}
 wsp_table <- data.frame(wingspan = wsp, insect = insect_type)
 head(x = wsp_table) # head() returns first rows # tail() - last rows
 wsp_table
+```
 
+
+```{r, tidy=TRUE}
 ## Retrieving data from df
 str(object = wsp_table)
-wsp
-wsp_table$wingspan # access data with dollar sign
+```
+
+
+```{r, tidy=TRUE}
+wsp_table$wingspan # access columns with dollar $ sign
 ```
 
 <h3 class='exercise'>Question Q1.1</h3>
+**What is the average wingspan of both dragonflies and butterflies?**
+<br>
 
-**What is the average of `wsp`?**
+use `wsp` to answer Q1.1.
 <br>
 
 
 ### Indexing elements
 
+This is an important part to understand how you can access single values within your `R`-objects, e.g. `data.frame`s; it is related to the *dimensions* of your objects. Indexing works with  these `[`   `]`  parentheses.
+
+
 #### Indexing a vector[element]
 
+Remember the first vector we created? It is just a dimensionless, single line. Now we want to know what the value of the third element is: 
 ```{r}
 vector_of_numbers[3]
-# vector_of_numbers[c(1, 3:5)]
-# why c(...)? Because the comma is another dimension.
-# dimension in R: [row, column]
-# Not run: vector_of_numbers[1, 3:5] #error
 ```
 
 #### Indexing with [row,column]
 
+`data.frame`s have two dimensions, rows and columns. Our wingspan table has two dimensions, i.e. 24 rows and 2 columns, with the first column holding the measurements, and the second the insect type.
 ```{r}
-wsp_table[2, 2] # == wsp_table$insect[2] #!
-wsp_table[2, 1] # == wsp_table$wingspan[2] #!
+dim(wsp_table)
+```
+
+Now you can use this info to point to certain row/column combinations. Note: the *comma* is separating the dimensions, so always put commas at the correct place! 
+```{r}
+wsp_table[2, 2] # == wsp_table$insect[2]   # alternative !
+wsp_table[2, 1] # == wsp_table$wingspan[2] # alternative !
+```
+
+If you leave the space before or after the comma empty, you will get the whole content of the table, i.e. the whole row or the whole column content. Try it out:
+```{r}
 wsp_table[2, ]
 ```
 
@@ -399,28 +420,60 @@ wsp_table[, 2]
 wsp_table[, 3] # what's wrong?
 ```
 
+
+You can also retrieve more than one value, i.e. here the information on the insect type for three row lines 2 - 5. 
 ```{r}
-wsp_table[c(2:5), 2]
+
+wsp_table[2:5, 2]
+```
+
+Remember what you need to do if you want to create to non-consecutive elements, i.e. elements 2, 6,7,8? You cannot use the *comma* to list them, because this would ask for another dimension. Solution, use the function `c()`.
+
+```{r}
+wsp_table[c(2,6:8), 2]
+```
+
+Can we do the same for dimensionless vectors:
+```{r}
+vector_of_numbers[c(1, 3:5)]
+# why c(...)? Because the comma is another dimension.
+# dimension in R: [row, column]
+# Not run: vector_of_numbers[1, 3:5] #error
 ```
 
 
 ### Dataframe queries
+R contains a lot of in-built functions to make data queries simple.
+
 
 #### Function `tapply` / table apply 
 
 **What is the average wingspan PER insect species?**
 
+To answer this, we first must subset the data and select (index) columns with the two different insect types:
 ```{r}
 mean(x = wsp_table$wingspan[wsp_table$insect == 'dragonfly']) # == !
-#- more elegant: function 'tapply'
+mean(x = wsp_table$wingspan[wsp_table$insect == 'butterfly']) # == !
+```
+
+The function `tapply()` does this in one row, and you could also use other functions specified in the argument `FUN`.
+```{r}
 tapply(X = wsp_table$wingspan, INDEX = wsp_table$insect, FUN = mean)
 ```
 
+Do you remember the other function we already had to retrieve some standard information of your data? But mind the difference! `summary()` works per column, that is, here it does not distinguish between the insect types. To get the summary-statistics of each insect, the information per insect must be stored in separate columns. We will come to that later.
+```{r}
+summary(wsp_table)
+```
+
+
 
 #### Subsetting 
+If you only want to work with a part of your data
 
 ##### simple: function `subset`
 
+Make a table with data where the wingspan of insects is smaller 65 mm.
 ```{r}
 wsp_sub <- subset(x = wsp_table, subset = wsp_table$wingspan <= 65)
 nrow(wsp_sub) # try also: dim(wsp_sub),dim(wsp_sub)[1]
@@ -429,11 +482,15 @@ wsp_sub
 
 ##### A bit more complicated: function `which`
 
+This function does not return a subset `data.frame`, it only returns the index to the respective elements, i.e. in the following case all rows containing the requested information (wingspan <= 65). 
+
 ```{r}
-wsp_tmp <- which(x = wsp_table$wingspan <= 65)
-wsp_tmp
-wsp_which <- wsp_table[wsp_tmp,]
-wsp_which
+(wsp_tmp <- which(x = wsp_table$wingspan <= 65))
+```
+
+To then get the information of the whole data set, you need to insert the index into the `data.frame` again. Have a look at the row numbers.
+```{r}
+(wsp_which <- wsp_table[wsp_tmp,] )
 ```
 
 ### Data Manipulation
@@ -445,7 +502,7 @@ Omit rows using a minus sign
 ```{r}
 x <- wsp_which
 x
-x2 <- x[-c(1, 3), ] # remove rows
+x2 <- x[-c(1, 3), ] # remove rows 1 and 3
 x2
 ```
 
@@ -459,14 +516,14 @@ x22
 
 #### Adding rows/columns I
 
-##### Combine data with *rbind()*
+##### Combine data with `rbind()`
 
 ```{r}
 x3 <- rbind(x2, wsp_table)
 x3[1:10,] # n.b. new row names 41, 91 !
 ```
 
-##### Combine data with *cbind()*
+##### Combine data with `cbind()`
 
 ```{r}
 x4 <- cbind(vector_of_numbers[1:3], vector_of_numbers[3:5])
