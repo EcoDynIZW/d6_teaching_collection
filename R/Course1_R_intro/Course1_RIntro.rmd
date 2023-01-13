@@ -248,7 +248,8 @@ sum(x = vector_of_numbers)
 Very helpful if you want to add data or change the value of existing data. We are assigning our numbers now to an object which will contain the wingspans of dragonflies.
 
 
-![dragonfly](http://phylopic.org/assets/images/submissions/00415ca0-dbca-4312-b871-840fe1c7031b.512.png)
+<img src="http://phylopic.org/assets/images/submissions/00415ca0-dbca-4312-b871-840fe1c7031b.512.png" width="100" />
+
 
 
 
@@ -268,7 +269,7 @@ wsp_drfly2
 ```
 
 
-## Useful functions
+## Useful functions for analysis
 
 ```{r}
 table(wsp_drfly2) # returns the counts of the measurements - like pivot in excel
