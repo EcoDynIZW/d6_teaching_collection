@@ -1,10 +1,10 @@
 # Ignore the directory
 
-data_borneo/IUCN_Mammal_Ranges
+data/data_borneo/IUCN_Mammal_Ranges
 
 /R_helper_functions
 /img
-/output
+output
 /R_exercises_solutions
 
 

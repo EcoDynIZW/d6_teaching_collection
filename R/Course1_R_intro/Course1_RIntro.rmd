@@ -442,7 +442,8 @@ vector_of_numbers[c(1, 3:5)]
 ```
 
 
-### Dataframe queries
+### Data.frame queries
+
 R contains a lot of in-built functions to make data queries simple.
 
 
@@ -516,15 +517,17 @@ x22
 
 #### Adding rows/columns I
 
-##### Combine data with `rbind()`
+##### Combine data (rows) with `rbind()`
 
+This adds rows.
 ```{r}
 x3 <- rbind(x2, wsp_table)
-x3[1:10,] # n.b. new row names 41, 91 !
+x3[1:10,] # n.b. new row names 1 and 25 !
 ```
 
-##### Combine data with `cbind()`
+##### Combine data (columns) with `cbind()`
 
+This combines data to columns.
 ```{r}
 x4 <- cbind(vector_of_numbers[1:3], vector_of_numbers[3:5])
 x4
@@ -535,36 +538,55 @@ x4
 
 ## List
 
+Lists have the advantage that data can be of different length to be combined into an object, e.g. 10 measurements of dragonflies, and 12 of butterflies.
+
+
 #### List per grouping factor (here: insect type)
 
+Now we have created a list where each element contains the measurements per insect_type.
 ```{r}
 wsp_list <- list(dragonfly = wsp_drfly2, butterfly = wsp_butfly2)
 str(wsp_list)
+```
+
+Also here, we can retrieve summary statistics, however we must use the functions written for `list`-objects.
+```{r}
 wsp_list$dragonfly # == wsp_list[['dragonfly']]
 lapply(X = wsp_list, FUN = mean) # OR: mean(wsp_list$dragonfly)
 ```
 
 ## Matrix 
 
-Definition per row or col, looses headers!
-matrix setup per row
+Matrices are a third data type very useful for mathematical operations, or to plot spatial raster data.
 
+Definition per row or col, looses headers (rownames and colnames!
+
+matrix setup per row see argument `nrow` : 
 ```{r}
 wsp_matrix <- matrix(data = c(wsp_drfly2, wsp_butfly2), nrow = 2)
 wsp_matrix
-# Does this format ring a bell??
+# Does this format ring a bell?? -> spatial raster data
+```
+
+The matrix has lost rownames and colnames. You can define them again and then make queries based on the names again.
+```{r}
 rownames(x = wsp_matrix) <- c('dragonfly', 'butterfly')
 wsp_matrix[, 1]
 wsp_matrix['dragonfly', ] # == wsp_matrix[1, ]
 ```
 
-matrix setup per column:
+matrix setup per column see argument `ncol`:
 
 ```{r}
 wsp_matrix <- matrix(data = c(wsp_drfly2, wsp_butfly2), ncol = 2)
 wsp_matrix
 #head(wsp_matrix)
 #str(wsp_matrix)
+```
+
+Analoguously to above, you can query the matrix elements with `[` `]` or set column names and do the query based on names.
+
+```{r}
 wsp_matrix[, 1]
 colnames(x = wsp_matrix) <- c('dragonfly', 'butterfly')
 #wsp_matrix$dragonfly
@@ -573,9 +595,11 @@ wsp_matrix[, 'dragonfly'] # == wsp_matrix[, 1]
 
 #### Extracting data from matrix 
 
+Similar to `tapply()` and `lapply()`, the function `apply()` works for matrices:
 ```{r}
-#wsp_matrix <- matrix(c(wsp_drfly2,wsp_butfly2), ncol=2)
-#colnames(wsp_matrix) <- c('dragonfly','butterfly')
+#- use the matrix with column setup
+# wsp_matrix <- matrix(c(wsp_drfly2,wsp_butfly2), ncol=2)
+# colnames(wsp_matrix) <- c('dragonfly','butterfly')
 
 mean(x = wsp_matrix[, 1])
 apply(X = wsp_matrix, MARGIN = 2, FUN = mean)
@@ -583,7 +607,7 @@ apply(X = wsp_matrix, MARGIN = 2, FUN = mean)
 
 <h3 class='exercise'>Question Q1.2</h3>
 
-**What is meant with 'by 2'? Check the help!**
+**What is meant with 'MARGIN = 2'? Check the help!**
 <br>
 **What happens if you use 1 instead?**
 <br>
@@ -591,13 +615,18 @@ apply(X = wsp_matrix, MARGIN = 2, FUN = mean)
 
 ## Missing Data NA
 
+Sometimes (very often in ecology) we have missing data. Understanding how to handle missing data (NA - not available) is important.
 ```{r}
-wsp_fly2 <- c(1, 5, 4, 11, 8, 2, NA, 4, 2, 9, 8, NA)
+wsp_fly2 <- c(1, 5, 4, 11, 8, 2, NA, 4, 2, 9, 8, NA) # another insect type
 mean(x = wsp_fly2)
-# type ?mean  
+# type ?mean
+```
 
+Why doesn't it return a value? Because R does not want to automatically omit them, you have to specify how to deal with NAs:
+
+```{r}
 # How to deal with missing data?
-mean(x = wsp_fly2, na.rm = TRUE)
+mean(x = wsp_fly2, na.rm = TRUE) # NA remove = TRUE -> remove NAs
 ```
 
 ```{r}
@@ -608,32 +637,36 @@ lapply(X = wsp_l, FUN = mean, na.rm = TRUE)
 
 ## Data Manipulation: Summary
 
+Check the type of objects you are working with. This is very helpful especially when working with spatial data types.
 ```{r}
-#TRY
-# class(wsp_table) #class(wsp_matrix) #class(wsp_list)
-# on vectors: #class(insect_type) # class(wsp_l$dragonfly)
-# on skalars: #class(what_is_one_plus_one)
+#- TRY
+class(wsp_table) ; class(wsp_matrix) ; class(wsp_list)
+#-  on vectors: 
+class(insect_type) ; class(wsp_l$dragonfly)
+#- on skalars: 
+class(what_is_one_plus_one)
 ```
-
-For effective data manipulation, learn the 'tidyverse' piping language which comes with packages such as 'dplyr' and 'broom'.
-
+For effective data manipulation, learn the `tidyverse` piping language which comes with packages such as `dplyr` and `broom`.
 <br>
 
 # Managing Data 
 
 ## Saving and Reading Files 
 
+The files will usually be stored under your working directory. Here, we want to have a clean structure and store everything in the output folder.At the beginning of the course, we created the path to the output folder as a character string (called 'output_wd'). We can directly append the file name to that string, so that the file will be stored in the folder.
 ```{r}
-getwd() # check where your output will be saved
-# to change use setwd(), e.g. setwd('../Output')
-write.csv(x = wsp_table, file = "wsp.csv", row.names = FALSE)
-wsp <- read.csv(file = "wsp.csv", header = T)
-head(x = wsp)
+getwd() # cross-check whether you are in the root folder 
 
-# the filename can be used to directly store the file under the output-folder
-#wsp_filename <- paste0(output_wd,"/","wsp.csv") # TODO - funktionierte nicht beim knitten
-#wsp_filename
-#write.csv(x = wsp_table, file = wsp_filename, row.names = FALSE)
+(wsp_filename <- paste0(output_wd,"/","wsp_table.csv") ) 
+write.csv(x = wsp_table, file = wsp_filename, row.names = FALSE)
+```
+
+
+In the same way, .txt , .csv etc. files can be read/ loaded.
+```{r}
+wsp_reloaded <- read.csv(file = wsp_filename, header = T)
+head(x = wsp_reloaded)
+
 ```
 
 <br>
@@ -642,57 +675,67 @@ head(x = wsp)
 
 ## Plotting: Basics
 
-**plot()** is the universal function for scatter plots or line diagrams
+### `plot()` 
+
+is the universal function for scatter plots or line diagrams
 
 ```{r}
-# this does not work because you need to specify numeric values, 
-# column 'insect' is of type character
-# plot(x = wsp)
+#- the table also contains character strings / factors, so plot looks ugly
+plot(x = wsp_table)
 
-# solution
-plot(x = wsp$wingspan)
+#- solution
+plot(x = wsp_table$wingspan)
 ```
 
-Use command *ifelse* to define colors PER species
 
+Use command `ifelse` to define colors PER species. Create a new object 'color_for_insect_type', which will contain the colour 'red' if it is a dragonfly, else it will be blue. Note that you need to specify a colour for each line!
 ```{r}
-color_for_insect_type <- ifelse(wsp$insect == 'dragonfly', yes = 'red', no = 'blue')
-# color_for_insect_type
-plot(x = wsp$wingspan, col= color_for_insect_type)
+color_for_insect_type <- ifelse(wsp_table$insect == 'dragonfly', 
+                                yes = 'red', no = 'blue')
+#- add argument for color: col = color_for_insect_type
+plot(x = wsp_table$wingspan, col= color_for_insect_type)
 ```
 
-**par()** to pimp up your plot
+Check the [R colour cheat sheet](https://www.nceas.ucsb.edu/sites/default/files/2020-04/colorPaletteCheatsheet.pdf) if you are interested in colour options. R has 657 built-in colour names.
+```{r}
+#- example. More on the cheat sheet on page 3
+colors()[1:4]
+```
 
+
+
+### `par()` to pimp up your plot
+
+Change the graphical parameters to change the style of your plot. Please explore yourself what `cex`, `cex.lab`, `las`, `pch` et means by using the help
 ```{r, eval=-c(2,3)}
 # now have a look at
 ?base::plot # and
 ?par # of how to make the plots more pretty and how to set graphical parameters
 
-plot(x = wsp$wingspan, col = color_for_insect_type, pch = 3,
+plot(x = wsp_table$wingspan, col = color_for_insect_type, pch = 3,
       xlab = "unsorted values", ylab = "wsp [mm]", cex = 3,
-      cex.lab = 1.2, cex.axis = 0.5, las = 2,
+      cex.lab = 1.5, cex.axis = 1, las = 2,
       col.axis = "blue")
 ```
 
 ## Plotting: Practical thingies 
 
-### plot-function
+### Abline - Drawing lines 
 
-#### Abline - Drawing lines (h=horizontal, v= vertical, or "intercept, slope")
+into plots (h=horizontal, v= vertical, or "intercept, slope" of regressions)
 
 ```{r, eval=-1}
 ?abline
-plot(x = wsp$wingspan, col = color_for_insect_type)
-abline(v = 12.5, lty = "dashed", col = "red")
-                             #lty = line type
+plot(x = wsp_table$wingspan, col = color_for_insect_type)
+abline(v = 12.5, lty = "dashed", col = "red") #lty = line type
 abline(h = 75, lty = "dotted")
 ```
 
 
-#### Drawing *arrows* and adding *text*
+### Drawing *arrows* and adding *text*
 
 ```{r}
-plot(x = wsp$wingspan, col = color_for_insect_type,pch = 16, cex = 3)
+plot(x = wsp_table$wingspan, col = color_for_insect_type,pch = 16, cex = 3)
 arrows(x0 = 5, y0 = 125, x1 = 5, y1 = 82, col = "purple")
 arrows(x0 = 15, y0 =  70, x1 = 17, y1 =  75, col = "black", lwd = 3) #lwd=line width
 text(x = 3, y = 70, labels = "DRAGONFLY",cex=0.8)
@@ -700,22 +743,30 @@ text(x = 3, y = 70, labels = "DRAGONFLY",cex=0.8)
 
 ## Other plot types
 
+First, create new data set called " mydata" with new column "wind_speed":
 ```{r}
-#First, create new data set called " mydata" with new column "wind_speed":
-wind_speed <- rep(x = 50:70, length.out = nrow(wsp))
-mydata <- cbind(wsp, wind_speed)
+wind_speed <- rep(x = 50:70, length.out = nrow(wsp_table))
+mydata <- cbind(wsp_table, wind_speed)
 head(x = mydata)
 ```
 
 ### `boxplot` and histogram (`hist`)
 
+We want to plot both plots next to each other, so we have to separate the plotting
+panel into two columns. This is done within the graphical parameters (`par()`) with the argument `mfrow()`, which is treating the panel like a table where we can specify the number of rows and columns.
 ```{r}
-par(mfrow = c(1, 2))
+par(mfrow = c(1, 2))   # one row, two columns
+# par(mfrow = c(2, 1)) # what happens here? try it out
 boxplot(formula = mydata$wingspan ~ mydata$wind_speed)
 hist(x = mydata$wingspan, main = '')
+par(mfrow = c(1, 1))   # remember to set plotting area back 
 ```
 
 ### `hist` continued — the role of breaks and `freq = FALSE`
+
+Breaks group the data, frequency is the count of data falling into the groups. 
+If `freq = FALSE` the density is plotted, i.e. the share of each group summing to 1.
+In the second example, the data spanning the range from 12-189 is divided into 59 breaks (by = 3), so only one or two data points fall into a break.
 
 ```{r}
 par(mfrow = c(1,2))
@@ -725,6 +776,8 @@ hist(x = mydata$wingspan,
                   max(mydata$wingspan), 
                   by = 3), 
      freq = FALSE, col = 'lightgrey', main = '')
+
+par(mfrow = c(1, 1))
 ```
 
 It is also possible to save the results of the histogram in an object:
@@ -739,10 +792,12 @@ my_h
 
 ### `barplot`
 
+
+The barplot counts unique values (difference to histogram, which counts data points falling into break ranges )
 ```{r}
 my_bp <- table(mydata$wingspan)
 my_bp # note the difference to histograms ($counts)!
-barplot(my_bp) # WHY is there a maximum of 3 counts in the histogram and 2 in the barplot?
+barplot(my_bp) 
 ```
 
 
@@ -758,7 +813,8 @@ coplot(formula = mydata$wingspan ~ mydata$wind_speed | mydata$insect, pch = 16)
 ### Graphics device division
 
 ```{r}
-#mar = margin of figure in blue, oma = outer margin in green
+#- mar = margin of figure in blue, oma = outer margin in green
+#- mar/ oma go from below, left, above, right around the figure 
 par(mfrow = c(1, 2), mar = c(5, 4, 1, 1), oma = c(1.5, 2, 1, 1))
 plot(x = mydata$wingspan, col = color_for_insect_type, pch = 16, cex = 3)
 boxplot(formula = mydata$wingspan ~ mydata$insect)
@@ -769,17 +825,19 @@ box(which = 'outer', col = 'green' , lwd = 5)
 
 ## Saving Plots
 
-works for jpg, pdf,png, wmf and postscript
+works for jpg, pdf, png, wmf and postscript and is extremely helpful for making the figures for manuscripts, theses etc.
+Btw: You won't see the plot in the panel, it is directly stored in the output folder. Run the code and check!
 
 ```{r, eval=FALSE}
 #- Single Plot
-pdf(file = 'MyPdf.pdf', width =  10, height = 10)
-with(data = mydata, expr = {coplot(wingspan ~ wind_speed | insect, pch=16)})
+pdfname <- paste0(output_wd, "/my_plot1.pdf") # store in  output folder
+pdf(file = pdfname, width =  5, height = 5)
+coplot(formula = wingspan ~ wind_speed | insect, 
+       data = mydata, pch = 16)
 dev.off()
 
 #- Multiple Plot
-jpeg(file = 'MyJPG.jpg') #n.b.! Correct output folder path!, e.g.:
-# jpeg(file =  paste0(output_wd,'/MyJPG.jpg')) #don't forget the /
+jpeg(file =  paste0(output_wd,'/my_jpg.jpg')) #don't forget the /
 par(mfrow = c(1, 2))
 barplot(my_bp, col = rainbow(17), main = 'Barplot', xlab = 'wingspan', ylab = 'Count')
 hist(x = mydata$wingspan, 
@@ -791,15 +849,13 @@ hist(x = mydata$wingspan,
 dev.off()
 ```
 
-## Fancy plotting with R-package `ggplot2`
+## Fancy plotting with R-package `{ggplot2}`
 
 Let's be honest, the above plots are ugly. For making nice plots you can use in 
-your thesis or publications, change to R-package ´{ggplot2}´. R-packages are libraries
-with pre-coded functions. You first need to install them using function install.packages()
-and then load them using library() or require().
+your thesis or publications, change to R-package ´{ggplot2}´. R-packages are libraries with pre-coded functions. You first need to install them using function `install.packages()` and then load them using `library()` or `require()`.
 <br>
 
-I strongly recommend the course by Cedric Scherer on ggplot2:  
+I strongly recommend the course by Cedric Scherer on `ggplot2`:  
 * https://www.cedricscherer.com/2019/08/05/a-ggplot2-tutorial-for-beautiful-plotting-in-r/
 <br>
 or by the coding club:
@@ -807,12 +863,11 @@ or by the coding club:
 * https://ourcodingclub.github.io/tutorials/trends-analysis-dataviz/
 <br>
 
-The *ggplot* language works in layers to be built and added. First, load the library,
-and plot the canvas for 'mydata':
+The `ggplot` language works in layers to be built and added. First, load the library, and plot the canvas for 'mydata':
 
 ```{r}
-# install.packages('ggplot2')
-library(ggplot2) # don't forget to install the package before
+# install.packages('ggplot2') #run this if needed
+library(ggplot2) # load the library; don't forget to install the package before
 ggplot(data = mydata) # nothing happens but a grey panel appearing with the extent of the data
 ```
 
@@ -856,7 +911,7 @@ myggplot1 <-
       shape = 17,
       size = 5,
       col = "red",
-      alpha = 0.4 #makes shapes transparent
+      alpha = 0.4 # makes shapes transparent - nice if points overlap
     )
 
 #to plot, call the object
@@ -910,23 +965,34 @@ ggplot(mydata, aes(x = insect, y = wingspan)) +
   labs(x = "Insect taxon", y = "Wing span [mm]")
 ```
 
-Or another beautiful possibility, the ridge plot. Please note: this is a density plot,
-forcing beginning and end through zero. But: we never measured wing spans of zero!
+Or another beautiful possibility, the ridge plot. Please note: this is a density plot, forcing beginning and end through zero. But: we never measured wing spans of zero! So be careful when using this plot.
 
 ```{r}
-library(ggridges) # install package first if needed
+library(ggridges) # install package first if needed with install.packages()
 ggplot(mydata, aes(x = wingspan, y = factor(insect))) +
   geom_density_ridges(fill = "gray90") +
   labs(x = "Wing span [mm]", y = "Taxon") +
   theme_light()
 ```
 
+And really great for data visualisation is [`{ggdensity}`](https://jamesotto852.github.io/ggdensity/). Check it out! It plots the density of points.
+
+```{r}
+# install.packages("ggdensity")
+library(ggdensity) # 
+ggplot(mydata, aes(wingspan, wind_speed, fill = factor(insect))) +
+  geom_hdr(xlim = c(-50, 250), ylim = c(40, 80)) +
+  geom_point(shape = 21, size=5)
+```
+
 
 The following is playing around with images  
 
+
 ```{r}
-library(rphylopic) # install first
-library(patchwork) # for arranging the plots
+# install first
+library(rphylopic) # import the images of butterfly and dragonfly
+library(patchwork) # for arranging the plots, like 'facet' used above
 
 #import phylopic (go to phylopic.org -> browse image -> click on image to get url)
 drfly <- image_data("2894776f-a2cf-4475-b13d-6d8ea1607ea4", size = 128)[[1]]
@@ -974,15 +1040,17 @@ Happy with the plot? Then save it:
 
 ```{r, eval=-5}
 myridgeplot <- ggplot(mydata, aes(x = wingspan, y = factor(insect))) +
-   geom_density_ridges(fill = "gray90") +
-   labs(x = "Wing span [mm]", y = "Taxon") +
-   theme_light()
+               geom_density_ridges(fill = "gray90") +
+               labs(x = "Wing span [mm]", y = "Taxon") +
+               theme_light()
 
-myfilename <- "ridges.pdf"
+myfilename <- paste0(output_wd,"/ridges.pdf")
 
 ggsave(myridgeplot, file = myfilename, width = 4, height = 4)
 
-# also works without the plot object named explicitely because ggsave() always refers to last plot by default
+#- Hint:
+#- also works without the plot object named explicitly 
+#- because ggsave() always refers to last plot by default:
 # ggsave(file = myfilename, width = 4, height = 4) 
 ```
 
@@ -995,13 +1063,13 @@ And find more inspiration here: https://www.r-graph-gallery.com/
 
 1. Please load and inspect the following data set on wild boar observations in Berlin: `data_wb_melden_en.csv`. 
 To load the data try both R functions, `read.csv()` and `read.table()`.<br>
-You will find the data to download in the 'data' folder of the repository, i.e.: <br>
-https://github.com/stephkramer/Course1_IntroR <br> 
-The following link brings you directly to the location of the file: <br>
-https://github.com/stephkramer/Course1_IntroR/tree/master/data <br>
-Please download and store it in your local folder.<br>
-Hint: if you click on the csv-file in the folder, you can either copy it and paste
-it into e.g. excel. Or: have a look at the new link of the file (after clicking on it)!
+You will find the data to download in the 'data' folder of the repository, i.e.:
+<br>
+data &rarr; data_berlin &rarr; animal_data
+<br>
+
+Or - have a look at the new link of the file (after clicking on it in the repository
+directly)!
 You can directly use this link to load the data into R by setting the path, e.g.: <br>
 wb_path <- "https://raw.githubusercontent.com/stephkramer/Course1_IntroR/master/data/data_wb_melden_en.csv" <br>
 wb <- read.csv(file = wb_path)
