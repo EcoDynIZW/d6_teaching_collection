@@ -58,6 +58,7 @@ Disclaimer: This is not a beginner's course to learn R! To deepen your R skills,
 * https://ourcodingclub.github.io/tutorials.html <br>
 * https://cran.r-project.org/doc/contrib/Paradis-rdebuts_en.pdf  <br>
 * https://www.r-bloggers.com/list-of-free-online-r-tutorials/ <br>
+* https://raw.githubusercontent.com/ColauttiLab/RCrashCourse_Book/master/ColauttiRCrashCourseNov22.pdf <br>
 
 I am actually a big fan of `R` cheat-sheets which provide the basic functions in an overview format. For this course, please download (and use) the [base R cheatsheet](https://iqss.github.io/dss-workshops/R/Rintro/base-r-cheat-sheet.pdf).
 <br>
