@@ -1078,9 +1078,11 @@ The best choice is considered to be GeoTiff, which also saves the projection and
 ascii. However, for modelling e.g. in MaxEnt, the raster maps are needed in ascii-format.
 
 ```{r save-raster}
-writeRaster(x = Bor_hs, 
-            filename = paste0(output_wd,"/hillshade.asc"), 
-            # or use here: here("output", "hillshade.asc")
+
+## save the small aggregated file
+writeRaster(x = ras_bio_asc_01_agg, 
+            filename = paste0(output_wd,"/bor_agg.asc"), 
+            # or use here: here("output", "bor_agg.asc")
             overwrite = TRUE, 
             NAflag = -9999)
 ```
