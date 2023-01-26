@@ -473,12 +473,12 @@ because we know they are overlaying (you can check that with the raster extents)
 ```{r new-raster-import}
 ## ras_bio_asc_24 = DEM = digital elevation model
 ras_bio_asc_24 <- rast(x = paste0(maps_wd, "/bio_asc_24.asc")) ## `raster()` in {raster} 
-## or use here:
-# ras_bio_asc_24 <- rast(x = here("_DataBorneo", "BaseMaps", "bio_asc_24.asc")) 
+
 crs(ras_bio_asc_24)
 
 crs(ras_bio_asc_24) <- crs(ras_bio_asc_01)
-## same as: crs("+proj=longlat +datum=WGS84")
+## same as: 
+# crs(ras_bio_asc_24) <- crs("+proj=longlat +datum=WGS84")
 ```
 <br>
 
@@ -540,9 +540,11 @@ ncol(ras_bio_asc_01_cr)
 head(ras_bio_asc_01_cr)
 crs(ras_bio_asc_01_cr) ## != CRS(ras_bio_asc_01_cr)
 
-# crs = coordinate reference system defined
-# CRS creates projection and takes args for crs!
-# e.g. CRS("+proj=longlat +datum=WGS84")
+## crs = coordinate reference system defined
+## CRS creates projection and takes args for crs!
+## e.g. 
+wgs84_crs_args <- CRS("+proj=longlat +datum=WGS84")
+# wgs84_crs_args  #- please check
 ```
 
 ```{r ras-data-structure-3}
