@@ -544,7 +544,7 @@ crs(ras_bio_asc_01_cr) ## != CRS(ras_bio_asc_01_cr)
 ## CRS creates projection and takes args for crs!
 ## e.g. 
 wgs84_crs_args <- CRS("+proj=longlat +datum=WGS84")
-# wgs84_crs_args  #- please check
+# wgs84_crs_args  ## please check
 ```
 
 ```{r ras-data-structure-3}
@@ -634,7 +634,7 @@ tm_shape(shp = ras_bio_asc_01) + tm_raster()
 
 If you want to use a static map as high quality plots for your publication, 
 save the output via `tmap_save()`. Make sure that the quality is sufficient by 
-setting the dpi ("dots per inch") to at least 600.
+setting the dpi ("dots per inch") to at least 600. We save this map in our output folder.
 
 ```{r tmap-save-static-map}
 tmap_mode("plot")
@@ -666,7 +666,7 @@ icons on the upper left and zoom in or out and change the background layers. The
 
 If you like, you can save the interactive map — check your output folder for the html 
 file. Tip of the day: always save the epsg code of your crs at the end of
-a spatial file.
+a spatial file name.
 
 ```{r tmap-save-interactive-map}
 tmap_mode("view")
