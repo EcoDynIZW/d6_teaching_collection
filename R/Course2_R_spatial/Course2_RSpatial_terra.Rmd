@@ -224,32 +224,34 @@ methods(generic.function = 'plot') ## S3 type method
 
 ## Assign the workspace
 
-If you have downloaded the repository as described here 
+If you have downloaded the repository for the course as described here 
 (https://ecodynizw.github.io/teaching.html), you automatically have adopted our 
-folder structure. Nothing more to do! 
+folder structure. Nothing more to do! Continue with chapter
+'`R-projects` and package `{here}`'.
 <br>
 
+<details><summary> Optional - use own course folder setup </summary>
 
 ### Optional - setting workspace by hand and learn about R-projects
 
 If not: Set your root directory <your folder name>, e.g. the directory under 
 which you store everything
 you need for this course, i.e. the data and the R-Scripts. You could name it
-'TUB_BD_Course'.
+'d6_teaching_collection'.
 
 Create the subfolders relative to root-folder. Please adjust to your setup. 
 A possible folder structure could be: 
 <br>
 
 ``` bash
-├── <your folder name>                    # root folder 
+├── <your folder name>                    # root folder , e.g. d6_teaching_collection
 │   └── data                              # data
 │       └── data_borneo                   # e.g., the Borneo data
 │            ├── geo_raster_current_asc   # geo data, raster ascii format, as in data_borneo
 │            └── animal_data  
 │    └── R                                # store here all your scripts, i.e.
-│       └── script_course1.R
-│       └── script_course2.R
+│       └── my_script_course1.R
+│       └── my_script_course2.R
 ```
 <br>
 
@@ -260,13 +262,13 @@ Traditionally, the working directory was hard coded, i.e. the full path was spec
 getwd()  ## alternative fct
 
 ## Set your OWN root directory, the following is just an example of how to do it:
-#root_wd <- setwd("C:/Users/kramer/PopDynIZW Dropbox/Steph Kramer/TU_BD_course")
+#root_wd <- setwd("C:/Users/kramer/d6_teaching_collection")
 ```
 <br>
 
 This approach is error-prone and it complicates the cooperation with others as 
 they have to update the working directory in every script they receive from you. 
-(And if they don't change it back to your directory, you have to update it again...)
+(And if they don't change it back to your directory, you also have to update it again...)
 
 Nowadays, the best approach is to work with [R projects](https://support.rstudio.com/hc/en-us/articles/200526207-Using-RStudio-Projects) 
 that are associated with own working directory, workspace, history, and source documents. 
@@ -280,6 +282,9 @@ Every time you want to work on your project, you open the Rstudio session by
 double-clicking that `.Rproj` file, which ensures that the root working directory 
 is correctly set.
 
+</details>
+
+### `R-projects` and package `{here}`
 
 When using R projects, the package `{here}` is a handy helper: 
 
@@ -291,20 +296,20 @@ The `here()` function from the `{here}` package searches for the `.Rproj` file a
 will allow you to construct relative paths easily within your project environment:
 
 ```{r here}
-here::here()
-here::dr_here()
+here::here()    # tip: use the namespace here:: before calling to function here()
+here::dr_here() # because here() alone interferes with the package `purrr` if that is loaded
 
-root_wd <- here()
+root_wd <- here::here() # the root folder is automatically set
 ```
 
 Now, we assign the path to these folders relative to the root directory:
 <br>
 
 ``` bash
-├── root_wd                    # e.g. TUB_BD_Course 
-│   └── dbor_wd                #      data
-│       └── maps_wd            #       BaseMaps
-│       └── recs_wd            #       BaseRecords
+├── root_wd                    # e.g. d6_teaching_collection 
+│   └── dbor_wd                #      data / data_borneo
+│       └── maps_wd            #       geo data
+│       └── anim_wd            #       animal location data
 ```
 
 ```{r dirs}
