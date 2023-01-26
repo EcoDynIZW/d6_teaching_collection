@@ -196,6 +196,9 @@ library(patchwork) ## to combine plots
 
 library(units) ## handle measurement data
 library(here) ## for easy directory management
+
+#install.packages("Rcpp", repos="https://rcppcore.github.io/drat")
+
 ```
 
 ## How to call help 
@@ -328,7 +331,7 @@ dbor_wd     <- here("data","data_borneo") #- note the nested folder structure
 #  maps_wd   <- here("data","data_borneo","geo_raster_current_asc")  ##  same as:
   maps_wd   <- paste0(dbor_wd, "/geo_raster_current_asc") #- mind difference paste0() and paste()
   vecs_wd   <- paste0(dbor_wd, "/geo_vector")
-  anim_wd   <- paste(dbor_wd, "/animal_data", sep = '')   #- paste() needs a separator sign
+  anim_wd   <-  paste(dbor_wd, "/animal_data", sep = '')   #- paste() needs a separator sign
 ```
 <br>
 
@@ -974,7 +977,7 @@ Again, these do not look nice because of the different axis scaling.
 <br>
 
 For advanced users: More beautiful violin plots can be found in ggplot2. 
-For this, we need to transform the RasterLayer data
+For this, we need to transform the `RasterLayer` data
 into a data.frame first:
 
 ```{r violin-ggplot-prep}
@@ -984,7 +987,7 @@ raster_df <- na.omit(data.frame(values(predictors[[c(1,3)]])))
 raster_names <- names(raster_df)
 raster_ct    <- dim(raster_df)[1]
 df2 <- data.frame(val = c(raster_df[,names(raster_df)[1]], 
-                          raster_df[,names(raster_df)[3]]))
+                          raster_df[,names(raster_df)[2]]))
 df2$grp <- rep(raster_names , each = raster_ct)
 head(df2)
 
@@ -1075,7 +1078,7 @@ The best choice is considered to be GeoTiff, which also saves the projection and
 ascii. However, for modelling e.g. in MaxEnt, the raster maps are needed in ascii-format.
 
 ```{r save-raster}
-writeRaster(x = hillsh, 
+writeRaster(x = Bor_hs, 
             filename = paste0(output_wd,"/hillshade.asc"), 
             # or use here: here("output", "hillshade.asc")
             overwrite = TRUE, 
@@ -1229,7 +1232,7 @@ points(xy)
 ## please ignore the following 4 lines, just run them,  
 ## you will learn that when working with vector data below
 
-xy_sf <- st_as_sf(x = sv_xy, 
+xy_sf <- sf::st_as_sf(x = sv_xy, 
                   coords = c("x","y"),
                   crs = 4326,
                   sf_column_name = "geometry" ) 
