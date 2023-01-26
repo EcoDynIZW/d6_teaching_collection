@@ -363,8 +363,6 @@ filenames <- list.files(path = maps_wd)
 head(x = filenames)
 ```
 Should this be empty, then you have wrongly set the root directory and the data directory. Please check again how your folder structure looks like. By default, this folder should contain six ascii-files. The description is provided in the word.doc in the folder.
-
-
 <br>
 
 ## Recap from Course 1 Basics in R
@@ -393,7 +391,8 @@ Should this be empty, then you have wrongly set the root directory and the data 
 
 First, load a raster map. Please check the description in the folder called
 *DataDescription_Borneo.doc*. The file >*bio_asc_01.asc* is showing mean annual 
-temperature * 10. Why?  Because it can be stored as integer, not floating type, 
+temperature multiplied by 10. Why?  Because it can be stored as integer, 
+not floating type (i.e. with digits), 
 which saves a lot of storage and memory.
 
 ```{r read-raster, eval=-1}
@@ -401,9 +400,9 @@ which saves a lot of storage and memory.
 ras_bio_asc_01 <- rast(x = paste0(maps_wd, "/bio_asc_01.asc")) ## `raster()` with {raster}
 
 ## or use here:
-ras_bio_asc_01 <- rast(x = here("_DataBorneo", "BaseMaps", "bio_asc_01.asc"))
+ras_bio_asc_01 <- rast(x = here("data", "data_borneo","geo_raster_current_asc", "bio_asc_01.asc"))
 
-Bor_mat <- ras_bio_asc_01  ## easy copying of whole maps
+Bor_mat <- ras_bio_asc_01  ## easy copying of whole maps; mat stands for mean annual temp
 ```
 <br>
 
@@ -433,17 +432,20 @@ crs(ras_bio_asc_01)   ## crs = coordinate reference system. If empty, assign it!
 systems (CRS), map projections, and geographic and projected coordinates.  
 
 If a map already has a defined CRS, then you cannot simply overwrite this! To
-transform the coordinates, e.g. angular coordinates of latitude/ longitude of WGS84, 
-into a projected CRS with planar coordinates (e.g. meter distances, equal area of 
+re-calculate the coordinates from one system into another system (e.g. from 
+angular coordinates of latitude/ longitude of WGS84 
+to a projected CRS with planar coordinates and meter distances, equal area of 
 Lambert Azimuthal),
-you need to *transform* it (see below chapter **Raster Projection**).
+you need to *transform* it with the function  `project()`(raster-data) or
+`st_transform()`(vector-data) (see below chapter **Raster Projection**).
 
 <br>
 In the following, we assign the CRS only when no information is provided. This can be 
 the case when you upload a map based on a simple data frame or matrix, i.e. when
-it is not a spatial object.  
-`crs(<raster>)` gives the information of the object (here: raster layer) `Bor_mat` or `ras_bio_asc_01`, and
-is also used to set the CRS of the object via assignment (`crs(<raster>) <- <projection>`). 
+it is not a spatial object. 
+<br>
+`crs(<raster>)` gives the information of the object (here: raster layer) `Bor_mat` or `ras_bio_asc_01`, and is also used to set the CRS of the object via assignment: <br>
+`crs(<raster>) <- <projection>`. <br>
 Mind the spelling in small letters/ capitals! 
 
 * `crs(<raster>)` shows coordinate reference system of a spatial object
@@ -457,7 +459,6 @@ See http://spatialreference.org/. The EPSG code for WGS84 is 4326.
 
 ```{r change-crs}
 # many ways to assign the CRS, options listed below:
-crs(ras_bio_asc_01) <- crs("+proj=longlat +datum=WGS84") 
 crs(ras_bio_asc_01) <- "+proj=longlat +datum=WGS84" 
 crs(ras_bio_asc_01) <- "+init=epsg:4326"
 ```
