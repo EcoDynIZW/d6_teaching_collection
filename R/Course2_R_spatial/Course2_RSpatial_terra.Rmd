@@ -224,7 +224,16 @@ methods(generic.function = 'plot') ## S3 type method
 
 ## Assign the workspace
 
-Set your root directory, e.g. the directory under which you store everything
+If you have downloaded the repository as described here 
+(https://ecodynizw.github.io/teaching.html), you automatically have adopted our 
+folder structure. Nothing more to do! 
+<br>
+
+
+### Optional - setting workspace by hand and learn about R-projects
+
+If not: Set your root directory <your folder name>, e.g. the directory under 
+which you store everything
 you need for this course, i.e. the data and the R-Scripts. You could name it
 'TUB_BD_Course'.
 
@@ -233,11 +242,12 @@ A possible folder structure could be:
 <br>
 
 ``` bash
-├── TUB_BD_Course                   # root folder 
-│   └── _DataBorneo                 # the Borneo data
-│       └── BaseMaps                # geo data, found in _DataBorneo
-│       └── BaseRecords             # animal observation data in _DataBorneo
-│   └── R                           # store here all your scripts, i.e.
+├── <your folder name>                    # root folder 
+│   └── data                              # data
+│       └── data_borneo                   # e.g., the Borneo data
+│            ├── geo_raster_current_asc   # geo data, raster ascii format, as in data_borneo
+│            └── animal_data  
+│    └── R                                # store here all your scripts, i.e.
 │       └── script_course1.R
 │       └── script_course2.R
 ```
@@ -250,7 +260,7 @@ Traditionally, the working directory was hard coded, i.e. the full path was spec
 getwd()  ## alternative fct
 
 ## Set your OWN root directory, the following is just an example of how to do it:
-#root_wd <- setwd("C:/Users/kramer/PopDynIZW Dropbox/Steph Kramer/_GitHub")
+#root_wd <- setwd("C:/Users/kramer/PopDynIZW Dropbox/Steph Kramer/TU_BD_course")
 ```
 <br>
 
@@ -265,9 +275,9 @@ You can create a project in the RStudio IDE by using the `Create Project` comman
 (available on the Projects menu and on the global toolbar). In our case, we want 
 to create a project in an existing directory where there is already R code and 
 data placed inside that said folder. Now, a hidden folder called `.Rproj.user` and 
-most importantly a file called `your_porject.Rproj` should appear in your folder. 
+most importantly a file called `your_project.Rproj` should appear in your folder. 
 Every time you want to work on your project, you open the Rstudio session by 
-double-clicking that .Rproj file, which ensures that the root working directory 
+double-clicking that `.Rproj` file, which ensures that the root working directory 
 is correctly set.
 
 
@@ -291,8 +301,8 @@ Now, we assign the path to these folders relative to the root directory:
 <br>
 
 ``` bash
-├── root_wd                    # TUB_BD_Course 
-│   └── dbor_wd                #    _DataBorneo
+├── root_wd                    # e.g. TUB_BD_Course 
+│   └── dbor_wd                #      data
 │       └── maps_wd            #       BaseMaps
 │       └── recs_wd            #       BaseRecords
 ```
