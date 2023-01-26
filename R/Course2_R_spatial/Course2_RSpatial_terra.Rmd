@@ -325,8 +325,9 @@ we work with the Borneo data:
 #dbor_wd     <- paste0(root_wd, "/", "data/data_borneo") #- the old way
 
 dbor_wd     <- here("data","data_borneo") #- note the nested folder structure
-#  maps_wd   <- here("data","data_borneo","geo_raster_current_asc")  #-  same as:
+#  maps_wd   <- here("data","data_borneo","geo_raster_current_asc")  ##  same as:
   maps_wd   <- paste0(dbor_wd, "/geo_raster_current_asc") #- mind difference paste0() and paste()
+  vecs_wd   <- paste0(dbor_wd, "/geo_vector")
   anim_wd   <- paste(dbor_wd, "/animal_data", sep = '')   #- paste() needs a separator sign
 ```
 <br>
@@ -366,7 +367,8 @@ and keep them at a maximum of 13 letters!
 
 ## Access folder content
 
-You will find a lot of bioclimatic raster files (.asc) as well as shapefiles in the *geo_raster_current_asc* folder, which we call as `R-object` maps_wd:
+You will find a lot of bioclimatic raster files (.asc) in the
+*geo_raster_current_asc* folder, which we named `R-object` maps_wd above:
 
 ```{r filenames}
 filenames <- list.files(path = maps_wd)
@@ -1224,10 +1226,10 @@ points(xy)
 
 ```{r add-points-to-plot, fig.height=4.5}
 ## nicer plot adding the points from which a distance should be computed.
-## please ignore the following 4 lines, you will learn that when 
-## working with vector data below
+## please ignore the following 4 lines, just run them,  
+## you will learn that when working with vector data below
 
-xy_sf <- st_as_sf(x = xy, 
+xy_sf <- st_as_sf(x = sv_xy, 
                   coords = c("x","y"),
                   crs = 4326,
                   sf_column_name = "geometry" ) 
@@ -1246,8 +1248,8 @@ Calculate distance from many points:
 
 ```{r compute-distance-multiple}
 cells1 <- c(cells, 250, 360) ## add two more points
-xy <- vect(xyFromCell(ras_bio_asc_01_cr, cells1))
-my_dist <- distance(x = ras_bio_asc_01_cr, y = xy)
+sv_xy_2 <- vect(xyFromCell(ras_bio_asc_01_cr, cells1))
+my_dist <- distance(x = ras_bio_asc_01_cr, y = sv_xy_2)
 plot(my_dist) #units?
 ```
 <br>
@@ -1269,20 +1271,20 @@ and if necessary, also for the sp-package:
 ```{r sf-versus-sp}
 ## Border of countries and provinces of Borneo
 ## - only loading columns 1:3, 5, 7, 17, 18 of attribute table:
-Borneo_shp <- st_read(dsn = maps_wd, layer = "borneo_admin")[, c(1:3, 5, 7, 17, 18)] 
+Borneo_shp <- st_read(dsn = vecs_wd, layer = "borneo_admin")[, c(1:3, 5, 7, 17, 18)] 
 
-## Protected areas (National Parks, Nature Reserves, Forest Reserves)
-PA_shp     <-  st_read(dsn = maps_wd,
+## Protected Areas (National Parks, Nature Reserves, Forest Reserves)
+PA_shp     <-  st_read(dsn = vecs_wd,
                        layer = "Bor_PA")[, c(1:4)]
 
 ## fix problematic polygons
 PA_shp <- st_make_valid(PA_shp)
 
 ## main rivers
-River_shp  <- st_read(dsn = maps_wd, layer = "sn_100000")
+River_shp  <- st_read(dsn = vecs_wd, layer = "sn_100000")
 
 ### the 'old' sp package would work with the `readOGR` command from the `{rgdal}` package:
-Admin_shp <- readOGR(dsn = maps_wd, layer = "borneo_admin",)[,c(1:3,5,7,17,18)]
+Admin_shp <- readOGR(dsn = vecs_wd, layer = "borneo_admin",)[,c(1:3,5,7,17,18)]
 ```
 
 #### Transformations between simple feature '{sf}' and SpatialPolygonsDataFrame '{sp}'
