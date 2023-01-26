@@ -683,9 +683,9 @@ tmap_save(i.m, paste0(output_wd,"/BorneoMAT_4326.html"))
 
 ### `{ggplot2}` package
 
-For advanced R-users: Beautiful plots can also be made with `{ggplot2}`; 
+optional; for advanced R-users: Beautiful plots can also be made with `{ggplot2}`; 
 however, `RasterLayer` objects cannot directly be plotted, but have to be 
-converted to a conventional data frame first.
+converted to a conventional data frame first, which contains the x-y coordinates.
 
 ```{r}
 ## Convert RasterLayer object to a data.frame
@@ -708,7 +708,8 @@ head(df_bio_asc_01)
 Alternatively, one can use the  [`{stars}` package](https://r-spatial.github.io/stars/). 
 (The [`{stars}` package](https://r-spatial.github.io/stars/) is another package 
 aimed at working with spatial data, namely spatiotemporal arrays such as raster 
-and vector data cubes). We first turn opur raster into a `stars` object and can 
+and vector data cubes). We first turn our raster into a `stars` object using
+function `st_as_stars` and can 
 then use the `geom_stars()` function in combination with `ggplot`:
 
 ```{r ras-ggplot-stars}
@@ -737,6 +738,7 @@ g2 <- g + theme(plot.title = element_text(size = 18, face = "bold"),
                 legend.direction = "horizontal",
                 legend.key.width = unit(2.2, "lines"),
                 legend.key.height = unit(0.7, "lines"))
+g2
 
 ggsave(filename = paste0(output_wd, "/BorneoMap_4326_ggplot.png"),
        width = 8, height = 7, dpi = 600, bg = "white")
@@ -799,7 +801,8 @@ hillsh <- Bor_hs
 
 # make sf object from coordinates -> you will learn that also later
 ras_bio_asc_01_cr_sf <- st_as_sf(
-  data.frame(crds(ras_bio_asc_01_cr)), ## create dataframe of coordinates; `coordingates()` in {raster}
+  data.frame(crds(ras_bio_asc_01_cr)), 
+      ## create dataframe of coordinates; `coordingates()` in {raster}
   coords = c("x", "y"), ## define columns for the coordinates
   crs = 4326, ## define crs, 4326 is the EPSG code
   sf_column_name = "geometry" ## sf needs a geometry column and you have to name it
@@ -851,7 +854,7 @@ persp(x = ras_bio_asc_24, xlab = "Easting", ylab = "Northing",
 ```
 <br>
 
-Why is the map so spiny? Check units! This is still a geographic crs, not a
+Why is the map so spiny? Check units! This is still a geographic CRS, not a
 projected one. The units are in degrees. Wait for the lecture for details.
 
 <br>
@@ -861,7 +864,8 @@ projected one. The units are in degrees. Wait for the lecture for details.
 Project the grid (the small one!!) to have all units in meters:
 
 ```{r unit-meter}
-Bor_dem_moll <- terra::project(ras_bio_asc_01_cr, "+proj=moll +lat_0=65 +lon_0=10") ## `projectRaster()` in {raster}
+Bor_dem_moll <- terra::project(ras_bio_asc_01_cr, "+proj=moll +lat_0=65 +lon_0=10") 
+    ## `projectRaster()` in {raster}
 
 persp(Bor_dem_moll, xlab = "Easting", ylab = "Northing",
       zlab = "elevation", main = "Elevation model of Borneo",
@@ -899,7 +903,7 @@ The description of what they represent is in the data description document in th
 We load them all together with `terra::rast()`
 
 ```{r predictor-stack}
-predictors <- rast(x = files.full[c(9, 12, 22, 24)]) ## `stack()` in {raster}
+predictors <- rast(x = files.full[c(1, 2, 4, 6)]) ## `stack()` in {raster}
 crs(predictors)
 crs( predictors) <- "+proj=longlat +datum=WGS84"
 ```
@@ -910,7 +914,7 @@ A raster stack contains the single raster layers in a list:
 ```{r stack-list}
 predictors[[1]] # this is a list! Address single layers with [[ ]]
 # with {terra} you can also use $ syntax:
-predictors$bio_asc_09
+predictors$bio_asc_01
 ```
 <br>
 
@@ -932,11 +936,11 @@ plot(x = predictors)
 ```
 <br>
 
-With `{tmap}`: 
+With `{tmap}`, plotting all stack layers at once can be a problem: 
 
 This is standardizing the legend to the min and max of all layers, which is 
 problematic if maps are not in the same units. That's why you cannot see the
-information in two of the maps:
+information in the maps:
 
 ```{r plot-full-stack-tmap}
 tmap_mode(mode = "plot")
@@ -949,7 +953,7 @@ tm_shape(shp = predictors) + tm_raster()
 With the help of the `{rasVis}` package we can plot violin charts to visualize the summary statistics:
 
 ```{r violin-plot-predictors}
-rasterVis::bwplot(x = predictors[[c(1, 2)]]) # bwplot(predictors)
+rasterVis::bwplot(x = predictors[[c(1, 3)]]) # bwplot(predictors)
 ## n.b. double [[ ]] because stack is a list of spatial rasters
 ```
 <br>
@@ -968,7 +972,7 @@ raster_df <- na.omit(data.frame(values(predictors[[c(1,3)]])))
 raster_names <- names(raster_df)
 raster_ct    <- dim(raster_df)[1]
 df2 <- data.frame(val = c(raster_df[,names(raster_df)[1]], 
-                          raster_df[,names(raster_df)[2]]))
+                          raster_df[,names(raster_df)[3]]))
 df2$grp <- rep(raster_names , each = raster_ct)
 head(df2)
 
@@ -1008,10 +1012,10 @@ ggsave(paste0(output_wd, "/savedggplot.pdf"), width = 5, height = 5, dpi = 600)
 ...or plot them separately and combine them using the [`{patchwork}` package](https://patchwork.data-imaginist.com/):
 
 ```{r violin-ggplot-patchwork}
-df3_bio9 <- subset(df3, df3$grp == 'bio_asc_09')
+df3_bio1 <- subset(df3, df3$grp == 'bio_asc_01')
 df3_bio24 <- subset(df3, df3$grp == 'bio_asc_24')
 
-p1 <- ggplot(data = df3_bio9, aes(x = grp, y = val)) +
+p1 <- ggplot(data = df3_bio1, aes(x = grp, y = val)) +
       geom_violin(scale = "width", fill = "grey85", colour = "#3366FF") + 
       geom_boxplot(width = 0.2, size = 0.8, outlier.color = NA) + ## remove outliers 
       geom_jitter(height = 0, width = 0.05, alpha = 0.2, size = 1.5, colour = "#3366FF") +
@@ -1047,7 +1051,8 @@ Retrieve metrics/ statistics from the rasters:
 ```{r metrics-raster}
 #- Extract information from all rasters in one command
 # cellStats(predictors, 'mean')
-round(x = global(x = predictors, stat = 'mean'), digits = 2) ## `global()` -> `cellStats()` in {raster}
+round(x = global(x = predictors, stat = 'mean', na.rm = TRUE), digits = 2) 
+   ## `global()` -> `cellStats()` in {raster}
 ```
 <br>
 
@@ -1121,12 +1126,12 @@ at line 5 (= row 5; latitude or y-axis).
 
 ```{r accessing-raster-values}
 cells <- cellFromRowCol(object = ras_bio_asc_01_cr, row = 5, col = 1:3)
-cells    ## returns cell ID number, the index / rownumber!
+cells    ## returns cell ID number, the index / rownumber! Not the value!
 extract(x = ras_bio_asc_01_cr, y = cells) ## returns cell values!
 plot(x = ras_bio_asc_01_cr)
 ## to plot the points on top, insert the 'cells' index into 
 ## the data frame of the coordinates of the RasterLayer object ras_bio_asc_01_cr
-#points(x = crds(ras_bio_asc_01_cr)[cells,], col = "blue")
+points(x = crds(ras_bio_asc_01_cr)[cells,], col = "blue")
 ```
 <br>
    
@@ -1139,7 +1144,7 @@ you could extract the important environmental predictors at that location.
 <br>
 
 We do that for an area in the center of Borneo. For this, we first get the
-row and column indices of the center of the large Borneo map, e.g. `ras_bio_asc_01`, and
+row and column indices of the center of a large Borneo map, e.g. `ras_bio_asc_01`, and
 5 x 5 cells in addition, i.e. a square with an area of 5 km x 5 km:
 
 ```{r extract-raster-values}
@@ -1153,7 +1158,7 @@ stack_cells <- cellFromRowCol(
   col = center_y:(center_y + 5)
 )
 
-head(stack_cells) 
+head(stack_cells) ## mind: these are index numbers! Not cell values!
 ```
 <br>
 
@@ -1162,11 +1167,13 @@ starts at the upper left corner of the map and continues consecutively, i.e.
 the data (`ras_bio_asc_01@data@values`) are one huge vector with length `nrow * ncol`!
 <br>
 
+Now, extract them with the useful function `èxtract()`:
+
 ```{r extract-raster-values-finally}
-## finally, extract them:
 pred_dat <- extract(predictors, stack_cells) 
 head(pred_dat)
 
+## combine in one table
 mastertable <- data.frame(stack_cells, pred_dat)
 mastertable
 ```
@@ -1176,6 +1183,7 @@ Change raster values:
 
 ```{r change-raster-values-again}
 xy <- xyFromCell(object = ras_bio_asc_01_cr, cell = cells) 
+xy
 
 # coordinates(ras_bio_asc_01_cr)[cells,]
 extract(x = ras_bio_asc_01_cr, y = xy)          
