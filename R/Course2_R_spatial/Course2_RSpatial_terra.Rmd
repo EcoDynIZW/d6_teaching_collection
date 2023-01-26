@@ -45,7 +45,8 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
 # Introduction
 
 Let me start with a big thanks to Cedric Scherer, Moritz Wenzler, Pierre Gras and Juergen
-Niedballa who constantly helped to improve the course! I am deeply indepted to you!
+Niedballa who constantly helped to improve the course since its start in 2014! 
+I am deeply indebted to you!
 
 The course is intended to be a quick introduction to using R as a GIS. It builds
 on the previous course, Course1_IntroR, and is written in such a way that you can
@@ -58,13 +59,13 @@ In R, these are `Spatial*DataFrame` (the * can stand for *Points*, *Lines* or
 *Polygons*, respectively, i.e. `SpatialPointsDataFrame`) or `RasterLayer` Objects.
 
 Recently, `{sf}` objects have been developed to handle vector data more easily. The
-latter can be treated like simple data.frames. Also the `{raster}` package is
+latter can be treated like simple `data.frames`. Also the `{raster}` package is
 under development — called `{terra}` package - the course is updated to use the
 new `{terra}` package. 
 
 The `{terra}` package provides the same functionality while merging some 
-of the old classes and function names from the `{raster}` and being much faster. It is also especially 
-useful for remote sensing data.
+of the old classes and function names from the `{raster}` and being much faster. 
+It is also especially useful for remote sensing data.
 
 `{terra}` has a single class `SpatRaster` class for which raster has three 
 (`RasterLayer`, `RasterStack`, `RasterBrick`). Likewise there is a single class 
@@ -78,10 +79,10 @@ knitr::include_graphics(here::here("img", "functions-terra-raster.png"))
 
 In addition to different data types, the course provides sections on coordinate
 projections and the most important geospatial operations. Last but not least -
-we plot a lot to ease data visualisation and because it is fun.
+we plot a lot of maps to ease data visualisation and because it is fun.
 
 The data we use stem from a longstanding project we run in Borneo. Please refer to
-our website [www.ecological-dynamics-izw.com](https://www.ecological-dynamics-izw.com).
+our website [https://ecodynizw.github.io/](https://ecodynizw.github.io/).
 The project involves species conservation and large scale landscape planning. To
 learn more about the data used in the course and the project, please refer to the
 following publications that are freely available:
