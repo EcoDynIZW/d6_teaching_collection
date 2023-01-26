@@ -303,7 +303,8 @@ root_wd <- here::here() # the root folder is automatically set
 root_wd        
 ```
 
-Now, we assign the path to these folders relative to the root directory:
+Now, we assign the path to these folders relative to the root directory, and
+we work with the Borneo data:
 <br>
 
 ``` bash
@@ -318,7 +319,7 @@ Now, we assign the path to these folders relative to the root directory:
 
 #dbor_wd     <- paste0(root_wd, "/", "data/data_borneo") #- the old way
 
-dbor_wd     <- here("data","data_borneo")
+dbor_wd     <- here("data","data_borneo") #- note the nested folder structure
 #  maps_wd   <- here("data","data_borneo","geo_raster_current_asc")  #-  same as:
   maps_wd   <- paste0(dbor_wd, "/geo_raster_current_asc") #- mind difference paste0() and paste()
   anim_wd   <- paste(dbor_wd, "/animal_data", sep = '')   #- paste() needs a separator sign
@@ -326,44 +327,47 @@ dbor_wd     <- here("data","data_borneo")
 <br>
 
 Create an output folder where you can temporarily store your results (anything
-you plot, create, want to save,....) with *dir.create*.
+you plot, create, want to save,....) with *dir.create*. If you use our downloaded
+course repository, you already have this folder.
 
 ```{r output-wd}
-#output_wd <- paste0(dirname(root_wd), "/", "output")
+#output_wd <- paste0(dirname(root_wd), "/", "output") #- the old way
 output_wd <- here("output")
-if (!dir.exists(output_wd)) {dir.create(output_wd)}
+if (!dir.exists(output_wd)) {dir.create(output_wd)} #- create only if directory does NOT! exist
 ```
 
 Finally, your folder structure will look like this:
 
 ``` bash
-├── TUB_BD_Course                   # root folder 
-│   └── _DataBorneo                 # the Borneo data
-│       └── BaseMaps                # geo data, found in _Data_Borneo
-│       └── BaseRecords             # animal observation data in _Data_Borneo
-│   └── R                           # store here all your scripts, i.e.
-│       └── script_course1.R
-│       └── script_course2.R
-│   └── output                      # for any results/ plots,...
+├── <your folder name>                    # root folder , e.g. d6_teaching_collection
+│   └── data                              # data
+│       └── data_borneo                   # e.g., the Borneo data
+│            ├── geo_raster_current_asc   # geo data, raster ascii format, as in data_borneo
+│            └── animal_data  
+│    └── R                                # store here all your scripts, i.e.
+│       └── my_script_course1.R
+│       └── my_script_course2.R
+│   └── output                            # for any results/ plots,...
 │   
-│   └ <TUB_BD_course.Rproj>         # only in case you are working with an R-Project
+│   └ <your R project name.Rproj>         # in case you are working with an R-Project
 
 ```
 <br>
 
 ## Access folder content
 
-You will find a lot of bioclimatic raster files (.asc) as well as shapefiles in the *BaseMaps* folder:
+You will find a lot of bioclimatic raster files (.asc) as well as shapefiles in the *geo_raster_current_asc* folder, which we call as `R-object` maps_wd:
 
 ```{r filenames}
 filenames <- list.files(path = maps_wd)
 head(x = filenames)
 ```
-Should this be empty, then you have wrongly set the root directory and the data directory. Please check again how your folder structure looks like.
+Should this be empty, then you have wrongly set the root directory and the data directory. Please check again how your folder structure looks like. By default, this folder should contain six ascii-files. The description is provided in the word.doc in the folder.
+
 
 <br>
 
-## Recap
+## Recap from Course 1 Basics in R
 
 **useful functions:**
 <br>
