@@ -1874,9 +1874,31 @@ tm_shape(shp = hillsh) +
 ```
 <br>
 
+# Recap - the most important functions for spatial data
+
+## Load spatial data
+
+```{r, eval = FALSE}
+myraster       <- terra::rast()
+myshapefile    <- sf::st_read()
+myxydataframe  <- sf::st_as_sf()
+```
+
+## Save spatial data
+
+```{r, eval = FALSE}
+terra::writeRaster() ## RasterLayer
+sf::st_write()       ## vector data
+```
+
+
+
 # <span class='exercise'>Exercise 1</span>
 
-**Revisit the data set from course 1 on wild boar observations in Berlin: `data_wb_melden_en.csv`. Now, we want to study the spatial patterns of the wild boar observations. We may hypothesize that wild boar observations are also related to local differences in weather. Answer the following question using spatial data sets and visualizations:**
+**Revisit the data set from course 1 on wild boar observations in Berlin: `data_wb_melden_en.csv`. 
+(it is here: ....\d6_teaching_collection\data\data_berlin\animal_data).
+
+Now, we want to study the spatial patterns of the wild boar observations. We may hypothesize that wild boar observations are also related to local differences in weather. Answer the following question using spatial data sets and visualizations:**
 
 * **Question 1.1) Were wild boar with many piglets seen more often in warm parts of the city?**
 * **Question 1.2) Were wild boars more often observed at colder spots of the city during sunny weather?**
