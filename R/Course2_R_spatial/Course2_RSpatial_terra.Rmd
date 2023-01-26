@@ -230,6 +230,9 @@ folder structure. Nothing more to do! Continue with chapter
 '`R-projects` and package `{here}`'.
 <br>
 
+
+
+
 <details><summary> Optional - use own course folder setup </summary>
 
 ### Optional - setting workspace by hand and learn about R-projects
@@ -282,7 +285,9 @@ Every time you want to work on your project, you open the Rstudio session by
 double-clicking that `.Rproj` file, which ensures that the root working directory 
 is correctly set.
 
-</details>
+</details
+
+
 
 ### `R-projects` and package `{here}`
 
@@ -352,6 +357,11 @@ Finally, your folder structure will look like this:
 │   └ <your R project name.Rproj>         # in case you are working with an R-Project
 
 ```
+<br>
+
+A small hint on file and folder naming: Do NOT! use dots (NOT: folder.name) 
+or special signs like ö, ä, ü, ß etc. in your folder names, 
+and keep them at a maximum of 13 letters!
 <br>
 
 ## Access folder content
@@ -1182,6 +1192,7 @@ mastertable
 Change raster values:
 
 ```{r change-raster-values-again}
+## get the coordinates; cells was the object containing the index (i.e. the cell numbering)
 xy <- xyFromCell(object = ras_bio_asc_01_cr, cell = cells) 
 xy
 
@@ -1192,17 +1203,21 @@ extract(x = ras_bio_asc_01_cr, y = xy)
 ## Change values, e.g. for adding forest or creating a corridor
 ## take care! -> irreversible! better work on a copy!
 copy_ras <- ras_bio_asc_01_cr
-copy_ras[cells] <- 250
-plot(x = copy_ras)
+copy_ras[cells] <- 250 # here we set all values in the raster at the position index cells to 250
+plot(x = copy_ras, col = viridis(20))
 ```
 <br>
 
 ### Compute distance to points
 
 ```{r compute-distance}
+## turn first into SpatVector - this is the format needed for the distance() function below
+sv_xy <- vect(xy) 
+sv_xy
+
 ## calculate distance
-xy <- vect(xy) ## turn into SpatVector
-my_dist <- distance(x = ras_bio_asc_01_cr, y = xy) ## `distanceFromPoints(object = ras_bio_asc_01_cr, xy = xy)` in {raster}
+my_dist <- distance(x = ras_bio_asc_01_cr, y = sv_xy)
+   ## `distanceFromPoints(object = ras_bio_asc_01_cr, xy = xy)` in {raster}
 plot(x = my_dist) ## units?
 points(xy)
 ```
