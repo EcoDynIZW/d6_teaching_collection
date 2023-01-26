@@ -300,6 +300,7 @@ here::here()    # tip: use the namespace here:: before calling to function here(
 here::dr_here() # because here() alone interferes with the package `purrr` if that is loaded
 
 root_wd <- here::here() # the root folder is automatically set
+root_wd        
 ```
 
 Now, we assign the path to these folders relative to the root directory:
@@ -315,11 +316,12 @@ Now, we assign the path to these folders relative to the root directory:
 ```{r dirs}
 ## today, we start with Borneo
 
-#dbor_wd     <- paste0(root_wd, "/", "_DataBorneo") ## the old way
+#dbor_wd     <- paste0(root_wd, "/", "data/data_borneo") #- the old way
 
-dbor_wd     <- here("_DataBorneo")
-  maps_wd   <- paste0(dbor_wd, "/BaseMaps") ## mind difference paste0() and paste()
-  recs_wd   <- paste(dbor_wd, "/BaseRecords", sep = '')
+dbor_wd     <- here("data","data_borneo")
+#  maps_wd   <- here("data","data_borneo","geo_raster_current_asc")  #-  same as:
+  maps_wd   <- paste0(dbor_wd, "/geo_raster_current_asc") #- mind difference paste0() and paste()
+  anim_wd   <- paste(dbor_wd, "/animal_data", sep = '')   #- paste() needs a separator sign
 ```
 <br>
 
