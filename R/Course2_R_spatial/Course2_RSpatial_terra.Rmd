@@ -10,7 +10,7 @@ output:
     toc_depth: 4
     toc_float: true
 editor_options:
-  chunk_output_type: inline
+  chunk_output_type: console
 params:
   date: !r Sys.Date()
 ---
@@ -104,8 +104,8 @@ https://lkcnhm.nus.edu.sg/app/uploads/2017/06/S33rbz018-041-1.pdf
 ## Useful (web)sites
 
 **1. R news and tutorials**  <br>
-* http://www.r-bloggers.com/  
-<br>
+* http://www.r-bloggers.com/  <br>
+
 **2. Quick introduction to spatial R**<br>
 * https://rspatial.org/    
 * http://pakillo.github.io/R-GIS-tutorial/   
@@ -115,24 +115,24 @@ https://lkcnhm.nus.edu.sg/app/uploads/2017/06/S33rbz018-041-1.pdf
 * check out the packages `{tmap}`, `{ggmap}`, `{leaflet}` and `{cartography}`  <br>
 * https://cran.r-project.org/web/packages/tmap/vignettes/tmap-getstarted.html   <br> 
 * A whole book: https://clauswilke.com/dataviz/ with spatial data here: <br>
-  https://clauswilke.com/dataviz/geospatial-data.html  
-<br>
+  https://clauswilke.com/dataviz/geospatial-data.html <br>
+  
 **4. Overview of spatial packages** 
 * http://cran.r-project.org/web/views/Spatial.html =  <br>   http://cran.r-project.org/view=Spatial  
 * https://www.r-spatial.org/  <br>  
 
 **5. R-cheatsheets — great for learning 'vocabulary'**   <br>
-* in your folder  <br>
-* or here: https://www.rstudio.com/resources/cheatsheets/    <br>
+* e.g. here: https://www.rstudio.com/resources/cheatsheets/    <br>
 
 **6. Infos about simple features in R (`{sf}` package)** <br> 
 *  https://r-spatial.github.io/sf/index.html  <br>
 *  and nice intro: https://oliviergimenez.github.io/introspatialR/#1    
-*  geocomputation: https://geocompr.robinlovelace.net/spatial-operations.html  
-<br>
+*  geocomputation: https://geocompr.robinlovelace.net/spatial-operations.html <br>
+
 **7. Lots of EPSG Codes**  <br>
 * Use EPSG codes as unique and specific identifies of your coordinate reference systems instead of writing projection details. <br> 
-* for EPSG codes see http://spatialreference.org/ or https://www.nceas.ucsb.edu/~frazier/RSpatialGuides/OverviewCoordinateReferenceSystems.pd <br> <br>
+* for EPSG codes see http://spatialreference.org/ or https://www.nceas.ucsb.edu/~frazier/RSpatialGuides/OverviewCoordinateReferenceSystems.pd <br> 
+ 
 
 **8. BioMove specials:** <br>
 *  For analysis of  plot-based biodiversity data: package `{vegan}`  <br>
@@ -176,7 +176,7 @@ install.packages(unavailable)
 ## ...and load packages
 
 ```{r libraries, warning=FALSE}
-## working with raster data
+## when working with raster data
 ## do NOT load both packages terra and raster at the same time, 
 ## as this creates problems with the namespace 
 library(terra) ## the "new" {raster} package
@@ -217,7 +217,7 @@ vignette("sf1") # vignette("intro_sp")
 
 
 ```{r methods, eval=FALSE}
-terra::plot
+terra::plot # the :: provides the namespace, i.e. that the function is from the terra-package
 showMethods(f = 'plot') ## S4 type method
 methods(generic.function = 'plot') ## S3 type method
 ```
