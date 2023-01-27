@@ -45,7 +45,7 @@ Sys.setlocale("LC_TIME", "C")
 # Setup
 
 
-```{r setup, include=FALSE}
+```{r libraries, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, fig.align = 'center', fig.width = 6, fig.height = 6)
 library(knitr)
 library(vegan)
@@ -53,6 +53,7 @@ library(iNEXT)
 library(sads)
 library(tidyverse)
 library(terra)
+library(here)
 ```
 
 
@@ -272,12 +273,12 @@ ggiNEXT(example1, type=1) # Curve for sample size
 
 Rarefaction/extrapolation curves for sample size for all 3 numbers divided by site
 ```{r}
-ggiNEXT(example2, type=1, facet.var="site")
+ggiNEXT(example2, type=1, facet.var="Assemblage")
 ```
 
 Rarefaction/extrapolation curves for sample size separated by "order" (q)
 ```{r}
-ggiNEXT(example2, type=1, facet.var="order")
+ggiNEXT(example2, type=1, facet.var="Both")
 # adding grey=TRUE, we get a plot in black and white theme
 ```
 
@@ -294,7 +295,7 @@ Results: for the three hill numbers, order 0, 1,2.
 For all of them is interpolated or extrapolated as requested and we get the values in qD with lower and upper confidence intervales. 
 These values are now fully comparable
 
-Use max value of the biggest sample
+Use max value of the biggest sample size
 
 ```{r}
 inext_spiders <- iNEXT(spider, q = 0, datatype = "abundance")
@@ -309,6 +310,8 @@ estINEXTsize
 
 Use max sample coverage 
 
+TODO - if this is coverage, shouldn't the object also be called estiNEXTcov, or so? see below
+
 ```{r}
 max(info_spiders$SC)
 
@@ -321,11 +324,17 @@ estINEXTsize
 Now we can compare Species richness standardized for the same level of sample size for each habitat (sample)
 
 ```{r}
+## TODO  - something has changed here in the package!!!!!!!! I gave up here
+
+# estINEXTcover2 <- estimateD(x = spider, datatype = "abundance", base = "size", level = 252, conf = NULL) #this does not work any more
 estINEXTcover2 <- estimateD(spider, datatype = "abundance", base = "size", level = 252,
-          conf = NULL) # Remove the confidence intervals
+          conf = 0.0)# Remove the confidence intervals w dirty trick
+
 
 habitat <- factor(c("Girdled", "Logged"))
-plot(estINEXTcover2$'q = 0' ~ habitat, col = c("green4", "red"), 
+
+mysub <- subset(estINEXTcover2,estINEXTcover2$Order.q == 0 )
+plot(mysub$qD ~ habitat, col = c("green4", "red"), 
         xlab = "Habitats", ylab = "Est. Species richness")
 ```
 
@@ -372,7 +381,7 @@ birds_inext$AsyEst
 
 
 # Species accumulation curves
-ggiNEXT(birds_inext, type=1, facet.var="none") # not all plots sampled equally
+ggiNEXT(birds_inext, type=1, facet.var="None") # not all plots sampled equally
 
 
 # get minimum number of individuals from data 
@@ -384,7 +393,7 @@ birds_estINEXTsize <- estimateD(bird_data, datatype = "abundance", base = "size"
 
 birds_estINEXTsize
 
-# extract species richness
+# extract species richness 
 birds_est_sprich <- as.data.frame(cbind(site = colnames(bird_data),
                                         sp_rich = birds_estINEXTsize$`q = 0`))
 
@@ -474,11 +483,10 @@ ggplot(my_model_data, aes(y = sp_rich, x = impervious_surface)) +
 ```{r}
 ##
 ## set working directory for maps, e.g. here geoTiffs ##
-tree_raster   <- rast("tree_cover_density_2012_100m_3035.tif")
-imperv_raster <- rast("imperviousness_2012_100m_3035.tif")
-noise_raster  <- rast("noise_daynight_2017_100m_3035.tif")
-
-water_raster  <- rast("water_bodies_2010_100m_3035.tif")
+tree_raster   <- rast("data","data_berlin","geo_raster_current_gtif","tree_cover_density_2012_100m_3035.tif")
+imperv_raster <- rast("data","data_berlin","geo_raster_current_gtif","imperviousness_2012_100m_3035.tif")
+noise_raster  <- rast("data","data_berlin","geo_raster_current_gtif","noise_daynight_2017_100m_3035.tif")
+water_raster  <- rast("data","data_berlin","geo_raster_current_gtif","water_bodies_2010_100m_3035.tif")
 
 #put all environmental rasters together for the prediction
 my_env_stack<- stack(tree_raster, imperv_raster, noise_raster)
@@ -499,7 +507,7 @@ my_env_stack_2 <- my_env_stack/100 # correct values of the rasters
 
 ## Predict the model
 ```{r}
-sp_rich_pred <- raster::predict(object = my_env_stack_2, 
+sp_rich_pred <- terra::predict(object = my_env_stack_2, 
                                 model = birds_model)
 sp_rich_pred
 sp_rich_pred[sp_rich_pred < 0] <- 0 # Abundance cannot be < 0
@@ -513,15 +521,6 @@ plot(water_raster, col = "darkslategray1",  legend=FALSE, add = TRUE)
 
 # writeRaster(sp_rich_pred, my_output_directory)
 ```
-
-
-
-
-
-
-
-
-
 
 ##########################################
 
@@ -543,19 +542,34 @@ ChaoRichness(spider, datatype = "abundance")
 
 
 
-
-
-
-
-
-
-
-
-
-
 # <span class='exercise'>Exercise</span>
 
 Some exercises.
+```{r}
+###
+## Diversity Analysis Exercise
+
+# 1. Load the data
+## - 1.1. the bird data 'birds_berlin_exercise_planillo2021.csv' and explore it (use head(), str())
+## - 1.2. the environmental data 'birds_transects_allenvir_100m.csv' and explore it  
+
+# 2. Estimate alpha diversity:
+## - 2.1. Choose the diversity index: q = 1 or q = 2
+## - 2.2. Rarefy the samples to the appropriate size and estimate the rarefied values
+
+# 3. Predict Hill number 1 or 2 in Berlin
+## - 3.1. Choose environmental variables (up to 3) 
+## - 3.2. Run model with the diversity values and the environmental variables
+## - 3.3. Plot the predictions
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+#### for those who like challenges
+# 4. Estimate beta diversity:
+## 4.1. Jaccard dissimilarity (for each pair of sites)
+## 4.2. Bray-Curtis dissimilarity (for each pair of sites) 
+## 4.3. Compare the output of both beta-diversity metrics
+
+```
 
 
 <br><hr><br>

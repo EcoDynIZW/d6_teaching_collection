@@ -1,0 +1,230 @@
+---
+title: "Analysis of biodiversity data"
+author: "Aimara Planillo, Viktoriia Radchuk"
+date: "`r Sys.setlocale('LC_TIME','C'); paste('Last Update', format(Sys.time(), '%B %e, %Y')) `"
+output:
+  rmdformats::readthedown:
+    highlight: kate
+    code_folding: show
+    toc_depth: 4
+    toc_float: true
+editor_options:
+  chunk_output_type: console
+params:
+  date: !r Sys.Date()
+---
+
+<style>
+h1 {
+  color: Orange ;
+}
+h2, h3, h4, h5, h6, legend {
+  color: Indigo ;
+}
+p {
+  line-height:170%;
+}
+#sidebar h2 {
+  background-color: Indigo;
+}
+code {
+  color: Indigo ;
+}
+.exercise {
+  color: #824b00;
+}
+</style>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, 
+                      dev = "ragg_png", fig.width = 9, fig.height = 6, dpi = 600, retina = 1)
+Sys.setlocale("LC_TIME", "C")
+```
+
+# Setup
+
+```{r}
+library(knitr)
+library(vegan)
+library(psych)
+library(here)
+```
+
+
+# Beta diversity
+
+## 1. Jaccard
+
+Let's calculate Jaccard diversity using the data from the power point
+
+```{r Jaccard_birds}
+
+# Create dataframes for the two communities:
+Gruenewald <- data.frame(Species = c('BT', 'Robin', 'Magpie','Roller', 'Swallow', 'GT'),
+                         Abundance = c(3, 2, 2, 1, 2, 4))
+Gruenewald
+
+Alex <- data.frame(Species = c('BT', 'Dove', 'Magpie', 'GT', 'Crow'),
+                   Abundance =  c(3, 4, 1, 5, 2))
+Alex
+
+# Now let's get a, b and c needed to calculate Jaccard index
+
+Common <- merge(Gruenewald, Alex, by = 'Species') # create a dataframe with only the common species of the two communities
+a <- nrow(Common) # get the number of common species
+Unique_Grun <- sum(! Gruenewald$Species %in% Alex$Species) # get the number of unique species for Grunewald
+Unique_Alex <- sum(! Alex$Species %in% Gruenewald$Species) # get the number of unique species for Grunewald
+J <- a / (a + Unique_Grun + Unique_Alex) # calculate Jaccard index
+J 
+
+```
+
+
+## 2. Bray-Curtis
+
+```{r BC_birds}
+
+# Create dataframes for the two communities:
+Gruenewald <- data.frame(Species = c('BT', 'Robin', 'Magpie','Roller', 'Swallow', 'GT'),
+                         Abundance = c(3, 2, 2, 1, 2, 4))
+Gruenewald
+
+Alex <- data.frame(Species = c('BT', 'Dove', 'Magpie', 'GT', 'Crow'),
+                   Abundance =  c(3, 4, 1, 5, 2))
+Alex
+
+# Now let's get a, b and c needed to calculate Jaccard index
+
+Common <- merge(Gruenewald, Alex, by = 'Species') # create a dataframe with only the common species of the two communities
+Common$Min <- unlist(lapply(1:nrow(Common), FUN = function(x){min(Common[x, 2:3])})) # get the minimum abundance of each common species between the two communities
+Common
+
+S_Grun <- sum(Gruenewald$Abundance) # get the total abundance of all species for Grunewald
+S_Alex <- sum(Alex$Abundance) # get the total abundance of all species for Alex
+BC <- 2*sum(Common$Min) / (S_Grun + S_Alex) # calculate Bray-Curtis 
+BC
+
+```
+
+
+# Principal Coordinates Analysis  
+
+## Bird data  
+
+First, let's read the .csv data
+
+```{r PCoA_readData}
+
+# Export dataframe of species abundance and environmental variables for each site
+species <- read.csv(here('data','data_berlin','animal_data','birds_berlin_exercise_planillo2021.csv'))
+envir   <- read.csv(here('data','data_berlin','animal_data','birds_transects_allenvir_100m.csv'))
+
+# Let's look how the bird species data look like
+head(species) 
+str(species) #29 transects
+# Data for great tits (Parus major)
+hist(species$Parus_major, col = 'grey', main = '', xlab = 'Great tit abundance') 
+
+# Let's look how the env. data looks like
+head(envir) # every line/ row corresponds with a site
+hist(envir$pop_100m, col = 'grey', main = '', xlab = 'Human population density')
+hist(envir$noise, col = 'grey', main = '', xlab = 'Noise level')
+```
+
+
+And now let's fit a PCoA on the species data
+```{r PCoA_species}
+library(ape)
+# remove site as a column
+bird_data <- species[,-71]
+rownames(bird_data) <- species$site
+
+# Bray curtis distance between sites based on species abundances
+bird_dist <- vegdist(bird_data, method = "bray")
+
+# Principal coordinates analysis or metric multidimensional scaling
+birds_pcoa <- cmdscale(bird_dist, k = nrow(bird_data)-1, list. = TRUE)
+
+# Plot of the sites
+ordiplot(scores(birds_pcoa, choices=c(1,2)), type="t", main="PCoA with species weighted averages")
+abline(h=0, lty=3)
+abline(v=0, lty=3)
+
+scores(birds_pcoa)
+```
+
+
+## Plot with species weights
+
+```{r PCoA_species2}
+# Add weighted average projection of species
+birds_wa <- wascores(birds_pcoa$points[,1:2], bird_data)
+text(birds_wa, rownames(birds_wa), cex=0.7, col="red")
+```
+
+## Add environmental values
+
+```{r PCoA_species3}
+# Add environmental variables
+rownames(envir) <- (envir$site)
+envir_data <- envir[,-1]
+
+# population density
+pop_fit <- envfit(birds_pcoa$points, envir_data$pop_100m)
+
+ordiplot(scores(birds_pcoa, choices=c(1,2)), type="t", main="PCoA with species weighted averages")
+abline(h=0, lty=3)
+abline(v=0, lty=3)
+plot(pop_fit, p.max = 0.05, col = "red")
+
+# multiple environmental variables
+head(envir_data)
+envir_data2 <- envir_data[,c("impervious_surface", "pop_100m", "noise", "tree_cover", "open_green")]
+
+env_fit <- envfit(birds_pcoa$points, envir_data2)
+
+ordiplot(scores(birds_pcoa, choices=c(1,2)), type="t", main="PCoA with species weighted averages", 
+         cex = 1)
+abline(h=0, lty=3, col = "grey80")
+abline(v=0, lty=3, col = "grey80")
+# points(birds_wa, col = "blue")
+text(birds_wa, rownames(birds_wa), cex=0.7, col="blue")
+plot(env_fit, col = "red", bg = "grey80")
+```
+
+
+## Overlap the grouping of the sites
+
+```{r PCoA_species4}
+# grouping the sites
+envir$imperv_classes <- ifelse(envir$impervious_surface < 25, "low", 
+                              ifelse(envir$impervious_surface > 75, "high", "medium"))
+
+
+plot(birds_pcoa$points, type = "n", xlab = "PC1", ylab = "PC2", 
+     main = "PCoA with imperviousness classes")
+points(birds_pcoa$points, col = "black", bg = "orange", pch = 21)
+text(birds_pcoa$points, rownames(birds_pcoa$points), cex = 0.7)
+ordiellipse(birds_pcoa, envir$imperv_classes, col = 1:3, 
+            draw = "polygon")
+ordispider(birds_pcoa, envir$imperv_classes, col = 1:3, 
+            label = TRUE)
+```
+
+
+# <span class='exercise'>Exercise</span>
+
+See script on alpha diversity exercise Q 4
+
+
+<br><hr><br>
+
+<details><summary>Session Info</summary>
+
+```{r sessionInfo}
+Sys.time()
+#git2r::repository() ## uncomment if you are using GitHub
+sessionInfo()
+```
+
+</details>
