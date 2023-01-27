@@ -1071,23 +1071,6 @@ round(x = global(x = predictors, stat = 'mean', na.rm = TRUE), digits = 2)
 ```
 <br>
 
-## Data export - saving raster data
-
-Save the raster (not the plot...): There are many exchange formats for rasters. 
-The best choice is considered to be GeoTiff, which also saves the projection and is smaller than 
-ascii. However, for modelling e.g. in MaxEnt, the raster maps are needed in ascii-format.
-
-```{r save-raster}
-
-## save the small aggregated file
-writeRaster(x = ras_bio_asc_01_agg, 
-            filename = paste0(output_wd,"/bor_agg.asc"), 
-            # or use here: here("output", "bor_agg.asc")
-            overwrite = TRUE, 
-            NAflag = -9999)
-```
-<br>
-
 ## Manipulating rasters
 
 Do any kind of raster algebra:
@@ -1256,6 +1239,31 @@ my_dist <- distance(x = ras_bio_asc_01_cr, y = sv_xy_2)
 plot(my_dist) #units?
 ```
 <br>
+
+## Data export - saving raster data
+
+Save the raster (not the plot...): There are many exchange formats for rasters. 
+The best choice is considered to be GeoTiff, which also saves the projection and is smaller than 
+ascii. However, for modelling e.g. in MaxEnt, the raster maps are needed in ascii-format.
+
+```{r save-raster}
+
+## save the small cropped file
+terra::writeRaster(x = ras_bio_asc_01_cr, 
+            filename = paste0(output_wd,"/bor_crop.asc"), 
+            # or use here: here("output", "bor_crop.asc")
+            overwrite = TRUE, 
+            NAflag = -9999)
+
+
+terra::writeRaster(x = ras_bio_asc_01_agg, 
+            filename = paste0(output_wd,"/bor_crop.asc"), 
+            # or use here: here("output", "bor_crop.asc")
+            overwrite = TRUE, 
+            NAflag = -9999)
+```
+<br>
+
 
 
 # Vector data / shapefiles
