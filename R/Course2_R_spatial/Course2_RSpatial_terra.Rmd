@@ -165,7 +165,7 @@ https://lkcnhm.nus.edu.sg/app/uploads/2017/06/S33rbz018-041-1.pdf
 ```{r package-install}
 pkgs <- c("terra", "stars", "rgdal", "rgeos", "rasterVis", "sf",  
           "ggplot2", "tmap", "viridis", "patchwork", "here", "units",
-          "rnaturalearth", "osmdata", "elevatr")
+          "rnaturalearth", "osmdata", "elevatr","tanaka")
 
 ## install packages that are not installed yet
 ## (not important to understand the following code, just run it)
@@ -329,7 +329,8 @@ we work with the Borneo data:
 
 dbor_wd     <- here("data","data_borneo") #- note the nested folder structure
 #  maps_wd   <- here("data","data_borneo","geo_raster_current_asc")  ##  same as:
-  maps_wd   <- paste0(dbor_wd, "/geo_raster_current_asc") #- mind difference paste0() and paste()
+  maps_wd   <- paste0(dbor_wd, "/geo_raster_current_asc") 
+               #- mind difference paste0() and paste()
   vecs_wd   <- paste0(dbor_wd, "/geo_vector")
   anim_wd   <-  paste(dbor_wd, "/animal_data", sep = '')   #- paste() needs a separator sign
 ```
@@ -498,7 +499,8 @@ ras_bio_asc_24 <- rast(x = paste0(maps_wd, "/bio_asc_24.asc")) ## `raster()` in 
 
 crs(ras_bio_asc_24)
 
-crs(ras_bio_asc_24) <- crs(ras_bio_asc_01)
+## if not assigned:
+# crs(ras_bio_asc_24) <- crs(ras_bio_asc_01) 
 ## same as: 
 # crs(ras_bio_asc_24) <- crs("+proj=longlat +datum=WGS84")
 ```
@@ -874,12 +876,35 @@ persp(x = ras_bio_asc_24, xlab = "Easting", ylab = "Northing",
       zlab = "elevation", r = 5, d = 1.5, expand = 0.1,
       ticktype = "detailed")
 ```
+
 <br>
 
 Why is the map so spiny? Check units! This is still a geographic CRS, not a
-projected one. The units are in degrees. Wait for the lecture for details.
+projected one. The units are in degrees. Solution: project to a geographic crs (chapter: Raster projection).
 
 <br>
+
+Let's work with the cropped map. Check out the options:
+
+```{r}
+plot(ras_bio_asc_01_cr)
+contour(x = ras_bio_asc_01_cr, add=TRUE)
+```
+
+
+```{r}
+contour(x = ras_bio_asc_01_cr, filled=TRUE, nlevels= 10)
+```
+
+```{r}
+library(tanaka)
+tanaka(ras_bio_asc_01_cr, 
+       legend.pos = "bottom", 
+       legend.title = "mean ann temp\n(°C * 10)")
+```
+
+Also possible with ggplot:
+https://eliocamp.github.io/metR/reference/geom_contour_tanaka.html
 
 ## Raster projection
 
@@ -1133,8 +1158,12 @@ at line 5 (= row 5; latitude or y-axis).
 
 ```{r accessing-raster-values}
 cells <- cellFromRowCol(object = ras_bio_asc_01_cr, row = 5, col = 1:3)
-cells    ## returns cell ID number, the index / rownumber! Not the value!
-extract(x = ras_bio_asc_01_cr, y = cells) ## returns cell values!
+cells    ## Note: returns cell ID number, the index / rownumber! Not the value!!!!
+
+## returns cell values!: 
+extract(x = ras_bio_asc_01_cr, y = cells) 
+
+## plot it:
 plot(x = ras_bio_asc_01_cr)
 ## to plot the points on top, insert the 'cells' index into 
 ## the data frame of the coordinates of the RasterLayer object ras_bio_asc_01_cr
@@ -1142,7 +1171,7 @@ points(x = crds(ras_bio_asc_01_cr)[cells,], col = "blue")
 ```
 <br>
    
-Extract raster values from all rasters at once (raster stack):
+Advantage of working with stacks: Extract raster values from all rasters at once (raster stack):
 <br>
 
 This is very important if you want to create your master table, i.e. based 
@@ -1157,7 +1186,7 @@ row and column indices of the center of a large Borneo map, e.g. `ras_bio_asc_01
 ```{r extract-raster-values}
 center_x = floor(nrow(predictors) / 2) ## learn about the functions round(), 
 center_y = floor(ncol(predictors) / 2) ##                 ceiling(), floor()
-center_x; center_y
+center_x; center_y ## center coordinates of the Borneo maps
 
 stack_cells <- cellFromRowCol(
   object = ras_bio_asc_01, 
@@ -1174,7 +1203,7 @@ starts at the upper left corner of the map and continues consecutively, i.e.
 the data (`ras_bio_asc_01@data@values`) are one huge vector with length `nrow * ncol`!
 <br>
 
-Now, extract them with the useful function `èxtract()`:
+Now, extract them with the useful function `èxtract()`into an object called 'mastertable' that you can for example use for statistical analyses in R:
 
 ```{r extract-raster-values-finally}
 pred_dat <- extract(predictors, stack_cells) 
@@ -1190,12 +1219,14 @@ Change raster values:
 
 ```{r change-raster-values-again}
 ## get the coordinates; cells was the object containing the index (i.e. the cell numbering)
+## the function returns a matrix (it could have been easy...)
 xy <- xyFromCell(object = ras_bio_asc_01_cr, cell = cells) 
+      # coordinates(ras_bio_asc_01_cr)[cells,] ## in {raster} package
 xy
+class(xy)
 
-# coordinates(ras_bio_asc_01_cr)[cells,]
 extract(x = ras_bio_asc_01_cr, y = xy)          
-# extract(ras_bio_asc_01_cr, cells)
+# extract(ras_bio_asc_01_cr, cells) ## in {raster} package
 
 ## Change values, e.g. for adding forest or creating a corridor
 ## take care! -> irreversible! better work on a copy!
@@ -1207,11 +1238,24 @@ plot(x = copy_ras, col = viridis(20))
 
 ### Compute distance to points
 
-```{r compute-distance}
+```{r create-spat-vect}
 ## turn first into SpatVector - this is the format needed for the distance() function below
 sv_xy <- vect(xy) 
 sv_xy
+```
 
+Check the object `sv_xy`: since `xy` was a simple matrix and not a spatial object, there is no crs assigned. The slot for 'coord.ref.' is empty. That means, we now have to first assign
+the crs so that the following functions know where exactly the different layers are on earth.
+```{r}
+crs(sv_xy) <- "epsg:4326"
+
+## check: 
+sv_xy
+```
+
+Now the crs is set/ assigned and we can continue with distance calculations:
+
+```{r compute-distance}
 ## calculate distance
 my_dist <- distance(x = ras_bio_asc_01_cr, y = sv_xy)
    ## `distanceFromPoints(object = ras_bio_asc_01_cr, xy = xy)` in {raster}
@@ -1224,7 +1268,6 @@ points(xy)
 ## please ignore the following 4 lines, just run them,  
 ## you will learn that when working with vector data below
 
-crs(sv_xy) <- "epsg:4326"
 xy_sf <- sf::st_as_sf(x = sv_xy)
 
 tmap_mode(mode = "plot")
@@ -1241,7 +1284,8 @@ Calculate distance from many points:
 
 ```{r compute-distance-multiple}
 cells1 <- c(cells, 250, 360) ## add two more points to cells = cells1
-sv_xy_2 <- vect(xyFromCell(ras_bio_asc_01_cr, cells1))
+sv_xy_2 <- vect(xyFromCell(ras_bio_asc_01_cr, cells1)) ## we create a new spatVect
+crs(sv_xy_2) <- "epsg:4326" ## same procedure as above
 my_dist <- distance(x = ras_bio_asc_01_cr, y = sv_xy_2)
 plot(my_dist) #units?
 ```
@@ -1258,14 +1302,14 @@ ascii. However, for modelling e.g. in MaxEnt, the raster maps are needed in asci
 ## save the small cropped file
 terra::writeRaster(x = ras_bio_asc_01_cr, 
             filename = paste0(output_wd,"/bor_crop.asc"), 
-            # or use here: here("output", "bor_crop.asc")
+            # or use here(): here("output", "bor_crop.asc")
             overwrite = TRUE, 
             NAflag = -9999)
 
 
 terra::writeRaster(x = ras_bio_asc_01_agg, 
             filename = paste0(output_wd,"/ras_bio_asc_01_agg.asc"), 
-            # or use here: here("output", "bor_crop.asc")
+            # or use here(): here("output", "ras_bio_asc_01_agg.asc")
             overwrite = TRUE, 
             NAflag = -9999)
 ```
@@ -1820,7 +1864,7 @@ head(sf_beekeepers$osm_points)
 beekeper_locations <- sf_beekeepers$osm_points
 
 ggplot(beekeper_locations) + 
-  geom_sf(data = d6berlin::sf_berlin) +
+  # geom_sf(data = d6berlin::sf_berlin) + ## taken out because d6berlin needs to be loaded first
   geom_sf(size = 2) +
   theme_void()
 ```
@@ -1923,7 +1967,7 @@ Now, we want to study the spatial patterns of the wild boar observations. We may
 
 Follow these steps to answer the questions:
 
-* a. Load the wild boar data (`data_wb_melden_en.csv`) and spatial data on temperature in Berlin (`summer_temp_100m_3035.asc` in `_DataBerlin`). Remember to set the correct CRS to the raster! (Hint: we need the Lambert Azimuthal Equal Area (LAEA) projection for Europe.Tip: always save the CRS as EPSG code to the filename ;-) )
+* a. Load the wild boar data (`data_wb_melden_en.csv`) and spatial data on temperature in Berlin (`summer_temp_100m_3035.asc` in `data_berlin`). Remember to set the correct CRS to the raster! (Hint: we need the Lambert Azimuthal Equal Area (LAEA) projection for Europe.Tip: always save the CRS as EPSG code to the filename ;-) )
 * b. Turn the wild boar data into a simple features object.  Remember to set the correct CRS (the wild boar locations were collected in WGS 84) and to transform it to the same CRS as the raster afterwards!
 * c. Inspect both spatial data sets by plotting the temperature raster with the wild boar locations on top using the R basic plot function. The locations should match the map (if not something went wrong when setting the CRS; check if they are the same).
 * d. Select one of the temperature layers and extract the values for each wild boar location. 
@@ -1934,7 +1978,7 @@ Follow these steps to answer the questions:
 
 For the additional question: <br>
 
-* i. Load the tree cover data set (`tree_cover_density_2012_100m_3035.asc` in `_DataBerlin`).
+* i. Load the tree cover data set (`tree_cover_density_2012_100m_3035.asc` in `data_berlin`).
 * j. Inspect the data set by plotting the raster using the R basic plot function.
 * k. Extract the tree cover within a buffer of 100m around each wild boar location (hint: use the help to inspect the arguments of `extract()`). 
 * l. Create a plot that shows the tree cover (y axis) based on the group size (box plot + raw data).
