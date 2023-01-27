@@ -429,13 +429,13 @@ and analysis into the subfolder `.../output/data-proc`. There are two options we
 * R data file - can only be opened/ read with R by using function readRDS()
 
 ```{r}
-saveRDS(dat_anim_na, file = here("output", "data-proc", "tag5334_gps_proc.Rds"))
+saveRDS(dat_anim_na, file = here("output",  "tag5334_gps_proc.Rds"))
 ```
 
 * interchange file format .csv
 
 ```{r}
-write.csv(dat_anim_na, file = here("output", "data-proc", "tag5334_gps_proc.csv"))
+write.csv(dat_anim_na, file = here("output",  "tag5334_gps_proc.csv"))
 ```
 
 Check your output folder for these files. The efficient '.Rds' file storage
@@ -647,6 +647,8 @@ my_fox <- move(x = anim_for_move$X_3035, y = anim_for_move$Y_3035,
                animal = "FoxQvonStralau")  
 ```
 
+A hint (for the exercises later, so please read!): check the argument 'animal'. Here,
+I put one name, however, if multiple individuals are used, you can provide a vector with multiple IDs, e.g. via the column of the dataset <mydata$animalIDs>.
 
 ```{r}
 ## Alternative using data.frame with longitude-latitude columns
