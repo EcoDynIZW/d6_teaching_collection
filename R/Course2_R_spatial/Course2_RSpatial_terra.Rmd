@@ -428,11 +428,16 @@ ras_bio_asc_01
 ```
 
 What does the slot with extent tells you? Looks like decimal degrees, i.e. could be
-latitude and longitude. However, the slot crs (crs stands for coordinate reference system)
-is empty. That means, without knowing the reference system, the map cannot be
+latitude and longitude. 
+<br>
+
+Now have a look at the slot `crs` (crs stands for coordinate reference system): Nicely in the new `{terra}`-package, the Coordinate Reference System (map projection) is automatically set in the following way: If this argument is missing when loading data with `rast(x= ..., crs= ...)`, and the x coordinates are within -360 .. 360 and the y coordinates are within -90 .. 90, "+proj=longlat +datum=WGS84" is used.
+
+
+However, sometimes the slot crs is empty, i.e. if other coordinates than decimal degrees are used, e.g. UTM. That means, without knowing the reference system, the map cannot be
 plotted at the exact location on the globe. Thus, when you get a map, always
 make sure you also get the information of the coordinate reference system! If it 
-is not yet set (because you import a raster map as a simple matrix or points from
+is not yet set/ assigned (because you import a raster map as a simple matrix or points from
 a file), this is the first thing you should do!
 
 ```{r}
@@ -1257,7 +1262,7 @@ terra::writeRaster(x = ras_bio_asc_01_cr,
 
 
 terra::writeRaster(x = ras_bio_asc_01_agg, 
-            filename = paste0(output_wd,"/bor_crop.asc"), 
+            filename = paste0(output_wd,"/ras_bio_asc_01_agg.asc"), 
             # or use here: here("output", "bor_crop.asc")
             overwrite = TRUE, 
             NAflag = -9999)
