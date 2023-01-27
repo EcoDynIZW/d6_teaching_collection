@@ -44,7 +44,7 @@ code {
 
 Individual Steps:
 
-* a. Store the simple feature data `sf_green` which is provided by the `{d6berlin}` package in a local object.
+* a. Store the simple feature data `sf_green` which is provided by the `{d6berlin}` package in a local object. (load the package first)
 * b. Calculate the area for each green space polygon and filter for green spaces that are equal or greater than 1 ha.
 * c. Load the wild boar data (`data_wb_melden_en.csv`) and turn it into a simple feature object. Remember to set the correct CRS!
 * d. Intersect the wild boar data with the filtered green spaces and extract the number of unique observations.

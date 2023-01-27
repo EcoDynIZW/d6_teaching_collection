@@ -46,14 +46,14 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
 ## Exercise 2
 
 **Animals have been collared and tracked, and we want to know their home range size and whether the animals actually avoid agriculture and prefer forest. <br>
-There is telemetry data available from three animals (`DieTiere_32633.shp`) in the
-folder data-raw. Additionally, land cover (`Landnutzung_3035.shp`) and rivers (`linearegew_32633.shp`) are available in the `geo-raw` folder. 
+There is telemetry data available from three animals (`animal_relocations_32633.shp`) in the
+folder data_move. Additionally, land cover (`landuse_3035.shp`) and rivers (`water_linear_32633.shp`) are available in the `data_move/geo-raw` folder. 
 Land use has a column `NS1` with coded info on `1` (urban areas), `2` (agriculture), 
 `3` (forest), `4` (swamps), and `5` (water bodies).<br>**
 
 After loading the necessary libraries, the data and making a plot, please do the following:<br>
 
-* a. Calculate their home ranges.<br>
+* a. Calculate their home ranges. Hint: set the argument for multiple animals in move()<br>
 * b. Buffer the home range with the mean steplength of all three animals.<br>
 * c. Clip the home ranges with the underlying landscape and calculate the percentage of land use classes 2 (agriculture) and 2 (forest) within the home range (hint: use `st_intersection()`  AND
 recalculate the column for AREA in km2).<br>

@@ -42,7 +42,7 @@ code {
 
 Individual Steps:
 
-* a. Load the bird observations (`birds_berlin_exercise_planillo2021.csv`) and the transect data (`birds_transects_coordinates_3035.csv`).
+* a. Load the bird observations (`birds_berlin_exercise_planillo2021.csv`) and the transect data (`birds_transects_coordinates_3035.csv`). You will find them in `data_berlin/animal_data`.
 * b. Combine both data sets. To do so, you have to find the matching columns (here: `site`) and make sure they contain the same values. In our case, we need to turn the site IDs in the bird data set to lower case to match the site IDs from the transects.
 * c. Determine number of *individuals* (sum of counts) per site.
 * d. Estimate average across all sites.
@@ -57,7 +57,7 @@ Individual Steps:
 
 * a. Turn the bird–transect data set into simple features object. Don't forget to set the correct CRS! (Remember: the correct projection is, in the best case, added to the file name!)
 * b. Add a buffer around each site location (if you don't know how: there is a function from the `{sf}` package with a very intuitive name...)
-* c. Load the tree cover data set (`tree_cover_density_2012_100m_3035.asc` in `_DataBerlin`).
+* c. Load the tree cover data set (`tree_cover_density_2012_100m_3035.asc` in `data_berlin/geo_raster_current_asc`).
 * d. Calculate average tree cover per buffer by extracting the mean tree cover per polygon.
 * e. Visualize the results as map with the point color encoding the average tree cover for each site.
 * f. Explore the relationship of bird counts and average tree cover per site by visualizing the data as scatter plot (advanced: add a linear fitting).
