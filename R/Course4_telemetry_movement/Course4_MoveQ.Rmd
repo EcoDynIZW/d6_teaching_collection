@@ -127,8 +127,7 @@ landscapes. PhD thesis, FU Berlin. https://refubium.fu-berlin.de/handle/fub188/2
 
 # Getting started
 
-To follow the tutorial, you can either clone or download the repository at
-https://github.com/stephkramer/Course4_MoveQ
+To follow the tutorial, you can either clone or download the repository 
 or you create your own R-project, copy the raw data and type the code chunks into an R-Script.
 Please refer to the section on using R-projects in [Course2_RSpatial](https://github.com/stephkramer/Course2_SpatialR).
 
@@ -140,13 +139,14 @@ In any case, the course folder has the following structure:
 
 ```{text}
 .
-└── Course4_MoveQ         – (root folder)
-    ├─── data-raw         – (contains the file with the GPS locations)
+└── d6_teaching_collection         – (root folder)
+    ├─── data                      
+       ├─── data_move              – (contains the file with the GPS locations)
     ├─── docs
-    ├─── output           – (contains the cleaned files and processed data)
+    ├─── output                    – (contains the cleaned files and processed data)
     ├─── plots
-    ├─── R                – (contains the R-script)
-    └ Course4_MoveQ.Rproj – (the RStudio-Project file location)
+    ├─── R                         – (contains the R-script)
+    └ d6_teaching_collection.Rproj – (the RStudio-Project file location)
 ```
 <br>
 
@@ -211,20 +211,20 @@ The movement data are stored in the data-raw subfolder. Let's check which
 files are available. 
 
 ```{r, results='hide'}
-lf <- list.files(path = here("data-raw"), full.names = TRUE) 
+lf <- list.files(path = here("data","data_move"), full.names = TRUE) 
 lf
 ```
 
 ```{text}
-## [1] "C:/Users/admin/Course4_MoveQ/data-raw/DieTiere_32633.cpg"
-## [2] "C:/Users/admin/Course4_MoveQ/data-raw/DieTiere_32633.dbf"
-## [3] "C:/Users/admin/Course4_MoveQ/data-raw/DieTiere_32633.prj"
-## [4] "C:/Users/admin/Course4_MoveQ/data-raw/DieTiere_32633.qpj"
-## [5] "C:/Users/admin/Course4_MoveQ/data-raw/DieTiere_32633.shp"
-## [6] "C:/Users/admin/Course4_MoveQ/data-raw/DieTiere_32633.shx"
-## [7] "C:/Users/admin/Course4_MoveQ/data-raw/geo-raw"           
-## [8] "C:/Users/admin/Course4_MoveQ/data-raw/KettleHoles.txt"   
-## [9] "C:/Users/admin/Course4_MoveQ/data-raw/tag5334_gps.txt" 
+## [1] ".../d6_teaching_collection/data/data_move/animal_relocations_32633.cpg"
+## [2] ".../d6_teaching_collection/data/data_move/animal_relocations_32633.dbf"
+## [3] ".../d6_teaching_collection/data/data_move/animal_relocations_32633.prj"
+## [4] ".../d6_teaching_collection/data/data_move/animal_relocations_32633.qpj"
+## [5] ".../d6_teaching_collection/data/data_move/animal_relocations_32633.shp"
+## [6] ".../d6_teaching_collection/data/data_move/animal_relocations_32633.shx"
+## [7] ".../d6_teaching_collection/data/data_move/geo-raw"                     
+## [8] ".../projects_github/d6_teaching_collection/data/data_move/KettleHoles.txt"             
+## [9] ".../d6_teaching_collection/data/data_move/tag5334_gps.txt"             
 ```
 
 The output lists two results, there is another subfolder, and many files. E.g.,
@@ -235,19 +235,19 @@ is stored as '.txt' or '.csv' files, you can directly search for those files wit
 
 ```{r}
 ## check the difference, and note: full.names is set to FALSE
-thefile <- list.files(path = here("data-raw"), pattern = "gps", full.names = FALSE)
+thefile <- list.files(path = here("data","data_move"), pattern = "gps", full.names = FALSE)
 thefile
 ```
 
 
 ```{r, results='hide'}
 ## ...and here to TRUE
-thefullfile <- list.files(path = here("data-raw"), pattern = "gps", full.names = TRUE)
+thefullfile <- list.files(path = here("data","data_move"), pattern = "gps", full.names = TRUE)
 thefullfile
 ```
 
 ```{text2}
-## [1] "C:/Users/admin/Course4_MoveQ/data-raw/tag5334_gps.txt"
+## [1] "C:/Users/admin/d6_teaching_collection/data/data_move/tag5334_gps.txt""
 ```
 
 Now load the data file. Our first fox filename should be `tag5334_gps.txt`,
@@ -468,7 +468,7 @@ conducted to minimize errors. I'd even suggest to make these steps
 in different R-scripts.
 
 ```{r}
-anim_proc <- readRDS(file = here("output", "data-proc", "tag5334_gps_proc.Rds"))
+anim_proc <- readRDS(file = here("output", "tag5334_gps_proc.Rds"))
 # head(anim_proc)
 ```
 
@@ -748,7 +748,7 @@ Now save the MCPs as ESRI shapefiles. Mind: the object is a *SpatialPolygonsData
 object from the '{sp}'-package; hence use writeOGR():
 
 ```{r}
-writeOGR(mcp_daytime, dsn = here("output", "data-proc"), 
+writeOGR(mcp_daytime, dsn = here("output"), 
          "mcp95_daytime_foxQ", "ESRI Shapefile", overwrite = TRUE)
 ```
 
@@ -786,15 +786,15 @@ points(mydf_sp_trans, cex = 0.01, col = "red")
 ```{r}
 # save it as shapefile - mind - here we can only save one contour line, 
 # in this case the 90% kernel:
-writeOGR(kud90, dsn = here("output","data-proc"), 
+writeOGR(kud90, dsn = here("output"), 
          layer = "kernel_ud90", "ESRI Shapefile", overwrite = TRUE)
 ```
 
 
 ```{r}
 # make the crosscheck: load and plot
-kernel_ud90_sf <- st_read(dsn = here("output", "data-proc"), layer = "kernel_ud90")
-mcp95_sf       <- st_read(dsn = here("output", "data-proc"), layer = "mcp95_daytime_foxQ")
+kernel_ud90_sf <- st_read(dsn = here("output"), layer = "kernel_ud90")
+mcp95_sf       <- st_read(dsn = here("output"), layer = "mcp95_daytime_foxQ")
 # note: the CRS is lost and not defined! So assign it again:
 st_crs(kernel_ud90_sf) <- 3035
 st_crs(mcp95_sf)       <- 3035
