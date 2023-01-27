@@ -475,7 +475,9 @@ An easy way to specify the CRS is using the EPSG code, e.g. instead of
 `"+proj=longlat +datum=WGS84"` use `"+init=epsg:4326"`.
 
 See http://spatialreference.org/. The EPSG code for WGS84 is 4326.
+<br>
 
+In case the crs was not yet assigned:
 
 ```{r change-crs}
 # many ways to assign the CRS, options listed below:
