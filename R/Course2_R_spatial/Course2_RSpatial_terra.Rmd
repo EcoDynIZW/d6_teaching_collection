@@ -165,7 +165,7 @@ https://lkcnhm.nus.edu.sg/app/uploads/2017/06/S33rbz018-041-1.pdf
 ```{r package-install}
 pkgs <- c("terra", "stars", "rgdal", "rgeos", "rasterVis", "sf",  
           "ggplot2", "tmap", "viridis", "patchwork", "here", "units",
-          "devtools", "osmdata", "elevatr","tanaka")
+          "devtools", "osmdata", "elevatr","tanaka","jpeg")
 
 ## install packages that are not installed yet
 ## (not important to understand the following code, just run it)
@@ -1888,8 +1888,11 @@ head(sf_beekeepers$osm_points)
 
 beekeper_locations <- sf_beekeepers$osm_points
 
+gb_ber <- gb_adm1(c("germany"), type = "sscgs")[6,] # the sixth element is Berlin
+
 ggplot(beekeper_locations) + 
-  # geom_sf(data = d6berlin::sf_berlin) + ## taken out because d6berlin needs to be loaded first
+  geom_sf(data = gb_ber) +
+  # geom_sf(data = d6berlin::sf_berlin) + ## alternative to geoboundaries, but d6berlin needs to be loaded first
   geom_sf(size = 2) +
   theme_void()
 ```
@@ -1982,7 +1985,7 @@ sf::st_write()       ## vector data
 # <span class='exercise'>Exercise 1</span>
 
 **Revisit the data set from course 1 on wild boar observations in Berlin: `data_wb_melden_en.csv`. 
-(it is here: ....\d6_teaching_collection\data\data_berlin\animal_data).
+(it is here: `....\d6_teaching_collection\data\data_berlin\animal_data`).
 
 Now, we want to study the spatial patterns of the wild boar observations. We may hypothesize that wild boar observations are also related to local differences in weather. Answer the following question using spatial data sets and visualizations:**
 
