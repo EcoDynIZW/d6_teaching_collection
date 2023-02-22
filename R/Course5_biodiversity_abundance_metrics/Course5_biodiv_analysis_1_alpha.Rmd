@@ -273,12 +273,12 @@ ggiNEXT(example1, type=1) # Curve for sample size
 
 Rarefaction/extrapolation curves for sample size for all 3 numbers divided by site
 ```{r}
-ggiNEXT(example2, type=1, facet.var="Assemblage")
+ggiNEXT(example2, type=1, facet.var="site")
 ```
 
 Rarefaction/extrapolation curves for sample size separated by "order" (q)
 ```{r}
-ggiNEXT(example2, type=1, facet.var="Both")
+ggiNEXT(example2, type=1, facet.var="both")
 # adding grey=TRUE, we get a plot in black and white theme
 ```
 
@@ -292,7 +292,7 @@ ggiNEXT(example1, type=3) # Curve for sample size
 ## Define at which sample size you want to compare your samples. 
 
 Results: for the three hill numbers, order 0, 1,2. 
-For all of them is interpolated or extrapolated as requested and we get the values in qD with lower and upper confidence intervales. 
+For all of them is interpolated or extrapolated as requested and we get the values in qD with lower and upper confidence intervals. 
 These values are now fully comparable
 
 Use max value of the biggest sample size
@@ -310,32 +310,37 @@ estINEXTsize
 
 Use max sample coverage 
 
-TODO - if this is coverage, shouldn't the object also be called estiNEXTcov, or so? see below
-
 ```{r}
 max(info_spiders$SC)
 
-estINEXTsize <- estimateD(spider, datatype = "abundance", base = "coverage", level = .945,
+estINEXTcov <- estimateD(spider, datatype = "abundance", base = "coverage", level = .945,
           conf = 0.95)
-estINEXTsize
+estINEXTcov
 ```
 
 
 Now we can compare Species richness standardized for the same level of sample size for each habitat (sample)
 
 ```{r}
-## TODO  - something has changed here in the package!!!!!!!! I gave up here
-
-# estINEXTcover2 <- estimateD(x = spider, datatype = "abundance", base = "size", level = 252, conf = NULL) #this does not work any more
 estINEXTcover2 <- estimateD(spider, datatype = "abundance", base = "size", level = 252,
-          conf = 0.0)# Remove the confidence intervals w dirty trick
-
+          conf = 0.95) 
 
 habitat <- factor(c("Girdled", "Logged"))
 
-mysub <- subset(estINEXTcover2,estINEXTcover2$Order.q == 0 )
-plot(mysub$qD ~ habitat, col = c("green4", "red"), 
+# plot simple
+mysub <- subset(estINEXTcover2, estINEXTcover2$order == 0 )
+plot(mysub$qD ~ habitat, border = c("green4", "red"), 
         xlab = "Habitats", ylab = "Est. Species richness")
+
+# plot with confidence interval in ggplot
+ggplot(mysub, aes(x = habitat, y = qD)) +
+  geom_point(colour = c("green4", "red"), size = 5) +
+  geom_errorbar(aes(ymin = qD.LCL, ymax = qD.UCL), 
+                colour = c("green4", "red"),
+                width = 0.2) +
+  xlab("Habitats") +
+  ylab("Est. Species richness") +
+  theme_bw()
 ```
 
 
@@ -381,7 +386,7 @@ birds_inext$AsyEst
 
 
 # Species accumulation curves
-ggiNEXT(birds_inext, type=1, facet.var="None") # not all plots sampled equally
+ggiNEXT(birds_inext, type=1, facet.var="none") # not all plots sampled equally
 
 
 # get minimum number of individuals from data 
@@ -444,7 +449,6 @@ str(my_model_data)
 ## Define the model
 ```{r}
 # explore relationships between variables
-library(ggplot2)
 ggplot(my_model_data, aes(y = sp_rich, x = tree_cover)) +
   geom_point() +
   geom_smooth()
@@ -483,13 +487,16 @@ ggplot(my_model_data, aes(y = sp_rich, x = impervious_surface)) +
 ```{r}
 ##
 ## set working directory for maps, e.g. here geoTiffs ##
-tree_raster   <- rast("data","data_berlin","geo_raster_current_gtif","tree_cover_density_2012_100m_3035.tif")
-imperv_raster <- rast("data","data_berlin","geo_raster_current_gtif","imperviousness_2012_100m_3035.tif")
-noise_raster  <- rast("data","data_berlin","geo_raster_current_gtif","noise_daynight_2017_100m_3035.tif")
-water_raster  <- rast("data","data_berlin","geo_raster_current_gtif","water_bodies_2010_100m_3035.tif")
+tree_raster   <- rast(here::here("data","data_berlin","geo_raster_current_gtif","tree_cover_density_2012_100m_3035.tif"))
+imperv_raster <- rast(here::here("data","data_berlin","geo_raster_current_gtif","imperviousness_2012_100m_3035.tif"))
+noise_raster  <- rast(here::here("data","data_berlin","geo_raster_current_gtif","noise_daynight_2017_100m_3035.tif"))
+water_raster  <- rast(here::here("data","data_berlin","geo_raster_current_gtif","water_bodies_2010_100m_3035.tif"))
 
 #put all environmental rasters together for the prediction
-my_env_stack<- stack(tree_raster, imperv_raster, noise_raster)
+many_rasters <- list(x,x)
+
+## this works
+my_env_stack<- rast(list(tree_raster, imperv_raster, noise_raster))
 
 # the raster the same name as the variables in the model
 names(my_env_stack) <- c("tree_cover", "impervious_surface", "noise")
@@ -516,7 +523,7 @@ sp_rich_pred[sp_rich_pred < 0] <- 0 # Abundance cannot be < 0
 my_palette <- c("#440154FF", "#2D708EFF", "#56C667FF", "#DCE318FF", "#FDE725FF")
 
 # plot map
-plot(sp_rich_pred, breaks = seq(5, 55, by = 10), col = my_palette)
+plot(sp_rich_pred, col = my_palette, breaks = c(seq(5, 55, by = 10)))
 plot(water_raster, col = "darkslategray1",  legend=FALSE, add = TRUE)
 
 # writeRaster(sp_rich_pred, my_output_directory)

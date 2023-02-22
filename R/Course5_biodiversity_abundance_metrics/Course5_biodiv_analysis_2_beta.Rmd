@@ -48,6 +48,7 @@ library(knitr)
 library(vegan)
 library(psych)
 library(here)
+library(ape)
 ```
 
 
@@ -134,7 +135,6 @@ hist(envir$noise, col = 'grey', main = '', xlab = 'Noise level')
 
 And now let's fit a PCoA on the species data
 ```{r PCoA_species}
-library(ape)
 # remove site as a column
 bird_data <- species[,-71]
 rownames(bird_data) <- species$site
