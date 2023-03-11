@@ -51,14 +51,21 @@ class: center, middle
 ### From abundance to population size
 --
 
-### Detactability
+### Detactability issues 
 --
 
-### Lincoln-Petersen
+### Capture-Mark-recapture
+  + closed populations
+  + Lincoln-Petersen index 
+  + heterogeneity in capture probabilities
 --
 
-### covariates in CMR
+### Demography
+  + relaxing the closure assumption
+  + Cormack-Jolly-Seber models
 --
+
+### Extensions
 ---
 class: inverse, middle, center
 
@@ -510,7 +517,9 @@ class: inverse, middle, center
 # Cormack-Jolly-Seber assumptions
 
 + no tag-loss &amp; individuals are recorded without error
+
 + capture is a random sample of the population
+
 + survival and recapture probabilities are homogeneous
 
 ---
@@ -534,6 +543,7 @@ class: inverse, middle, center
 + explanation of how maximum likelihood estimators (MLE) work: https://youtu.be/XepXtl9YKwc
 --
 
+
 + CJS models allow to incorporate covariates
 
 --
@@ -548,6 +558,7 @@ class: inverse, middle, center
 
 + Often, we wish to explain heterogeneity in survival based on sex, age-class, social status, etc. (i.e discrete covariates)
 --
+
 
 + e.g. estimate survival based on social status for each individual (low = 0, high = 1):
 
@@ -589,7 +600,7 @@ class: inverse, middle, center
 + apparent survival &lt; true survival, because site-fidelity is almost never 1 (i.e. some individuals emigrate permanently or disperse)
 --
 
-+ to estimate true survival: 
++ to estimate **true survival**: 
   + add data about death events (e.g. ring recovery)
   + extend models (e.g. Multistate-Capture-recapture models that incorporate space)
 
@@ -683,6 +694,11 @@ $$
     \end{matrix}
 \end{matrix}`
 $$
+---
+class: inverse, middle, center
+
+# Thank you! Questions?
+
 
 
 
