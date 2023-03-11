@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Population analysis from capture-mark-recapture data</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Sinah Drenske &amp; Marius Grabow" />
+    <script src="libs/header-attrs/header-attrs.js"></script>
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <link href="libs/remark-css/default-fonts.css" rel="stylesheet" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# Population analysis from capture-mark-recapture data
+]
+.subtitle[
+## in R
+]
+.author[
+### Sinah Drenske &amp; Marius Grabow
+]
+.institute[
+### Leibniz Institute for Zoo- and Wildlife Research, Berlin
+]
+.date[
+### 2023 - 03 - 23
+]
+
+---
+
+background-size: cover
+background-image: url(https://upload.wikimedia.org/wikipedia/commons/1/16/Coenonympha_tullia_CMR%2C_Drugeon_-_img_47288.jpg)
+class: center, top, inverse
+
+
+
+# From marked animals to population dynamics
+---
+class: center, middle
+
+# Population dynamics
+
+### describe the variation of population size, density &amp; demographic parameters in time
+---
+# Content
+
+--
+
+### From abundance to population size
+--
+
+### Detactability
+--
+
+### Lincoln-Petersen
+--
+
+### covariates in CMR
+--
+---
+class: inverse, middle, center
+
+# Estimating abundance
+
+---
+class:  middle, center
+
+# abundance
+
+### "The total number of individuals of a species or type present in a given area, in a given ecosystem or within a particular habitat." 
+#### (Lawrence, 2005)
+
+---
+# Population size &amp; detectability
+
+--
+
+.pull-left[
+
+
+- True population size: `\(N=5\)`
+
+
+]
+
+&lt;img src="Lecture6_pop_analysis_files/figure-html/star.png"
+     width="400px" height="400px"
+     style="position: absolute;
+  top: 20%;
+  right: 5%"&gt;
+  
+--
+
+---
+# Population size &amp; detectability
+.pull-left[
+
+- True population size: `\(N=5\)`
+
+
+- Can't be measured because detection probability `\(p\)` is (almost always) &lt; 1
+
+
+- If we know our detection probability
+
+
+#### `$$N = \frac{C}{p} = \frac{3}{0.6} = 5$$`
+
+
+]
+
+&lt;img src="Lecture6_pop_analysis_files/figure-html/star_capture.png"
+     width="400px" height="400px"
+     style="position: absolute;
+  top: 20%;
+  right: 5%"&gt;
+
+---
+class: inverse, middle, center
+
+# capture-mark-recapture (CMR)
+
+---
+# Tags to identify individuals
+
+  &lt;img src="Lecture6_pop_analysis_files/figure-html/ants.jpg"
+     width="400px" height="300px"
+     style="position: absolute;
+  top: 18%;
+  right: 5.5%"&gt;
+ 
+   &lt;img src="Lecture6_pop_analysis_files/figure-html/shark.jpg"
+     width="400px" height="300px"
+     style="position: absolute;
+  bottom: 0%;
+  right: 5.5%"&gt; 
+  
+  &lt;img src="Lecture6_pop_analysis_files/figure-html/turtle.png"
+     width="400px" height="500px"
+     style="position: absolute;
+  bottom: -10%;
+  left: 5.5%"&gt;
+  
+  &lt;img src="Lecture6_pop_analysis_files/figure-html/star_ring.jpg"
+     width="400px" height="300px"
+     style="position: absolute;
+  top: 18%;
+  left: 5.5%"&gt;
+
+---
+
+# Using natural / existing marks
+
+  &lt;img src="Lecture6_pop_analysis_files/figure-html/dolphin.jpg"
+     width="400px" height="400px"
+     style="position: absolute;
+  top: 18%;
+  left: 5.5%"&gt;
+ 
+   &lt;img src="Lecture6_pop_analysis_files/figure-html/tiger.jpg"
+     width="400px" height="400px"
+     style="position: absolute;
+  top: 18%;
+  right: 5.5%"&gt; 
+  
+---
+# Using environmental markers
+
+  &lt;img src="Lecture6_pop_analysis_files/figure-html/dna.jpg"
+     width="400px" height="400px"
+     style="position: absolute;
+  top: 25%;
+  right: 5.5%"&gt;
+ 
+.pull-left[ 
+### DNA sampling
+
+### sound recordings
+
+### etc.
+
+]
+  
+---
+class: inverse, middle, center
+
+# closed population
+
+---
+background-image: url(https://animalfactguide.com/wp-content/uploads/2010/11/iStock_000004285123XSmall.jpg)
+background-size: 400px
+background-position: 90% 25%
+
+&lt;img src="Lecture6_pop_analysis_files/figure-html/ants.jpg"
+     width="400px" height="300px"
+     style="position: absolute;
+  top: 50%;
+  right: 5.5%"&gt;
+
+# closure assumption between surveys*
+ 
+.pull-left[ 
+### constant membership:
+###- no deaths
+###- no births
+###- no immigration
+###- no emigration
+
+### * survey length depends on life-history of your focal species
+]
+
+---
+
+# CMR (closed populations)
+
+&lt;img src="Lecture6_pop_analysis_files/figure-html/star.png"
+     width="400px" height="400px"
+     style="position: absolute;
+  top: 20%;
+  right: 5%"&gt;
+
+---
+# CMR (closed populations)
+
+&lt;img src="Lecture6_pop_analysis_files/figure-html/star_mark.png"
+     width="400px" height="400px"
+     style="position: absolute;
+  top: 20%;
+  right: 5%"&gt;
+  
+
+### 1 Capture individuals
+
+
+### 2 Mark individuals
+
+.pull-left[ 
+
+- detection probability `\(p\)` is usually &lt; 1 (not all individuals are captured)
+
+- All captured individuals are individually marked ( `\(M\)` ) 
+
+]
+--
+
+---
+# Recapture individuals
+
+&lt;img src="Lecture6_pop_analysis_files/figure-html/star_recapture.png"
+     width="400px" height="400px"
+     style="position: absolute;
+  top: 20%;
+  right: 5%"&gt;
+  
+--
+
+.pull-left[ 
+
+- detection probability `\(p\)` is usually &lt; 1 (not all individuals are captured)
+
+- We repeat the capturing (our sample size is noted `\(S\)` )
+
+- Among these individuals, some will be already marked (recaptures: `\(R\)` )
+
+- Lincoln Petersen-method:
+
+`$$\hat{N}=\displaystyle{\frac{M \times S}{R}}$$`
+]
+--
+  
+---
+class: center
+
+# Lincoln-Petersen index
+
+`$$\hat{N}=\displaystyle{\frac{M \times S}{R}}$$`
+--
+
+### we can rewrite this into individual capture histories:
+
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; cature_history &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; description &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; prob &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 10 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; seen at first capture, not seen at second capture &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; p1(1-p2) &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 01 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; seen at second capture, not seen at first capture &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; (1-p1)p2 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 11 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; seen at first capture, seen at second capture &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; p1p2 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+--
+
+### and estimate the population size
+
+`$$N=\displaystyle{\frac{n_{10}+n_{01}+n_{11}}{1 - (1-p_1) \times (1-p_2)}}$$`
+--
+
+---
+# Lincoln-Petersen assumptions
+--
+
+
++ closed population 
+--
+
+
++ Tags are not lost (otherwise we overestimate `\(\hat{N}\)` )
+--
+
+
++ All individuals have the same probability to be captured
+--
+
+
+#### ... but what if capture probabilities differ?
+--
+
+### capture probabilities can vary: 
+
++ individual level (sex, age, infection status, etc.)
+
++ sampling level (time, sampling effort)
+
++ or both
+
+---
+class: inverse, middle, center
+
+# capture-mark-recapture 
+#### &gt; 2 capture occasions
+
+---
+# Generalisation of Lincoln-Petersen
+
+--
+
++ we can generalise the Lincoln-Petersen model and use it for more than 2 sampling occasions
+
+--
+
++ same assumptions (closure, no tag-loss, equal capture probability)
+
+--
+
++ capture histories for each individual:
+
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; cature_hist &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; description &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; prob &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 101101 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; seen, not seen, seen, seen, not seen, seen &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; p(1-p)pp(1-p)p &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 001101 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; not seen, not seen, seen, seen, not seen,seen &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; (1-p)(1-p)pp(1-p)p &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; ... &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt;  &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt;  &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 111111 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; always seen &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; pppppp &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+--
+
+#### this specific model (constant `\(p\)`) is often used as a NULL model ( `\(M_0\)` )
+
+---
+# time-dependent capture probability
+--
+
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; cature_hist &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; description &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; prob &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 101101 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; seen, not seen, seen, seen, not seen, seen &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; p1(1-p2)p3p4(1-p5)p6 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 001101 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; not seen, not seen, seen, seen, not seen,seen &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; (1-p1)(1-p2)p3p4(1-p5)p6 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; ... &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt;  &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt;  &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 111111 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; always seen &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; p1p2p3p4p5p6 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+--
+
++ This are already 7 parameters to estimate  ( `\(\hat{N}\)` + `\(p_{1}\)` + `\(p_{2}\)` + `\(p_{3}\)` + `\(p_{4}\)` + `\(p_{5}\)` + `\(p_{6}\)` )
+--
+
+
++ solving our equation gets more challenging with more parameters and more field surveys
+--
+
+---
+# heterogeneity in capture probability
+--
+
+
++ detection probability can depend on behavior (e.g. trap-shy individuals avoid getting captured after captured once)
+--
+
+
++ detection probability can depend on individual covariates (e.g. age, sex, infection status, etc.) 
+
++ mixture models that account for heterogeneity (Pledger 2000, Pledger 2003)
+--
+
++ more complex models: Maximum-likelihood estimator and model selection based on AIC (Akaike information criterion)
+--
+
+---
+class: inverse, middle, center
+
+# Demography
+
+---
+background-image: url(https://www.researchgate.net/profile/Thibaut-Bouveroux/publication/259150241/figure/fig1/AS:654039960281088@1532946686263/Basic-structure-of-classical-form-of-the-Pollocks-robust-design-from-Cooch-and-White_W640.jpg)
+background-size: 600px
+background-position: 50% 90%
+
+
+# Relaxing the closure assumption
+--
+
++ By relaxing our closure assumption, we can assess demographic parameters  
+--
+
+
++ E.g. estimating survival ( `\(\phi_{i}\)` ), i.e. an animal was marked at sampling occassion `\(i\)`, survives until sampling occasion `\(i + 1\)` &amp; is still part of the population 
+--
+
++ our detection probability `\(p\)` remains dependent on single sampling occasions
+---
+class: center
+
+# Capture histories &amp; probabilities
+
+
+
+`$$\Pr(1011) = \phi_1 (1-p_2) \phi_2 p_3 \phi_3 p_4$$`
+
+`$$\Pr(1101) = \phi_1 p_2 \phi_2 (1 - p_3) \phi_3 p_4$$`
+--
+
+### encounter histories can have multiple "paths"
+
+`$$\Pr(1000) = \phi_1 (1-p_2) \phi_2 (1-p_3) \phi_3 (1-p4)$$`+
+`$$\phi_1 (1-p_2) \phi_2 (1-p_3) (1-\phi_3)$$`+
+`$$\phi_1 (1-p_2)  (1-\phi_2)$$`+
+`$$(1-\phi_1)$$`  
+--
+
+
+---
+class: inverse, middle, center
+
+# Cormack-Jolly-Seber
+
+---
+# Cormack-Jolly-Seber assumptions
+
++ no tag-loss &amp; individuals are recorded without error
++ capture is a random sample of the population
++ survival and recapture probabilities are homogeneous
+
+---
+# Cormack-Jolly-Seber (CJS)
+
++ survival `\(\phi\)` varies between sampling intervals
+
++ detection `\(p\)` varies between sampling occasions
+--
+
++ The CJS likelihood is the probability of the data given the parameters:
+
+
+`$$L(data | parameters)$$`
+--
+
++ We estimate all parameters via maximum likelihood estimation:
+
+`$$L(parameters | data)$$`
+
++ explanation of how maximum likelihood estimators (MLE) work: https://youtu.be/XepXtl9YKwc
+--
+
++ CJS models allow to incorporate covariates
+
+--
+
+---
+class: inverse, middle, center
+
+# covariates in CJS models
+
+---
+# Covariates in CJS
+
++ Often, we wish to explain heterogeneity in survival based on sex, age-class, social status, etc. (i.e discrete covariates)
+--
+
++ e.g. estimate survival based on social status for each individual (low = 0, high = 1):
+
+`$$logit(\phi_{i}) = \beta_{1} + \beta_{2} rank_{i}$$` 
+
++ Here, we use the logit link function to estimate parameters between the probability scale (0,1)
+
+--
+
++ `\(logit(\phi_{i}) = \beta_{1}\)` is the survival for low-ranked individuals &amp;
+
++ `\(logit(\phi_{i}) = \beta_{1} + \beta_{2}\)` is the survival for high-ranked individuals
+--
+
+---
+# Covariates in CJS
+
++ continuous covariates can be included (e.g. weight, size, etc):
+
+`$$logit(\phi_{i}) = \beta_{1} + \beta_{2} x_{i}$$` 
+--
+
++ temporal covariates can be included (e.g. weather events, predator abundance, etc.):
+
+`$$logit(\phi_{t}) = \beta_{1} + \beta_{2} x_{t}$$` 
+--
+
++ covariates can also vary with individual &amp; time (e.g. age, body size, infection status)
+
++ in case of non-detection: model covariates (e.g. age) or use discrete values (e.g. discretized body size)
+
+---
+# Survival vs. apparent survival
+
++ we estimate **apparent survival**, because we can't distinguish between mortality &amp; permanent emigration
+--
+
+
++ apparent survival &lt; true survival, because site-fidelity is almost never 1 (i.e. some individuals emigrate permanently or disperse)
+--
+
++ to estimate true survival: 
+  + add data about death events (e.g. ring recovery)
+  + extend models (e.g. Multistate-Capture-recapture models that incorporate space)
+
+---
+# Extensions
+
+&lt;img src="Lecture6_pop_analysis_files/figure-html/hmm.png"
+     width="400px" height="300px"
+     style="position: absolute;
+  bottom: 03%;
+  right: 10%"&gt;
+  
++ There are many extensions to CMR (not covered here)
+--
+
++ Powerful &amp; flexible tools that account for transition between:
+  + sites, i.e. spatial transition (multisite CMR)
+  + states, e.g. internal states such as infection status (multistate models)
+--
+
+
++ we can even incorporate uncertainty in the observation processes (multievent models)
+---
+# Example - swallows &amp; disease dynamics
+
+&lt;img src="Lecture6_pop_analysis_files/figure-html/swallow.png"
+     width="300px" height="450px"
+     style="position: absolute;
+  bottom: 10%;
+  right: 10%"&gt;
+  
+.pull-left[
+
++ estimating demography parameters &amp; disease dynamics in swallow colonies
+
++ assess transition between infection states (probability to infect or clear infection)
+
++ incorporate uncertainty in disease status (not every individual can be tested)
+
+]
+---
+# Example - swallows &amp; disease dynamics
+
++ State transition is described in transition matrices :
+
+$$
+`\begin{matrix}
+&amp; \\
+\mathbf{\Gamma} = 
+    \left ( \vphantom{ \begin{matrix} 12 \\ 12 \\ 12 \end{matrix} } \right .
+\end{matrix}`
+\hspace{-1.2em}
+`\begin{matrix}
+    z_t=BP_{neg} &amp; z_t=BP_{pos} &amp; z_t=D \\ \hdashline
+\phi_{BP_{neg}} (1-\psi_{BP_{negpos}}) &amp; \phi_{BP_{neg}} \psi_{BP_{negpos}} &amp; 1 - \phi_{BP_{neg}}\\ 
+\phi_{BP_{pos}} \psi_{BP_{posneg}} &amp; \phi_{BP_{pos}} (1-\psi_{BP_{posneg}}) &amp; 1 - \phi_{BP_{pos}}\\ 
+0 &amp; 0 &amp; 1
+\end{matrix}`
+\hspace{-0.2em}
+`\begin{matrix}
+&amp; \\
+\left . \vphantom{ \begin{matrix} 12 \\ 12 \\ 12 \end{matrix} } \right )
+    \begin{matrix}
+    z_{t-1}=BP_{neg} \\ z_{t-1}=BP_{pos} \\ z_{t-1}=D
+    \end{matrix}
+\end{matrix}`
+$$
+--
+
++ Observation process &amp; disease uncertainty is described in observation matrices :
+
+$$
+`\begin{matrix}
+&amp; \\
+\mathbf{\Omega} = 
+    \left ( \vphantom{ \begin{matrix} 12 \\ 12 \\ 12\end{matrix} } \right .
+\end{matrix}`
+\hspace{-1.2em}
+`\begin{matrix}
+    y_t=0 &amp; y_t=1 &amp; y_t=2 &amp; y_t=3\\ \hdashline
+1-p_{BP_{neg}} &amp; p_{BP_{neg}} \beta_{Test} &amp; 0 &amp; p_{BP_{neg}} (1-\beta_{Test})\\ 
+1-p_{BP_{pos}} &amp; 0 &amp; p_{BP_{pos}} \beta_{Test} &amp; p_{BP_{pos}} (1-\beta_{Test})\\ 
+1 &amp; 0 &amp; 0 &amp; 0
+\end{matrix}`
+\hspace{-0.2em}
+`\begin{matrix}
+&amp; \\
+\left . \vphantom{ \begin{matrix} 12 \\ 12 \\ 12\end{matrix} } \right )
+    \begin{matrix}
+    z_{t}=BP_{neg} \\ z_{t}=BP_{pos} \\ z_{t}=D
+    \end{matrix}
+\end{matrix}`
+$$
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
