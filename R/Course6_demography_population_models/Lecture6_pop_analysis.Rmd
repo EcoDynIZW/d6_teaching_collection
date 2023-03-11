@@ -1,0 +1,660 @@
+---
+title: "Population analysis from capture-mark-recapture data"
+subtitle: "in R"
+author: "Sinah Drenske & Marius Grabow"
+institute: "Leibniz Institute for Zoo- and Wildlife Research, Berlin"
+date: "2023 - 03 - 23"
+output:
+  xaringan::moon_reader:
+    self-contained: true
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+background-size: cover
+background-image: url(https://upload.wikimedia.org/wikipedia/commons/1/16/Coenonympha_tullia_CMR%2C_Drugeon_-_img_47288.jpg)
+class: center, top, inverse
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+```
+
+# From marked animals to population dynamics
+---
+class: center, middle
+
+# Population dynamics
+
+### describe the variation of population size, density & demographic parameters in time
+---
+# Content
+
+--
+
+### From abundance to population size
+--
+
+### Detactability issues 
+--
+
+### Capture-Mark-recapture
+  + closed populations
+  + Lincoln-Petersen index 
+  + heterogeneity in capture probabilities
+--
+
+### Demography
+  + relaxing the closure assumption
+  + Cormack-Jolly-Seber models
+--
+
+### Extensions
+---
+class: inverse, middle, center
+
+# Estimating abundance
+
+---
+class:  middle, center
+
+# abundance
+
+### "The total number of individuals of a species or type present in a given area, in a given ecosystem or within a particular habitat." 
+#### (Lawrence, 2005)
+
+---
+# Population size & detectability
+
+--
+
+.pull-left[
+
+
+- True population size: $N=5$
+
+
+]
+
+<img src="Lecture6_pop_analysis_files/figure-html/star.png"
+     width="400px" height="400px"
+     style="position: absolute;
+  top: 20%;
+  right: 5%">
+  
+--
+
+---
+# Population size & detectability
+.pull-left[
+
+- True population size: $N=5$
+
+
+- Can't be measured because detection probability $p$ is (almost always) < 1
+
+
+- If we know our detection probability
+
+
+#### $$N = \frac{C}{p} = \frac{3}{0.6} = 5$$
+
+
+]
+
+<img src="Lecture6_pop_analysis_files/figure-html/star_capture.png"
+     width="400px" height="400px"
+     style="position: absolute;
+  top: 20%;
+  right: 5%">
+
+---
+class: inverse, middle, center
+
+# capture-mark-recapture (CMR)
+
+---
+# Tags to identify individuals
+
+  <img src="Lecture6_pop_analysis_files/figure-html/ants.jpg"
+     width="400px" height="300px"
+     style="position: absolute;
+  top: 18%;
+  right: 5.5%">
+ 
+   <img src="Lecture6_pop_analysis_files/figure-html/shark.jpg"
+     width="400px" height="300px"
+     style="position: absolute;
+  bottom: 0%;
+  right: 5.5%"> 
+  
+  <img src="Lecture6_pop_analysis_files/figure-html/turtle.png"
+     width="400px" height="500px"
+     style="position: absolute;
+  bottom: -10%;
+  left: 5.5%">
+  
+  <img src="Lecture6_pop_analysis_files/figure-html/star_ring.jpg"
+     width="400px" height="300px"
+     style="position: absolute;
+  top: 18%;
+  left: 5.5%">
+
+---
+
+# Using natural / existing marks
+
+  <img src="Lecture6_pop_analysis_files/figure-html/dolphin.jpg"
+     width="400px" height="400px"
+     style="position: absolute;
+  top: 18%;
+  left: 5.5%">
+ 
+   <img src="Lecture6_pop_analysis_files/figure-html/tiger.jpg"
+     width="400px" height="400px"
+     style="position: absolute;
+  top: 18%;
+  right: 5.5%"> 
+  
+---
+# Using environmental markers
+
+  <img src="Lecture6_pop_analysis_files/figure-html/dna.jpg"
+     width="400px" height="400px"
+     style="position: absolute;
+  top: 25%;
+  right: 5.5%">
+ 
+.pull-left[ 
+### DNA sampling
+
+### sound recordings
+
+### etc.
+
+]
+  
+---
+class: inverse, middle, center
+
+# closed population
+
+---
+background-image: url(https://animalfactguide.com/wp-content/uploads/2010/11/iStock_000004285123XSmall.jpg)
+background-size: 400px
+background-position: 90% 25%
+
+<img src="Lecture6_pop_analysis_files/figure-html/ants.jpg"
+     width="400px" height="300px"
+     style="position: absolute;
+  top: 50%;
+  right: 5.5%">
+
+# closure assumption between surveys*
+ 
+.pull-left[ 
+### constant membership:
+###- no deaths
+###- no births
+###- no immigration
+###- no emigration
+
+### * survey length depends on life-history of your focal species
+]
+
+---
+
+# CMR (closed populations)
+
+<img src="Lecture6_pop_analysis_files/figure-html/star.png"
+     width="400px" height="400px"
+     style="position: absolute;
+  top: 20%;
+  right: 5%">
+
+---
+# CMR (closed populations)
+
+<img src="Lecture6_pop_analysis_files/figure-html/star_mark.png"
+     width="400px" height="400px"
+     style="position: absolute;
+  top: 20%;
+  right: 5%">
+  
+
+### 1 Capture individuals
+
+
+### 2 Mark individuals
+
+.pull-left[ 
+
+- detection probability $p$ is usually < 1 (not all individuals are captured)
+
+- All captured individuals are individually marked ( $M$ ) 
+
+]
+--
+
+---
+# Recapture individuals
+
+<img src="Lecture6_pop_analysis_files/figure-html/star_recapture.png"
+     width="400px" height="400px"
+     style="position: absolute;
+  top: 20%;
+  right: 5%">
+  
+--
+
+.pull-left[ 
+
+- detection probability $p$ is usually < 1 (not all individuals are captured)
+
+- We repeat the capturing (our sample size is noted $S$ )
+
+- Among these individuals, some will be already marked (recaptures: $R$ )
+
+- Lincoln Petersen-method:
+
+$$\hat{N}=\displaystyle{\frac{M \times S}{R}}$$
+]
+--
+  
+---
+class: center
+
+# Lincoln-Petersen index
+
+$$\hat{N}=\displaystyle{\frac{M \times S}{R}}$$
+--
+
+### we can rewrite this into individual capture histories:
+
+```{r, echo= FALSE}
+kableExtra::kable(
+  data.frame(
+  cature_history = c("10","01","11"),
+  description = c("seen at first capture, not seen at second capture",
+                  "seen at second capture, not seen at first capture",
+                  "seen at first capture, seen at second capture"),
+  prob = c( "p1(1-p2)",
+            "(1-p1)p2",
+            "p1p2")),
+  format='html'
+)
+```
+--
+
+### and estimate the population size
+
+$$N=\displaystyle{\frac{n_{10}+n_{01}+n_{11}}{1 - (1-p_1) \times (1-p_2)}}$$
+--
+
+---
+# Lincoln-Petersen assumptions
+--
+
+
++ closed population 
+--
+
+
++ Tags are not lost (otherwise we overestimate $\hat{N}$ )
+--
+
+
++ All individuals have the same probability to be captured
+--
+
+
+#### ... but what if capture probabilities differ?
+--
+
+### capture probabilities can vary: 
+
++ individual level (sex, age, infection status, etc.)
+
++ sampling level (time, sampling effort)
+
++ or both
+
+---
+class: inverse, middle, center
+
+# capture-mark-recapture 
+#### > 2 capture occasions
+
+---
+# Generalisation of Lincoln-Petersen
+
+--
+
++ we can generalise the Lincoln-Petersen model and use it for more than 2 sampling occasions
+
+--
+
++ same assumptions (closure, no tag-loss, equal capture probability)
+
+--
+
++ capture histories for each individual:
+
+```{r, echo= FALSE}
+kableExtra::kable(
+  data.frame(
+  cature_hist = c("101101","001101","...","111111"),
+  description = c("seen, not seen, seen, seen, not seen, seen",
+                  "not seen, not seen, seen, seen, not seen,seen",
+                  "",
+                  "always seen"),
+  prob = c( "p(1-p)pp(1-p)p",
+            "(1-p)(1-p)pp(1-p)p",
+            "",
+            "pppppp")),
+  format='html'
+)
+```
+--
+
+#### this specific model (constant $p$) is often used as a NULL model ( $M_0$ )
+
+---
+# time-dependent capture probability
+--
+
+```{r, echo= FALSE}
+kableExtra::kable(
+  data.frame(
+  cature_hist = c("101101","001101","...","111111"),
+  description = c("seen, not seen, seen, seen, not seen, seen",
+                  "not seen, not seen, seen, seen, not seen,seen",
+                  "",
+                  "always seen"),
+  prob = c( "p1(1-p2)p3p4(1-p5)p6",
+            "(1-p1)(1-p2)p3p4(1-p5)p6",
+            "",
+            "p1p2p3p4p5p6")),
+  format='html'
+)
+```
+--
+
++ This are already 7 parameters to estimate  ( $\hat{N}$ + $p_{1}$ + $p_{2}$ + $p_{3}$ + $p_{4}$ + $p_{5}$ + $p_{6}$ )
+--
+
+
++ solving our equation gets more challenging with more parameters and more field surveys
+--
+
+---
+# heterogeneity in capture probability
+--
+
+
++ detection probability can depend on behavior (e.g. trap-shy individuals avoid getting captured after captured once)
+--
+
+
++ detection probability can depend on individual covariates (e.g. age, sex, infection status, etc.) 
+
++ mixture models that account for heterogeneity (Pledger 2000, Pledger 2003)
+--
+
++ more complex models: Maximum-likelihood estimator and model selection based on AIC (Akaike information criterion)
+--
+
+---
+class: inverse, middle, center
+
+# Demography
+
+---
+background-image: url(https://www.researchgate.net/profile/Thibaut-Bouveroux/publication/259150241/figure/fig1/AS:654039960281088@1532946686263/Basic-structure-of-classical-form-of-the-Pollocks-robust-design-from-Cooch-and-White_W640.jpg)
+background-size: 600px
+background-position: 50% 90%
+
+
+# Relaxing the closure assumption
+--
+
++ By relaxing our closure assumption, we can assess demographic parameters  
+--
+
+
++ E.g. estimating survival ( $\phi_{i}$ ), i.e. an animal was marked at sampling occassion $i$, survives until sampling occasion $i + 1$ & is still part of the population 
+--
+
++ our detection probability $p$ remains dependent on single sampling occasions
+---
+class: center
+
+# Capture histories & probabilities
+
+
+
+$$\Pr(1011) = \phi_1 (1-p_2) \phi_2 p_3 \phi_3 p_4$$
+
+$$\Pr(1101) = \phi_1 p_2 \phi_2 (1 - p_3) \phi_3 p_4$$
+--
+
+### encounter histories can have multiple "paths"
+
+$$\Pr(1000) = \phi_1 (1-p_2) \phi_2 (1-p_3) \phi_3 (1-p4)$$+
+$$\phi_1 (1-p_2) \phi_2 (1-p_3) (1-\phi_3)$$+
+$$\phi_1 (1-p_2)  (1-\phi_2)$$+
+$$(1-\phi_1)$$  
+--
+
+
+---
+class: inverse, middle, center
+
+# Cormack-Jolly-Seber
+
+---
+# Cormack-Jolly-Seber assumptions
+
++ no tag-loss & individuals are recorded without error
+
++ capture is a random sample of the population
+
++ survival and recapture probabilities are homogeneous
+
+---
+# Cormack-Jolly-Seber (CJS)
+
++ survival $\phi$ varies between sampling intervals
+
++ detection $p$ varies between sampling occasions
+--
+
++ The CJS likelihood is the probability of the data given the parameters:
+
+
+$$L(data | parameters)$$
+--
+
++ We estimate all parameters via maximum likelihood estimation:
+
+$$L(parameters | data)$$
+
++ explanation of how maximum likelihood estimators (MLE) work: https://youtu.be/XepXtl9YKwc
+--
+
+
++ CJS models allow to incorporate covariates
+
+--
+
+---
+class: inverse, middle, center
+
+# covariates in CJS models
+
+---
+# Covariates in CJS
+
++ Often, we wish to explain heterogeneity in survival based on sex, age-class, social status, etc. (i.e discrete covariates)
+--
+
+
++ e.g. estimate survival based on social status for each individual (low = 0, high = 1):
+
+$$logit(\phi_{i}) = \beta_{1} + \beta_{2} rank_{i}$$ 
+
++ Here, we use the logit link function to estimate parameters between the probability scale (0,1)
+
+--
+
++ $logit(\phi_{i}) = \beta_{1}$ is the survival for low-ranked individuals &
+
++ $logit(\phi_{i}) = \beta_{1} + \beta_{2}$ is the survival for high-ranked individuals
+--
+
+---
+# Covariates in CJS
+
++ continuous covariates can be included (e.g. weight, size, etc):
+
+$$logit(\phi_{i}) = \beta_{1} + \beta_{2} x_{i}$$ 
+--
+
++ temporal covariates can be included (e.g. weather events, predator abundance, etc.):
+
+$$logit(\phi_{t}) = \beta_{1} + \beta_{2} x_{t}$$ 
+--
+
++ covariates can also vary with individual & time (e.g. age, body size, infection status)
+
++ in case of non-detection: model covariates (e.g. age) or use discrete values (e.g. discretized body size)
+
+---
+# Survival vs. apparent survival
+
++ we estimate **apparent survival**, because we can't distinguish between mortality & permanent emigration
+--
+
+
++ apparent survival < true survival, because site-fidelity is almost never 1 (i.e. some individuals emigrate permanently or disperse)
+--
+
++ to estimate **true survival**: 
+  + add data about death events (e.g. ring recovery)
+  + extend models (e.g. Multistate-Capture-recapture models that incorporate space)
+
+---
+# Extensions
+
+<img src="Lecture6_pop_analysis_files/figure-html/hmm.png"
+     width="400px" height="300px"
+     style="position: absolute;
+  bottom: 03%;
+  right: 10%">
+  
++ There are many extensions to CMR (not covered here)
+--
+
++ Powerful & flexible tools that account for transition between:
+  + sites, i.e. spatial transition (multisite CMR)
+  + states, e.g. internal states such as infection status (multistate models)
+--
+
+
++ we can even incorporate uncertainty in the observation processes (multievent models)
+---
+# Example - swallows & disease dynamics
+
+<img src="Lecture6_pop_analysis_files/figure-html/swallow.png"
+     width="300px" height="450px"
+     style="position: absolute;
+  bottom: 10%;
+  right: 10%">
+  
+.pull-left[
+
++ estimating demography parameters & disease dynamics in swallow colonies
+
++ assess transition between infection states (probability to infect or clear infection)
+
++ incorporate uncertainty in disease status (not every individual can be tested)
+
+]
+---
+# Example - swallows & disease dynamics
+
++ State transition is described in transition matrices :
+
+$$
+\begin{matrix}
+& \\
+\mathbf{\Gamma} = 
+    \left ( \vphantom{ \begin{matrix} 12 \\ 12 \\ 12 \end{matrix} } \right .
+\end{matrix}
+\hspace{-1.2em}
+\begin{matrix}
+    z_t=BP_{neg} & z_t=BP_{pos} & z_t=D \\ \hdashline
+\phi_{BP_{neg}} (1-\psi_{BP_{negpos}}) & \phi_{BP_{neg}} \psi_{BP_{negpos}} & 1 - \phi_{BP_{neg}}\\ 
+\phi_{BP_{pos}} \psi_{BP_{posneg}} & \phi_{BP_{pos}} (1-\psi_{BP_{posneg}}) & 1 - \phi_{BP_{pos}}\\ 
+0 & 0 & 1
+\end{matrix}
+\hspace{-0.2em}
+\begin{matrix}
+& \\
+\left . \vphantom{ \begin{matrix} 12 \\ 12 \\ 12 \end{matrix} } \right )
+    \begin{matrix}
+    z_{t-1}=BP_{neg} \\ z_{t-1}=BP_{pos} \\ z_{t-1}=D
+    \end{matrix}
+\end{matrix}
+$$
+--
+
++ Observation process & disease uncertainty is described in observation matrices :
+
+$$
+\begin{matrix}
+& \\
+\mathbf{\Omega} = 
+    \left ( \vphantom{ \begin{matrix} 12 \\ 12 \\ 12\end{matrix} } \right .
+\end{matrix}
+\hspace{-1.2em}
+\begin{matrix}
+    y_t=0 & y_t=1 & y_t=2 & y_t=3\\ \hdashline
+1-p_{BP_{neg}} & p_{BP_{neg}} \beta_{Test} & 0 & p_{BP_{neg}} (1-\beta_{Test})\\ 
+1-p_{BP_{pos}} & 0 & p_{BP_{pos}} \beta_{Test} & p_{BP_{pos}} (1-\beta_{Test})\\ 
+1 & 0 & 0 & 0
+\end{matrix}
+\hspace{-0.2em}
+\begin{matrix}
+& \\
+\left . \vphantom{ \begin{matrix} 12 \\ 12 \\ 12\end{matrix} } \right )
+    \begin{matrix}
+    z_{t}=BP_{neg} \\ z_{t}=BP_{pos} \\ z_{t}=D
+    \end{matrix}
+\end{matrix}
+$$
+---
+class: inverse, middle, center
+
+# Thank you! Questions?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
