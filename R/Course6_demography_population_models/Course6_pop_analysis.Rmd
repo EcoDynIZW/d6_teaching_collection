@@ -72,6 +72,8 @@ for (package in package.list) {
 
 
 devtools::install_github("EcoDynIZW/d6berlin")
+# set a seed, i.e. we create the same random numbers
+set.seed(123)
 
 ```
 
@@ -97,6 +99,7 @@ Here, we want to directly set some columns as factors for all subsequent analyse
 ```{r data}
 starlings <-
   read_csv(here("data", "data_berlin", "animal_data", "starlings.csv")) %>%
+  # mutate creates or manipulates columns
   mutate(
     sex = as.factor(sex),
     habitat = as.factor(habitat),
@@ -107,12 +110,14 @@ starlings <-
 # Short overview
 skim(starlings)
 
-set.seed(123)
+
 
 ```
 Each row in this table represents one individual. We have 5 columns in this dataset: *ID*, the individual identifier, *ch*, the capture history (0 = undetected, 1 = detected),the *sex* of the captured individuals, the *habitat* type the birds were captured, and health status, i.e. if birds were *infected*
 
 # Explore capture locations
+
+
 
 ```{r}
 #load environmental data on capturing
@@ -127,9 +132,10 @@ locations <-
 # Short overview
 skim(locations)
 
-
+#transform our locations into a spatial sf-object
 loc_sf <- st_as_sf(locations, coords = c("Lon", "Lat"), crs = 4326)
 
+#plot the locations
 d6berlin::base_map_imp(globe = TRUE, resolution = 500)+
   geom_sf(data=loc_sf%>%st_transform(crs=3035),aes(col=Habitat),size=5)+
   guides(color = guide_legend(direction = "horizontal",
@@ -183,10 +189,14 @@ starlings %>%
 # Plot environmental data
 
 ```{r}
+#data can be in wide or long format, often long-format is preferred
 locations_long <- locations %>%
   pivot_longer(names_to = "year",
                values_to = "temp",
                cols = starts_with("Temp"))
+
+
+# check max. temperatures between habitats
 
 ggplot(locations_long, aes(x = year, y = temp, group = Habitat)) +
   geom_line(aes(col = Habitat), linewidth = 2) +
@@ -195,20 +205,20 @@ ggplot(locations_long, aes(x = year, y = temp, group = Habitat)) +
 
 
 # Basic Cormack-Jolly-Seber models
-The default model uses constant detection and survival probabilities and constant time intervals between captures. 
-We fit the model and have a look at the results.
+The default model uses constant detection and survival probabilities and constant time intervals between captures. We fit the model and have a look at the results.
 Please note: The estimates are on a logit scale
 ```{r}
-#models require dataframes, tibbles produce errors
+#models require data frames, tibbles produce errors.
 starlings <- starlings %>%
   as.data.frame()
-
+#apply basic crm model
 cjs_m1 <- crm(data = starlings)
+#take a look
 cjs_m1
 ```
 
 Npar = number of parameters
--2lnL = 
+-2lnL = log scale
 AIC = Akaikes Information Criterion
 Phi = Survival probability between capture events
 p = Capturing probability per capture event
@@ -216,6 +226,7 @@ p = Capturing probability per capture event
 ## Estimate parameters on real scale
 Write a function to assess results more intuitively on the real scale instead of the logit-scale. We can just paste our results from the previous model output
 ```{r}
+# write function
 inverse_logit <- function(x) {
   exp(x) / (1 + exp(x))
   
@@ -232,7 +243,7 @@ inverse_logit(cjs_m1$results$beta$p)
 
 ```
 
-Refit the model with confidence intervals
+## Refit the model with confidence intervals
 ```{r}
 cjs_m1_2 <- cjs.hessian(cjs_m1)
 cjs_m1_2
@@ -258,6 +269,8 @@ cjs_m1_time <- crm(data = starlings,
                    # time.interval vector is the interval between each capture event.
                    # for 7 capture events, there are 6 intervals
                    time.intervals = c(1, 1, 1, 1.6, 2, 3))
+
+# predict model
 predict(object = cjs_m1_time)
 ```
 Now we have a higher survival probability of 0.69 between capturing events and a lower capturing probability per capturing event of 0.89
@@ -267,19 +280,20 @@ Now we have a higher survival probability of 0.69 between capturing events and a
 We have sampled two different populations in *urban* and *rural* habitat. Split the data set (Hint: use [] or dplyr::filter()) and compare survival probabilities between the two habitats
 
 ```{r}
-
+# your code in here
 ```
 
 
 
-# Fit models for model selection
+# Fit multiple models simultaneously
+
 Normally, there are different hypotheses about the factors that influence the survival probability of individuals. These can be characteristics of the individuals, such as sex, age or weight, or characteristics of the environment of the individuals, such as sealing, temperature or the number of nesting opportunities. For this purpose, different models are built that take the respective factors (explanatory or predictor variables) into account.
 
 For a flexible approach we process the data, create design data to add variables that depend on time and fit the different models.
 
 ## Group data
 
-We process the data and set the grouping variables
+We process the data and define the grouping variables
 ```{r}
 m2_proc <- process.data(data = starlings,groups = c("sex","habitat","infected"))
 
@@ -302,6 +316,7 @@ phi_sex <- list(formula = ~ sex)
 p_sex <- list(formula = ~ sex)
 ```
 
+### M2
 Fit a model based on the design data with constant survival and different detection probabilities between sexes.
 ```{r}
 cjs_m2 <- crm(
@@ -318,6 +333,7 @@ predict(object = cjs_m2)
 
 ```
 
+### M3
 Fit another model based on the design data with different survival and detection probabilities between sexes
 ```{r}
 cjs_m3 <- crm(
@@ -332,8 +348,10 @@ cjs_m3
 
 predict(object = cjs_m3)
 ```
-
+### M4
 Fit another model based on the design data with time-dependent survival and detection probability
+*time* is a variable that was introduced by the make.design.data() function
+
 ```{r}
 cjs_m4 <- crm(
   m2_proc,
@@ -350,7 +368,10 @@ predict(object = cjs_m4)
 
 # Multiple models + model selection (AIC)
 
-When testing multiple hypotheses, you can speed up model formulation for multiple models. Caution! Models should always be biologically meaningful, don't just fit too many models without thinking about them.
+When testing multiple hypotheses, you can speed up model formulation for multiple models.
+
+**Caution!** Models should always represent hypotheses according to biological meaningful questions, don't just fit many models without thinking about them. Generally, formulate hypotheses before formulating models!
+
 ```{r}
 fit.starlings.cjs.models <- function() {
   # Apparent survival (Phi) formula
@@ -386,47 +407,59 @@ fit.starlings.cjs.models <- function() {
 starlings_cjs_models <- fit.starlings.cjs.models()
 ```
 
-Look at model results
+## Model fitting summary
 ```{r}
 summary(starlings_cjs_models)
 ```
 
-# Time-dependent variables
+# Time-dependent variables in CJS models
+
+Now, we have already learned how we can incorporate static individual covariates. But covariates can also vary between sampling occasions. Here, we are interested how a binary but time-varying variable *heat-wave* will impact survival and detection probabilities. First, we will create a binary variable. In addition, we will see how continuous individual covariates (here: *weight*) can be used to describe demographic parameters. Caution, here we just assume weight to be constant across an individuals' life (of course it is not), but we can't document the weight of individuals that are not captured. There are ways to incorporate missing data (e.g. imputation or assigning weight classes such as small, medium, large), but we will not cover them here.
+
 
 ```{r}
-Heat_wave <- matrix(rep(c(0, 1, 1, 0, 0, 0), each = nrow(starlings)), ncol =
-                      6)
+# create variable
+Heat_wave <- matrix(rep(c(0, 1, 1, 0, 0, 0), each = nrow(starlings)),
+                    ncol =6)
+# rename columns
 colnames(Heat_wave) = paste("Heat_wave", 1:6, sep = "")
 
+#bind rows
 starlings_heatwave <- cbind(starlings, Heat_wave)
 
-#generate some random weight
+#generate some random weight 
 starlings_heatwave$weight <- round(rnorm(nrow(starlings), 80, 3))
-
-
 
 
 #prepare data
 starlings.proc <- process.data(starlings_heatwave)
 
+# Design matrix for survival
 design.Phi <-
   list(static = c("weight", "sex"),
        time.varying = c("Heat_wave"))
 
+# Design matrix for detection
 design.p <- list(static = c("sex"))
 
+# combine in one list
 design.parameters <- list(Phi = design.Phi, p = design.p)
 
-
+# processed data and design parameters into model design matrix
 m3_design <- make.design.data(data = starlings.proc,
                               parameters = design.parameters)
 
+#check the names in the design matrices
 names(m3_design$Phi)
 names(m3_design$p)
 
+# Define survival prob.
 Phi.heat.sex <- list(formula =  ~ Heat_wave * sex)
+
+# Define detection prob.
 p.sex <- list(formula =  ~ sex)
 
+# fit the model
 m3 <- crm(
   starlings.proc,
   m3_design,
@@ -441,6 +474,8 @@ predict(m3)
 ```
 
 # More complex models & predicting
+
+Here, we are interested in individual weight.
 ```{r}
 
 Phi.weight.heat <-list(formula=~weight*Heat_wave)
@@ -458,16 +493,22 @@ m4 <- crm(
 predict(m4)
 ```
 
+Okay, we get estimates for each measured weight now, this is not really useful (imagine we would measure weight more precisely and end up with many more parameters).
+
+In this case, it is very useful to create a new data frame, and use the predict function on that data:
 
 
 ```{r}
 new_starling <- expand.grid(sex=c("Female","Male"),weight=60:80,Heat_wave1=0,
        Heat_wave2=1,Heat_wave3=1,Heat_wave4=0,Heat_wave5=0,Heat_wave6=0) 
 
-
+# predict with the newdata option
 prediction <- predict(m4,newdata=new_starling,se=TRUE)
+
+# Instead of binary factor, use the actual name
 prediction$Phi$Heat_wave = factor(prediction$Phi$Heat_wave, labels = c("No_Heatwave", "Heatwave"))
 
+# plot data
 ggplot(prediction$Phi, aes(weight, estimate, ymin = lcl, ymax = ucl)) +
   geom_errorbar(width = 0.2) +
   geom_point() +
