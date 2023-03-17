@@ -59,7 +59,8 @@ package.list=c("here",
                "skimr",
                "tidyverse",
                "sf",
-               "tmap"
+               "tmap",
+               "devtools"
                )
 
 for (package in package.list) {
@@ -68,6 +69,10 @@ for (package in package.list) {
     library(package, character.only=T)
   }
 }
+
+
+devtools::install_github("EcoDynIZW/d6berlin")
+
 ```
 
 set the theme for some ggplots:
@@ -125,9 +130,18 @@ skim(locations)
 
 loc_sf <- st_as_sf(locations, coords = c("Lon", "Lat"), crs = 4326)
 
+d6berlin::base_map_imp(globe = TRUE, resolution = 500)+
+  geom_sf(data=loc_sf%>%st_transform(crs=3035),aes(col=Habitat),size=5)+
+  guides(color = guide_legend(direction = "horizontal",
+                              title.position = "top", 
+                              title.hjust = .5))
 
-tmap_mode("view")
-tm_shape(loc_sf) + tm_dots(col = "Habitat", size = 2)  
+# or interactive plot:
+
+# tmap_mode("View")
+# tm_shape(loc_sf) + tm_dots(col = "Habitat", size = 2)
+
+
 ```
 
 
@@ -209,7 +223,7 @@ inverse_logit <- function(x) {
 
 #e.g.
 inverse_logit(0.06757844) # this is our survival probability
-inverse_logit(2.22899510) # this is our survival probability
+inverse_logit(2.22899510) # this is our capture probability
 
 #  alternative way to write this
 
@@ -248,6 +262,16 @@ predict(object = cjs_m1_time)
 ```
 Now we have a higher survival probability of 0.69 between capturing events and a lower capturing probability per capturing event of 0.89
 
+# Exercise
+
+We have sampled two different populations in *urban* and *rural* habitat. Split the data set (Hint: use [] or dplyr::filter()) and compare survival probabilities between the two habitats
+
+```{r}
+
+```
+
+
+
 # Fit models for model selection
 Normally, there are different hypotheses about the factors that influence the survival probability of individuals. These can be characteristics of the individuals, such as sex, age or weight, or characteristics of the environment of the individuals, such as sealing, temperature or the number of nesting opportunities. For this purpose, different models are built that take the respective factors (explanatory or predictor variables) into account.
 
@@ -258,11 +282,15 @@ For a flexible approach we process the data, create design data to add variables
 We process the data and set the grouping variables
 ```{r}
 m2_proc <- process.data(data = starlings,groups = c("sex","habitat","infected"))
+
+m2_proc
 ```
 
 Create the design data
 ```{r}
 m2_design <- make.design.data(data = m2_proc)
+
+m2_design
 ```
 
 ## Model formulas
@@ -467,179 +495,6 @@ This exercise will require some data-wrangling, the data set is not yet prepared
 (Hint: You might need dplyr::left_join() and dplyr::rename() to get all data in the right format and bind the rows according to the habitat type.)
 
 Test how temperature affects survival, and how sex affects detection probability. Then predict the survival probabilities for extreme weather scenarios (temperatures of 30,33,35,38,41,44 degree Celsius)
-
-
-
-## Solution 6.1
- There are many solutions, one is:
- 
- Hypothesis: infection affects survival & prediction
- 
- Prediction: Lower survival *AND* detection probability in infected individuals. Here, we hypothesize that infected animals move less, therefore are less likely to be captured. Additionally, infected animals suffer from disease, thus survival is decreased
- 
-```{r}
-package.list=c("here",
-               "marked",
-               "tidyverse")
-
-for (package in package.list) {
-  if (!require(package, character.only=T, quietly=T)) {
-    install.packages(package)
-    library(package, character.only=T)
-  }
-}
-
-
-starlings <-
-  read_csv(here("data", "data_berlin", "animal_data", "starlings.csv")) %>%
-  mutate(
-    sex = as.factor(sex),
-    habitat = as.factor(habitat),
-    infected = as.factor(infected)
-  ) %>%
-  rename(ID = "...1")%>%
-  as.data.frame()
-
-#load environmental data on capturing
-locations <-
-  read_csv(here(
-    "data",
-    "data_berlin",
-    "animal_data",
-    "starlings_capture_location_data.csv"
-  ))
-
-
-temperatures <- locations %>%
-  dplyr::select(-c("Lon", "Lat")) %>%
-  rename(habitat = Habitat)
-
-
-m_infection<- process.data(data = na.omit(starlings),groups = c("infected"))
-m_infetion_design <- make.design.data(data = m_infection)
-
-phi_infection <- list(formula = ~ infected)
-p_infection <- list(formula = ~ infected)
-
-cjs_infection <- crm(
-  m_infection,
-  m_infetion_design,
-  model.parameters = list(Phi = phi_infection,
-                          p = p_infection),
-  accumulate = FALSE
-)
-
-cjs_infection
-
-predict(object = cjs_infection)
-```
-
-
-## Solution 6.2
-```{r}
-#prepare data
-Heat_wave <- matrix(rep(c(0, 1, 1, 0, 0, 0), each = nrow(starlings)), ncol =
-                      6)
-colnames(Heat_wave) = paste("Heat_wave", 1:6, sep = "")
-
-starlings_heatwave <- cbind(starlings, Heat_wave)
-
-#generate some random weight
-starlings_heatwave$weight <- round(rnorm(nrow(starlings), 80, 3))
-
-
-starlings.proc <- process.data(starlings_heatwave)
-
-design.Phi <-
-  list(static = c("weight", "sex","habitat"),
-       time.varying = c("Heat_wave"))
-
-design.p <- list(static = c("sex"))
-
-design.parameters <- list(Phi = design.Phi, p = design.p)
-
-
-m6_design <- make.design.data(data = starlings.proc,
-                              parameters = design.parameters)
-
-names(m6_design$Phi)
-names(m6_design$p)
-
-Phi.heat.sex.habitat <- list(formula =  ~ Heat_wave * sex * habitat)
-p.sex <- list(formula =  ~ sex)
-
-m6 <- crm(
-  starlings.proc,
-  m6_design,
-  hessian = TRUE,
-  model.parameters = list(Phi = Phi.heat.sex.habitat,
-                          p = p.sex)
-)
-
-
-predict(m6)
-```
-## Solution 6.3
-
-```{r}
-starlings_temperatur <- starlings %>%
-  left_join(temperatures, by = "habitat")%>%
-  rename(temperature1=temperature_2016,
-         temperature2=temperature_2017,
-         temperature3=temperature_2018,
-         temperature4=temperature_2019,
-         temperature5=temperature_2020,
-         temperature6=temperature_2021,
-         temperature7=temperature_2022)
-
-#prepare data
-starlings.proc.temp <- process.data(starlings_temperatur)
-
-design.Phi <-
-  list(static = c("sex"),
-       time.varying = c("temperature"))
-
-design.p <- list(static = c("sex"))
-
-design.parameters <- list(Phi = design.Phi, p = design.p)
-
-
-m7_design <- make.design.data(data = starlings.proc.temp,
-                              parameters = design.parameters)
-
-names(m7_design$Phi)
-names(m7_design$p)
-
-Phi.heat.sex <- list(formula =  ~ temperature)
-p.sex <- list(formula =  ~ sex)
-
-m7 <- crm(
-  starlings.proc.temp,
-  m7_design,
-  hessian = TRUE,
-  model.parameters = list(Phi = Phi.heat.sex,
-                          p = p.sex)
-)
-
-predict(m7)
-
-
-new_starling2 <- expand.grid(sex=c("Female","Male"),temperature1=30,
-       temperature2=33,temperature3=35,temperature4=38,temperature5=41,temperature6=44,weight=60:80) 
-
-prediction <- predict(m7,newdata=new_starling2,se=TRUE)
-prediction$Phi$temperature = factor(prediction$Phi$temperature)
-
-
-ggplot(prediction$Phi, aes(temperature, estimate, ymin = lcl, ymax = ucl)) +
-  geom_errorbar(width = 0.2) +
-  geom_point() +
-  geom_line() +
-  xlab("\nTemperature") + ylab("Survival probability\n")
-
-```
-
-
 
 
 
