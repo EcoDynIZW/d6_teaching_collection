@@ -42,16 +42,16 @@ class: center, middle
 
 # Population dynamics
 
-### describe the variation of population size, density &amp; demographic parameters in time
+### describe the variation of population size &amp; demographic parameters in time
 ---
 # Content
 
 --
 
-### From abundance to population size
+### Indices of abundance
 --
 
-### Detactability issues 
+### Detectability issues 
 --
 
 ### Capture-Mark-recapture
@@ -108,6 +108,8 @@ class:  middle, center
 
 
 - Can't be measured because detection probability `\(p\)` is (almost always) &lt; 1
+
+- `\(C\)` is our actual count of individuals
 
 
 - If we know our detection probability
@@ -274,6 +276,10 @@ background-position: 90% 25%
 - Lincoln Petersen-method:
 
 `$$\hat{N}=\displaystyle{\frac{M \times S}{R}}$$`
+- in our example:
+
+`$$\hat{N}=\displaystyle{\frac{3 \times 3}{2}} = 4.5$$`
+
 ]
 --
   
@@ -285,7 +291,8 @@ class: center
 `$$\hat{N}=\displaystyle{\frac{M \times S}{R}}$$`
 --
 
-### we can rewrite this into individual capture histories:
+### we can rewrite this into individual capture histories
+(where 1 = detected, 0 =  not detected:
 
 &lt;table&gt;
  &lt;thead&gt;
@@ -315,7 +322,7 @@ class: center
 &lt;/table&gt;
 --
 
-### and estimate the population size
+### and estimate the population size:
 
 `$$N=\displaystyle{\frac{n_{10}+n_{01}+n_{11}}{1 - (1-p_1) \times (1-p_2)}}$$`
 --
@@ -402,7 +409,7 @@ class: inverse, middle, center
 &lt;/table&gt;
 --
 
-#### this specific model (constant `\(p\)`) is often used as a NULL model ( `\(M_0\)` )
+#### this specific model (constant `\(p\)` across all sampling occassions and between all groups such as sex, age, etc.) is often used as a NULL model ( `\(M_0\)` )
 
 ---
 # time-dependent capture probability
@@ -441,7 +448,7 @@ class: inverse, middle, center
 &lt;/table&gt;
 --
 
-+ This are already 7 parameters to estimate  ( `\(\hat{N}\)` + `\(p_{1}\)` + `\(p_{2}\)` + `\(p_{3}\)` + `\(p_{4}\)` + `\(p_{5}\)` + `\(p_{6}\)` )
++ These are already 7 parameters to estimate  ( `\(\hat{N}\)` + `\(p_{1}\)` + `\(p_{2}\)` + `\(p_{3}\)` + `\(p_{4}\)` + `\(p_{5}\)` + `\(p_{6}\)` )
 --
 
 
@@ -483,10 +490,10 @@ background-position: 50% 90%
 --
 
 
-+ E.g. estimating survival ( `\(\phi_{i}\)` ), i.e. an animal was marked at sampling occassion `\(i\)`, survives until sampling occasion `\(i + 1\)` &amp; is still part of the population 
++ E.g. estimating survival ( `\(\phi_{i}\)` ), i.e. an animal was marked at sampling occasion `\(i\)`, survives until sampling occasion `\(i + 1\)` &amp; is still part of the population (only for primary sampling occasions)
 --
 
-+ our detection probability `\(p\)` remains dependent on single sampling occasions
++ our detection probability `\(p\)` is measured *at* individual sampling occasions, while our detection probability `\(\phi\)` is measured between primary sampling occasions
 ---
 class: center
 
@@ -564,7 +571,7 @@ class: inverse, middle, center
 
 `$$logit(\phi_{i}) = \beta_{1} + \beta_{2} rank_{i}$$` 
 
-+ Here, we use the logit link function to estimate parameters between the probability scale (0,1)
++ Here, we use the logit link function to estimate parameters on the probability scale (0,1)
 
 --
 
@@ -644,63 +651,25 @@ class: inverse, middle, center
 ---
 # Example - swallows &amp; disease dynamics
 
-+ State transition is described in transition matrices :
-
-$$
-`\begin{matrix}
-&amp; \\
-\mathbf{\Gamma} = 
-    \left ( \vphantom{ \begin{matrix} 12 \\ 12 \\ 12 \end{matrix} } \right .
-\end{matrix}`
-\hspace{-1.2em}
-`\begin{matrix}
-    z_t=BP_{neg} &amp; z_t=BP_{pos} &amp; z_t=D \\ \hdashline
-\phi_{BP_{neg}} (1-\psi_{BP_{negpos}}) &amp; \phi_{BP_{neg}} \psi_{BP_{negpos}} &amp; 1 - \phi_{BP_{neg}}\\ 
-\phi_{BP_{pos}} \psi_{BP_{posneg}} &amp; \phi_{BP_{pos}} (1-\psi_{BP_{posneg}}) &amp; 1 - \phi_{BP_{pos}}\\ 
-0 &amp; 0 &amp; 1
-\end{matrix}`
-\hspace{-0.2em}
-`\begin{matrix}
-&amp; \\
-\left . \vphantom{ \begin{matrix} 12 \\ 12 \\ 12 \end{matrix} } \right )
-    \begin{matrix}
-    z_{t-1}=BP_{neg} \\ z_{t-1}=BP_{pos} \\ z_{t-1}=D
-    \end{matrix}
-\end{matrix}`
-$$
---
-
-+ Observation process &amp; disease uncertainty is described in observation matrices :
-
-$$
-`\begin{matrix}
-&amp; \\
-\mathbf{\Omega} = 
-    \left ( \vphantom{ \begin{matrix} 12 \\ 12 \\ 12\end{matrix} } \right .
-\end{matrix}`
-\hspace{-1.2em}
-`\begin{matrix}
-    y_t=0 &amp; y_t=1 &amp; y_t=2 &amp; y_t=3\\ \hdashline
-1-p_{BP_{neg}} &amp; p_{BP_{neg}} \beta_{Test} &amp; 0 &amp; p_{BP_{neg}} (1-\beta_{Test})\\ 
-1-p_{BP_{pos}} &amp; 0 &amp; p_{BP_{pos}} \beta_{Test} &amp; p_{BP_{pos}} (1-\beta_{Test})\\ 
-1 &amp; 0 &amp; 0 &amp; 0
-\end{matrix}`
-\hspace{-0.2em}
-`\begin{matrix}
-&amp; \\
-\left . \vphantom{ \begin{matrix} 12 \\ 12 \\ 12\end{matrix} } \right )
-    \begin{matrix}
-    z_{t}=BP_{neg} \\ z_{t}=BP_{pos} \\ z_{t}=D
-    \end{matrix}
-\end{matrix}`
-$$
+&lt;img src="Lecture6_pop_analysis_files/figure-html/model_overview.jpg"
+     width="800px" height="500px"
+     style="position: absolute"&gt;
+  
 ---
 class: inverse, middle, center
 
 # Thank you! Questions?
 
+---
+class: inverse, middle, center
 
+# Let's practice! We will now fit CJS-models for starlings in Berlin
 
+&lt;img src="Lecture6_pop_analysis_files/figure-html/starling_chicks.jpg"
+     width="300px" height="200px"
+     style="position: absolute;
+  bottom: 5%;
+  left: 35%"&gt;
 
 
 
