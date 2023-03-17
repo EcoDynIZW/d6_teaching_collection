@@ -1,5 +1,5 @@
 ---
-title: "Tutorial Part III — SDM with MaxEnt"
+title: "Tutorial Part III a — SDM with MaxEnt"
 author: "Stephanie Kramer-Schadt & Juergen Niedballa"
 date: "`r Sys.setlocale('LC_TIME','C'); paste('Last Update', format(Sys.time(), '%B %e, %Y'))`"
 output:
@@ -55,7 +55,7 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
    library(sf)
    library(tmap)
    library(dismo)
-   library(raster)
+   library(terra)
    library(GISTools)
    library(rgdal)
    library(maptools)
@@ -66,8 +66,8 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
    library(unmarked)
    library(spatstat)
 
-## check that the package terra is detached!
-# detach(package:terra)
+## check that the package raster is detached!
+# detach(package:raster)
 ```
 
 ## Set the workspace
@@ -77,17 +77,17 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
 getwd() # you can also use the package 'here()'
 
 # my data are outside my course-folder, therefore I have to do it the old-fashioned way.
-root_wd <- "E:/PopDynIZW Dropbox/Steph Kramer/_GitHub"
+root_wd <- here::here() 
 # relative to work-wd
-maps_wd <- paste(root_wd,"/","_DataBorneo/BaseMaps",sep='')
-recs_wd <- paste(root_wd,"/","_DataBorneo/BaseRecords",sep='')
+maps_wd <- paste(root_wd,"/","data/data_borneo/geo_raster_current_asc",sep='') # or:
+recs_wd <- here::here("data","data_borneo","animal_data") # simpler
 
 # the output folder should have been created by you during Tutorial 2 'R goes spatial'.
 # It should contain the hillshade.asc
-output_wd <- paste(root_wd,"/","output",sep='')
+output_wd <- here::here("output")
 
 setwd(output_wd) ## set to the OUTPUT folder!
-getwd()
+getwd() # check
 ```
 
 ## Load spatial data and define the CRS
