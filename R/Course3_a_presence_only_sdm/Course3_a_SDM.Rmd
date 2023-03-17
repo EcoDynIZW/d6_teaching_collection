@@ -23,7 +23,7 @@ h2, h3, h4, h5, h6, legend {
 p {
   line-height:170%;
 }
-#sidebar h2 {
+sidebar h2 {
   background-color: Indigo;
 }
 code {
@@ -40,7 +40,7 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
 #knitr::opts_knit$set(root.dir = 'C:/Users/kramer/PopDynIZW Dropbox/Steph Kramer/_GitHub')
 ```
 
-# <span class='exercise'> Course 3 SDM with MaxEnt </span>
+<span class='exercise'> Course 3 SDM with MaxEnt </span>
 
 
 # Preparations
@@ -80,7 +80,8 @@ getwd() # you can also use the package 'here()'
 root_wd <- here::here() 
 # relative to work-wd
 maps_wd <- paste(root_wd,"/","data/data_borneo/geo_raster_current_asc",sep='') # or:
-recs_wd <- here::here("data","data_borneo","animal_data") # simpler
+vecs_wd <- here::here("data","data_borneo","geo_vector") # shapefile
+recs_wd <- here::here("data","data_borneo","animal_data") # location data
 
 # the output folder should have been created by you during Tutorial 2 'R goes spatial'.
 # It should contain the hillshade.asc
@@ -96,20 +97,16 @@ getwd() # check
 
 ```{r}
 ### Data import - Load spatial data (repetition) ###
-## note, here I use the 'dialect' of the old 'raster'-package.
 
-ras1 <- raster(paste(maps_wd,'/bio_asc_01.asc',sep=''))
+ras1 <- terra::rast(x = paste(maps_wd,'/bio_asc_01.asc',sep=''))
 # assign the projection (crs - coordinate reference system)
-ras1@crs <- CRS("+proj=longlat +datum=WGS84")
+# ras1@crs <- CRS("+proj=longlat +datum=WGS84") ## not needed in terra!
 
-ras24 <- raster(paste(maps_wd,'/bio_asc_24.asc',sep='')) #DEM
-ras24@crs <- ras1@crs # same as: CRS("+proj=longlat +datum=WGS84")
+ras24 <- terra::rast(here("data","data_borneo", "geo_raster_current_asc", "bio_asc_24.asc")) #DEM
 
-ras42 <- raster(x = paste(maps_wd,'/bio_asc_42.asc',sep='')) 
-ras42@crs <- CRS(projargs = "+init=epsg:4326") 
+ras42 <- terra::rast(x = here(maps_wd,"bio_asc_42.asc")) # land use
 
-hillsh <- raster(x = paste(output_wd,'/hillshade.asc',sep='')) 
-hillsh@crs <- CRS(projargs = "+init=epsg:4326")
+hillsh <- terra::rast(x = paste(maps_wd,'/borneo_hillshade.asc',sep='')) 
 ```
 
 ### Stack environmental variables
@@ -123,15 +120,13 @@ Loading many rasters can be done in one go.
 files <- list.files(path= maps_wd, pattern='.asc$',
                     full.names=TRUE )
 files # these are just names! To load them as spatial objects, use raster() or stack()
-predictors <- stack(files[c(9,12,22,24)]) # note that I only load 4 rasters
+predictors <- c(files[c(9,12,22,24)]) # note that I only load 4 rasters
 
-# set CRS:
-predictors@crs <- CRS(projargs = "+init=epsg:4326")
 ```
 
 ### Plot rasters
 ```{r}
-plot(predictors, col= viridis(100)) # might take some time depending on your computer
+plot(predictors, col = viridis(100)) # might take some time depending on your computer
 
 # what are the differences? Have a look also at the data description file in the data folder.
 ```
@@ -140,26 +135,18 @@ plot(predictors, col= viridis(100)) # might take some time depending on your com
 
 ```{r,message=FALSE}
 ### Read in some Shapefiles (repetition) ###
+## package sf (new and maintained)
 
-# package sp (old, but easier for plotting)
-Borneo_shp <- readOGR(dsn=maps_wd, layer="borneo_admin",
-              stringsAsFactors=FALSE)[,c(1:3,5,7,17,18)] #only load some of the columns of df
-PA_shp <-  readOGR(dsn=maps_wd, layer="Bor_PA",
-                   stringsAsFactors=FALSE)[,c(1:4)]
-River_shp <- readOGR(dsn=maps_wd, layer="sn_100000",
-                     stringsAsFactors=FALSE)
-
-# package sf (new and maintained)
-# Borneo outline polygon
-Borneo_shp_sf <- st_read(dsn = maps_wd, 
+## Borneo outline polygon
+Borneo_shp_sf <- st_read(dsn = vecs_wd, 
                       layer = "borneo_admin",
                       stringsAsFactors = FALSE)[,c(1:3,5,7,17,18)]
 # Protected areas (PA) polygon
-PA_shp_sf <-  st_read(dsn = maps_wd, 
+PA_shp_sf <-  st_read(dsn = vecs_wd, 
                    layer = "Bor_PA",
                    stringsAsFactors = FALSE)[, c(1:4)]
 # Rivers lines
-River_shp_sf <- st_read(dsn = maps_wd, 
+River_shp_sf <- st_read(dsn = vecs_wd, 
                      layer = "sn_100000",
                      stringsAsFactors = FALSE)
 ```
@@ -190,7 +177,7 @@ sp_recs_sf <- st_as_sf(x = sp_recs,
                        remove=F) # sf needs a geometry column and you have to name it
 
 # load a second species 
-river_pt_filename <- paste(recs_wd,'/','RIVERsim.csv',sep='')
+river_pt_filename <- here(recs_wd,"RIVERsim.csv")
 river_recs        <- read.csv(file = river_pt_filename, header=TRUE, sep=',')
 river_recs_sf     <- st_as_sf(x = river_recs,
                           coords = c("long", "lat"), 
@@ -198,16 +185,16 @@ river_recs_sf     <- st_as_sf(x = river_recs,
                           sf_column_name = "geometry")
 ```
 
-## Plot
+## Plot data overview
 
 ```{r}
 ### Plot to get an impression ###
 
 plot(ras42, col=grey.colors(20))
-plot(PA_shp,border='green', lwd=1.8, add=T)
+plot(PA_shp_sf$geometry,border='green', lwd=1.8, add=T)
 plot(sp_recs_sf$geometry, pch= '*',cex=1,col='deeppink',add=T)
-text(112, 5, 'Starting with SDMs', cex=2, col= 'red')
-plot(River_shp[,3], col='dodgerblue4', add=T)
+text(112, 6, 'Starting with SDMs', cex=1.5, col= 'red')
+plot(River_shp_sf[,3], col='dodgerblue4', add=T)
 ```
 
 # Preconditions 
@@ -223,13 +210,13 @@ plot(agg_pred)
 ### Pairs plot 
 
 ```{r}
-raster::pairs(agg_pred, method = 'spearman')
+terra::pairs(agg_pred, method = 'spearman')
 ```
 
 
 ```{r}
 # Plot the differences (residuals) between the rasters:
-diff <- raster::corLocal(x = agg_pred[[1]], y = agg_pred[[2]], method = 'spearman')
+diff <- terra::focalPairs(x = agg_pred, w = 3, 'pearson', na.rm = TRUE)
 plot(diff)
 ```
 
@@ -245,13 +232,13 @@ https://cran.r-project.org/web/packages/corrplot/vignettes/corrplot-intro.html
 ## Sampling bias correction
 
 
-We are now creating a very rudimentary bias correction file. Let's assume that doing field work in the province of Sabah, Malaysia, is easy and the field sampling has concentrated on these areas. further, it is easier to sample in lowlands and flat slopes. Usually, protected areas (PAs) are also well studied areas, where the sampling intensity is high. And let's assume that it was not possible to get a research permit for Indonesia and that therefore very few field studies had been conducted here. Please note: this is a completely fictive example! You should have the information about the sampling bias.
+We are now creating a very rudimentary bias correction file. Let's assume that doing field work in the province of Sabah, Malaysia, is easy and the field sampling has concentrated on these areas. Further, it is easier to sample in lowlands and flat slopes. Usually, protected areas (PAs) are also well studied areas, where the sampling intensity is high. And let's assume that it was not possible to get a research permit for Indonesia and that therefore very few field studies had been conducted here. Please note: this is a completely fictive example! You should have the information about the sampling bias.
 
 That is, we create a file that is representing these differences in sampling effort. this is easiest to do in raster manipulation. We first create a raster from our shapefile with the country outlines. 
 
 ```{r}
 head(Borneo_shp_sf)
-plot(Borneo_shp_sf[,3]) # column 3 is NAME_0
+plot(Borneo_shp_sf[,3]) # column 3 is NAME_0 = main country names
 ```
 
 We create a raster that gets the value of 1 for Malaysia (and Brunei) and a value of 0.01 (MaxEnt cannot deal with 0 -> see lecture) for the rest. We use one of our rasters as mask for cell size resolution and cropping extent:
@@ -269,7 +256,7 @@ Mal_ras <- rasterize(x=Borneo_shp_sf[Borneo_shp_sf$NAME_0 %in%
 
 plot(Mal_ras)
 
-# almost same as:
+# almost same as not plotting Indonesia:
 # NotInd_ras <- rasterize(x=Borneo_shp_sf[Borneo_shp_sf$NAME_0 !=
 #                           "Indonesia",], y=ras24, field=1, background=0.01)
 ```
@@ -280,7 +267,7 @@ We do the same only for the province of Sabah and the Protected Areas
 Sab_ras <- rasterize(x=Borneo_shp_sf[Borneo_shp_sf$NAME_1 == 'Sabah',],
                      y=ras24, field=1, background=0.1)
 
-PA_ras <- rasterize(x=PA_shp, y=ras24, field=1, background=0.1)
+PA_ras <- rasterize(x=PA_shp_sf, y=ras24, field=1, background=0.1)
 
 
 ### Crosscheck with plot
@@ -325,7 +312,7 @@ table(values(bias1))
 
 Now compare the rasters - do they have the same extent, cell size etc?
 ```{r}
-compareRaster(ras24,bias1) # the same?
+terra::compareGeom(ras24,bias1) # the same?
 ```
 
 check for the length of the NODATA values:
@@ -354,8 +341,8 @@ plot(bias1, col = viridis(7)) #or col = grey.colors(7)
 
 ## since I used setwd() to the output folder, it is automatically stored there,
 ## if not, paste the path to the filename, i.e. 
-## filename=paste0(output_wd,"/bias_2022.asc")
-writeRaster(bias1, filename="bias_2022.asc", datatype='ascii',
+## filename=paste0(output_wd,"/bias_2023.asc") #or # here(output_wd,"bias_2023.asc")
+writeRaster(bias1, filename="bias_2023.asc", datatype='ascii',
             overwrite=TRUE,NAflag=-9999)
 ```
 
@@ -392,9 +379,35 @@ NODATA_value  -9999   <br>
 
 ```{r}
 #### meanwhile clicking Maxent.... 
+
 # (or: do it with R package dismo, but this is another story
 #  which will be taught another time....)
 ```
+
+
+
+```{r}
+library(maxnet)
+
+# do a random sampling of the 'background'
+
+
+# append presences and absences location data
+
+# extract from raster stack
+
+
+data(bradypus) # data containing presences/ absences and values of env var
+p <- bradypus$presence # a vector of 1 and 0
+data <- bradypus[,-1] #delete p
+mod <- maxnet(p, data) # call model
+plot(mod, type="logistic") #response curves
+
+predict(mod, newdata, clamp=T, type=c("logistic"))
+```
+
+
+
 
 # Accessing MaxEnt results
 
