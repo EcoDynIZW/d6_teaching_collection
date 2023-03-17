@@ -1,0 +1,656 @@
+---
+title: "Tutorial Part VI — Population analysis in R"
+author: "Marius Grabow & Sinah Drenske"
+date: "`r Sys.setlocale('LC_TIME','C'); paste('Last Update', format(Sys.time(), '%B %e, %Y')) `"
+output:
+  rmdformats::readthedown:
+    highlight: kate
+    code_folding: show
+    toc_depth: 4
+    toc_float: true
+editor_options:
+  chunk_output_type: console
+params:
+  date: !r Sys.Date()
+---
+
+```{=html}
+<style>
+h1 {
+  color: Orange ;
+}
+h2, h3, h4, h5, h6, legend {
+  color: Indigo ;
+}
+p {
+  line-height:170%;
+}
+#sidebar h2 {
+  background-color: Indigo;
+}
+code {
+  color: Indigo ;
+}
+.exercise {
+  color: #824b00;
+}
+</style>
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, 
+                      dev = "ragg_png", fig.width = 9, fig.height = 6, dpi = 600, retina = 1)
+Sys.setlocale("LC_TIME", "C")
+```
+
+# Introduction
+
+This is a brief tutorial about constructing and analyzing relatively simple Cormack-Jolly-Seber capture-mark-recapture (CMR) models in R. For this we use the R package "marked" (Laake et al. 2013).
+
+First we get an overview of the data, then we develop different models and finally we analyse and visualize the results.
+
+# Setup
+
+Load (and install) the following packages:
+
+```{r packages, echo=TRUE, message=FALSE}
+package.list=c("here",
+               "marked",
+               "skimr",
+               "tidyverse",
+               "sf",
+               "tmap"
+               )
+
+for (package in package.list) {
+  if (!require(package, character.only=T, quietly=T)) {
+    install.packages(package)
+    library(package, character.only=T)
+  }
+}
+```
+
+set the theme for some ggplots:
+```{r}
+theme_set(
+  theme(
+    panel.grid = element_blank(),
+    panel.background = element_rect(fill = "white"),
+    panel.border = element_rect(
+      colour = "black",
+      fill = NA,
+      linewidth = 1
+    ),
+    axis.ticks = element_line(colour = "black", linewidth = 1),
+    axis.ticks.length = unit(0.2, "cm")
+  )
+)
+```
+
+# Load and manipulate data
+Here, we want to directly set some columns as factors for all subsequent analyses:
+```{r data}
+starlings <-
+  read_csv(here("data", "data_berlin", "animal_data", "starlings.csv")) %>%
+  mutate(
+    sex = as.factor(sex),
+    habitat = as.factor(habitat),
+    infected = as.factor(infected)
+  ) %>%
+  rename(ID = "...1")
+
+# Short overview
+skim(starlings)
+
+set.seed(123)
+
+```
+Each row in this table represents one individual. We have 5 columns in this dataset: *ID*, the individual identifier, *ch*, the capture history (0 = undetected, 1 = detected),the *sex* of the captured individuals, the *habitat* type the birds were captured, and health status, i.e. if birds were *infected*
+
+# Explore capture locations
+
+```{r}
+#load environmental data on capturing
+locations <-
+  read_csv(here(
+    "data",
+    "data_berlin",
+    "animal_data",
+    "starlings_capture_location_data.csv"
+  ))
+
+# Short overview
+skim(locations)
+
+
+loc_sf <- st_as_sf(locations, coords = c("Lon", "Lat"), crs = 4326)
+
+
+tmap_mode("view")
+tm_shape(loc_sf) + tm_dots(col = "Habitat", size = 2)  
+```
+
+
+# Plot the capturing data
+```{r}
+# Capture histories
+starlings %>%
+  ggplot(mapping = aes(x = ch)) +
+  geom_bar(colour = "#262674", fill = "#262674") +
+  scale_y_continuous(
+    limits = c(0, 40),
+    breaks = seq(0, 40, by = 10),
+    expand = c(.001, .001)
+  ) +
+  labs(x = "capture histories") +
+  theme(axis.text.x = element_text(angle = 45))
+
+# Sex
+starlings %>%
+  ggplot(mapping = aes(x = sex, fill = sex)) +
+  geom_bar() +
+  scale_fill_manual(values = c(Female = "salmon", Male = "lightblue"))
+
+# Sex and capture histories
+starlings %>%
+  ggplot(mapping = aes(x = ch, fill = sex)) +
+  geom_bar(position = "stack") +
+  scale_y_continuous(
+    limits = c(0, 40),
+    breaks = seq(0, 40, by = 10),
+    expand = c(.001, .001)
+  ) +
+  labs(x = "capture histories", fill = "sex") +
+  theme(axis.text.x = element_text(angle = 45)) +
+  scale_fill_manual(values = c(Female = "salmon", Male = "lightblue"))
+
+```
+
+# Plot environmental data
+
+```{r}
+locations_long <- locations %>%
+  pivot_longer(names_to = "year",
+               values_to = "temp",
+               cols = starts_with("Temp"))
+
+ggplot(locations_long, aes(x = year, y = temp, group = Habitat)) +
+  geom_line(aes(col = Habitat), linewidth = 2) +
+  scale_colour_manual(values = c(urban = "darkgoldenrod", rural = "darkblue"))
+```
+
+
+# Basic Cormack-Jolly-Seber models
+The default model uses constant detection and survival probabilities and constant time intervals between captures. 
+We fit the model and have a look at the results.
+Please note: The estimates are on a logit scale
+```{r}
+#models require dataframes, tibbles produce errors
+starlings <- starlings %>%
+  as.data.frame()
+
+cjs_m1 <- crm(data = starlings)
+cjs_m1
+```
+
+Npar = number of parameters
+-2lnL = 
+AIC = Akaikes Information Criterion
+Phi = Survival probability between capture events
+p = Capturing probability per capture event
+
+## Estimate parameters on real scale
+Write a function to assess results more intuitively on the real scale instead of the logit-scale. We can just paste our results from the previous model output
+```{r}
+inverse_logit <- function(x) {
+  exp(x) / (1 + exp(x))
+  
+}
+
+#e.g.
+inverse_logit(0.06757844) # this is our survival probability
+inverse_logit(2.22899510) # this is our survival probability
+
+#  alternative way to write this
+
+inverse_logit(cjs_m1$results$beta$Phi)
+inverse_logit(cjs_m1$results$beta$p)
+
+```
+
+Refit the model with confidence intervals
+```{r}
+cjs_m1_2 <- cjs.hessian(cjs_m1)
+cjs_m1_2
+
+```
+## Predict
+Now we transform the logit estimates to real estimates by using the inverse logit
+```{r}
+predict(object = cjs_m1_2,
+        newdata = data.frame(sex = c("Female", "Male")),
+        se = TRUE)
+```
+What does that mean?
+The survival probability between capture events was 0.52. The probability to capture an individual during a capture event was 0.90.
+
+As mentioned before, we assume constant time intervals between capturing events. In reality, this is often not the case, e.g. capturing events have to be postponed due to weather conditions.
+Now we build a model where we take this into account.
+
+# CJS with irregular sampling intervals
+
+```{r}
+cjs_m1_time <- crm(data = starlings,
+                   # time.interval vector is the interval between each capture event.
+                   # for 7 capture events, there are 6 intervals
+                   time.intervals = c(1, 1, 1, 1.6, 2, 3))
+predict(object = cjs_m1_time)
+```
+Now we have a higher survival probability of 0.69 between capturing events and a lower capturing probability per capturing event of 0.89
+
+# Fit models for model selection
+Normally, there are different hypotheses about the factors that influence the survival probability of individuals. These can be characteristics of the individuals, such as sex, age or weight, or characteristics of the environment of the individuals, such as sealing, temperature or the number of nesting opportunities. For this purpose, different models are built that take the respective factors (explanatory or predictor variables) into account.
+
+For a flexible approach we process the data, create design data to add variables that depend on time and fit the different models.
+
+## Group data
+
+We process the data and set the grouping variables
+```{r}
+m2_proc <- process.data(data = starlings,groups = c("sex","habitat","infected"))
+```
+
+Create the design data
+```{r}
+m2_design <- make.design.data(data = m2_proc)
+```
+
+## Model formulas
+
+Build formulas for each parameter
+```{r}
+phi_dot <- list(formula = ~ 1)
+phi_sex <- list(formula = ~ sex)
+p_sex <- list(formula = ~ sex)
+```
+
+Fit a model based on the design data with constant survival and different detection probabilities between sexes.
+```{r}
+cjs_m2 <- crm(
+  m2_proc,
+  m2_design,
+  model.parameters = list(Phi = phi_dot,
+                          p = p_sex),
+  accumulate = FALSE
+)
+
+cjs_m2
+
+predict(object = cjs_m2)
+
+```
+
+Fit another model based on the design data with different survival and detection probabilities between sexes
+```{r}
+cjs_m3 <- crm(
+  m2_proc,
+  m2_design,
+  model.parameters = list(Phi = phi_sex,
+                          p = p_sex),
+  accumulate = FALSE
+)
+
+cjs_m3
+
+predict(object = cjs_m3)
+```
+
+Fit another model based on the design data with time-dependent survival and detection probability
+```{r}
+cjs_m4 <- crm(
+  m2_proc,
+  m2_design,
+  model.parameters = list(Phi = list(formula =  ~ time),
+                          p = list(formula =  ~ time)),
+  accumulate = FALSE
+)
+
+cjs_m4
+
+predict(object = cjs_m4)
+```
+
+# Multiple models + model selection (AIC)
+
+When testing multiple hypotheses, you can speed up model formulation for multiple models. Caution! Models should always be biologically meaningful, don't just fit too many models without thinking about them.
+```{r}
+fit.starlings.cjs.models <- function() {
+  # Apparent survival (Phi) formula
+  Phi.time <- list(formula = ~ time)
+  Phi.sex <- list(formula = ~ sex)
+  Phi.sex.time <-
+    list(formula = ~ sex * time) # interaction of sex and time
+  Phi.habitat.time <- list(formula = ~ habitat * time)
+  Phi.dot <- list(formula = ~ 1) # constant survival
+  
+  # Detection probability (p) formula
+  p.sex <- list(formula = ~ sex)  # differs between males and females
+  p.time <-
+    list(formula = ~ time)  # one discrete estimate of p per capture event
+  p.habitat <- list(formula = ~ habitat)
+  p.dot <- list(formula = ~ 1) # constant detection
+  
+  # Construct all combinations and put into one model table
+  cml <-
+    create.model.list(c("Phi", "p")) # makes all possibile combinations of those parameter formulas
+  results <- crm.wrapper(
+    cml,
+    data = m2_proc,
+    ddl = m2_design,
+    external = FALSE,
+    accumulate = FALSE,
+    hessian = TRUE
+  )
+  return(results)
+}
+
+# Run function
+starlings_cjs_models <- fit.starlings.cjs.models()
+```
+
+Look at model results
+```{r}
+summary(starlings_cjs_models)
+```
+
+# Time-dependent variables
+
+```{r}
+Heat_wave <- matrix(rep(c(0, 1, 1, 0, 0, 0), each = nrow(starlings)), ncol =
+                      6)
+colnames(Heat_wave) = paste("Heat_wave", 1:6, sep = "")
+
+starlings_heatwave <- cbind(starlings, Heat_wave)
+
+#generate some random weight
+starlings_heatwave$weight <- round(rnorm(nrow(starlings), 80, 3))
+
+
+
+
+#prepare data
+starlings.proc <- process.data(starlings_heatwave)
+
+design.Phi <-
+  list(static = c("weight", "sex"),
+       time.varying = c("Heat_wave"))
+
+design.p <- list(static = c("sex"))
+
+design.parameters <- list(Phi = design.Phi, p = design.p)
+
+
+m3_design <- make.design.data(data = starlings.proc,
+                              parameters = design.parameters)
+
+names(m3_design$Phi)
+names(m3_design$p)
+
+Phi.heat.sex <- list(formula =  ~ Heat_wave * sex)
+p.sex <- list(formula =  ~ sex)
+
+m3 <- crm(
+  starlings.proc,
+  m3_design,
+  hessian = TRUE,
+  model.parameters = list(Phi = Phi.heat.sex,
+                          p = p.sex)
+)
+
+
+predict(m3)
+
+```
+
+# More complex models & predicting
+```{r}
+
+Phi.weight.heat <-list(formula=~weight*Heat_wave)
+p.sex <-list(formula=~sex)
+
+
+m4 <- crm(
+  starlings.proc,
+  m3_design,
+  hessian = TRUE,
+  model.parameters = list(Phi = Phi.weight.heat,
+                          p = p.sex)
+)
+#predict model output
+predict(m4)
+```
+
+
+
+```{r}
+new_starling <- expand.grid(sex=c("Female","Male"),weight=60:80,Heat_wave1=0,
+       Heat_wave2=1,Heat_wave3=1,Heat_wave4=0,Heat_wave5=0,Heat_wave6=0) 
+
+
+prediction <- predict(m4,newdata=new_starling,se=TRUE)
+prediction$Phi$Heat_wave = factor(prediction$Phi$Heat_wave, labels = c("No_Heatwave", "Heatwave"))
+
+ggplot(prediction$Phi, aes(weight, estimate, ymin = lcl, ymax = ucl)) +
+  geom_errorbar(width = 0.2) +
+  geom_point() +
+  geom_line() +
+  xlab("\nWeight") + ylab("Survival\n") + facet_grid(Heat_wave ~ .)
+
+```
+
+
+
+
+# [Exercise]{.exercise}
+
+Some exercises:
+
+## Exercise 6.1
+The data set *starlings* contains one column ("infected") that represents an infection with an incurable disease (i.e. a static variable comparable to sex). Formulate hypothesis associated with this infection status (write them down!) & try to build simple CMR models. Think about why infection could matter for capture probability or survival. There are some NAs in the data set, maybe try ?na-omit() and remove some of the observations without data from all analyses.Discuss the results in one sentence
+
+## Exercise 6.2
+In our previous model (m3), we saw that sex & heatwave played an important role in individual survival. Formulate a model that additionally accounts for the habitat type (hint: * or :)
+
+## Exercise 6.3 (advanced)
+This exercise will require some data-wrangling, the data set is not yet prepared: In the file *locations*, you will find measured temperatures for each year.
+
+(Hint: You might need dplyr::left_join() and dplyr::rename() to get all data in the right format and bind the rows according to the habitat type.)
+
+Test how temperature affects survival, and how sex affects detection probability. Then predict the survival probabilities for extreme weather scenarios (temperatures of 30,33,35,38,41,44 degree Celsius)
+
+
+
+## Solution 6.1
+ There are many solutions, one is:
+ 
+ Hypothesis: infection affects survival & prediction
+ 
+ Prediction: Lower survival *AND* detection probability in infected individuals. Here, we hypothesize that infected animals move less, therefore are less likely to be captured. Additionally, infected animals suffer from disease, thus survival is decreased
+ 
+```{r}
+package.list=c("here",
+               "marked",
+               "tidyverse")
+
+for (package in package.list) {
+  if (!require(package, character.only=T, quietly=T)) {
+    install.packages(package)
+    library(package, character.only=T)
+  }
+}
+
+
+starlings <-
+  read_csv(here("data", "data_berlin", "animal_data", "starlings.csv")) %>%
+  mutate(
+    sex = as.factor(sex),
+    habitat = as.factor(habitat),
+    infected = as.factor(infected)
+  ) %>%
+  rename(ID = "...1")%>%
+  as.data.frame()
+
+#load environmental data on capturing
+locations <-
+  read_csv(here(
+    "data",
+    "data_berlin",
+    "animal_data",
+    "starlings_capture_location_data.csv"
+  ))
+
+
+temperatures <- locations %>%
+  dplyr::select(-c("Lon", "Lat")) %>%
+  rename(habitat = Habitat)
+
+
+m_infection<- process.data(data = na.omit(starlings),groups = c("infected"))
+m_infetion_design <- make.design.data(data = m_infection)
+
+phi_infection <- list(formula = ~ infected)
+p_infection <- list(formula = ~ infected)
+
+cjs_infection <- crm(
+  m_infection,
+  m_infetion_design,
+  model.parameters = list(Phi = phi_infection,
+                          p = p_infection),
+  accumulate = FALSE
+)
+
+cjs_infection
+
+predict(object = cjs_infection)
+```
+
+
+## Solution 6.2
+```{r}
+#prepare data
+Heat_wave <- matrix(rep(c(0, 1, 1, 0, 0, 0), each = nrow(starlings)), ncol =
+                      6)
+colnames(Heat_wave) = paste("Heat_wave", 1:6, sep = "")
+
+starlings_heatwave <- cbind(starlings, Heat_wave)
+
+#generate some random weight
+starlings_heatwave$weight <- round(rnorm(nrow(starlings), 80, 3))
+
+
+starlings.proc <- process.data(starlings_heatwave)
+
+design.Phi <-
+  list(static = c("weight", "sex","habitat"),
+       time.varying = c("Heat_wave"))
+
+design.p <- list(static = c("sex"))
+
+design.parameters <- list(Phi = design.Phi, p = design.p)
+
+
+m6_design <- make.design.data(data = starlings.proc,
+                              parameters = design.parameters)
+
+names(m6_design$Phi)
+names(m6_design$p)
+
+Phi.heat.sex.habitat <- list(formula =  ~ Heat_wave * sex * habitat)
+p.sex <- list(formula =  ~ sex)
+
+m6 <- crm(
+  starlings.proc,
+  m6_design,
+  hessian = TRUE,
+  model.parameters = list(Phi = Phi.heat.sex.habitat,
+                          p = p.sex)
+)
+
+
+predict(m6)
+```
+## Solution 6.3
+
+```{r}
+starlings_temperatur <- starlings %>%
+  left_join(temperatures, by = "habitat")%>%
+  rename(temperature1=temperature_2016,
+         temperature2=temperature_2017,
+         temperature3=temperature_2018,
+         temperature4=temperature_2019,
+         temperature5=temperature_2020,
+         temperature6=temperature_2021,
+         temperature7=temperature_2022)
+
+#prepare data
+starlings.proc.temp <- process.data(starlings_temperatur)
+
+design.Phi <-
+  list(static = c("sex"),
+       time.varying = c("temperature"))
+
+design.p <- list(static = c("sex"))
+
+design.parameters <- list(Phi = design.Phi, p = design.p)
+
+
+m7_design <- make.design.data(data = starlings.proc.temp,
+                              parameters = design.parameters)
+
+names(m7_design$Phi)
+names(m7_design$p)
+
+Phi.heat.sex <- list(formula =  ~ temperature)
+p.sex <- list(formula =  ~ sex)
+
+m7 <- crm(
+  starlings.proc.temp,
+  m7_design,
+  hessian = TRUE,
+  model.parameters = list(Phi = Phi.heat.sex,
+                          p = p.sex)
+)
+
+predict(m7)
+
+
+new_starling2 <- expand.grid(sex=c("Female","Male"),temperature1=30,
+       temperature2=33,temperature3=35,temperature4=38,temperature5=41,temperature6=44,weight=60:80) 
+
+prediction <- predict(m7,newdata=new_starling2,se=TRUE)
+prediction$Phi$temperature = factor(prediction$Phi$temperature)
+
+
+ggplot(prediction$Phi, aes(temperature, estimate, ymin = lcl, ymax = ucl)) +
+  geom_errorbar(width = 0.2) +
+  geom_point() +
+  geom_line() +
+  xlab("\nTemperature") + ylab("Survival probability\n")
+
+```
+
+
+
+
+
+<details>
+
+<summary>Session Info</summary>
+
+```{r sessionInfo}
+Sys.time()
+#git2r::repository() ## uncomment if you are using GitHub
+sessionInfo()
+```
+
+</details>
