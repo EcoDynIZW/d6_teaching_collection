@@ -433,7 +433,7 @@ background-position: 50% 90%
 + E.g. estimating survival ( $\phi_{i}$ ), i.e. an animal was marked at sampling occasion $i$, survives until sampling occasion $i + 1$ & is still part of the population (only for primary sampling occasions)
 --
 
-+ our detection probability $p$ is measured *at* individual sampling occasions, while our detection probability $\phi$ is measured between primary sampling occasions
++ our detection probability $p$ is measured *at* individual sampling occasions, while our survival probability $\phi$ is measured between primary sampling occasions
 ---
 class: center
 
@@ -503,11 +503,11 @@ class: inverse, middle, center
 ---
 # Covariates in CJS
 
-+ Often, we wish to explain heterogeneity in survival based on sex, age-class, social status, etc. (i.e discrete covariates)
++ Often, we wish to explain heterogeneity in survival based on sex, age-class, social rank, etc. (i.e discrete covariates)
 --
 
 
-+ e.g. estimate survival based on social status for each individual (low = 0, high = 1):
++ e.g. estimate survival based on social rank for each individual (low = 0, high = 1):
 
 $$logit(\phi_{i}) = \beta_{1} + \beta_{2} rank_{i}$$ 
 
