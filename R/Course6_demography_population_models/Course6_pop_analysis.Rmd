@@ -60,7 +60,8 @@ package.list=c("here",
                "tidyverse",
                "sf",
                "tmap",
-               "devtools"
+               "devtools",
+               "rnaturalearthdata" 
                )
 
 for (package in package.list) {
@@ -71,7 +72,9 @@ for (package in package.list) {
 }
 
 
-devtools::install_github("EcoDynIZW/d6berlin")
+remotes::install_github("EcoDynIZW/d6berlin")
+library("d6berlin")
+
 # set a seed, i.e. we create the same random numbers
 set.seed(123)
 
@@ -218,10 +221,10 @@ cjs_m1
 ```
 
 Npar = number of parameters
--2lnL = log scale
+-2lnL = 2 log(Likelihood) of the fitted model
 AIC = Akaikes Information Criterion
 Phi = Survival probability between capture events
-p = Capturing probability per capture event
+p = capture probability per capture event
 
 ## Estimate parameters on real scale
 Write a function to assess results more intuitively on the real scale instead of the logit-scale. We can just paste our results from the previous model output
@@ -273,7 +276,7 @@ cjs_m1_time <- crm(data = starlings,
 # predict model
 predict(object = cjs_m1_time)
 ```
-Now we have a higher survival probability of 0.69 between capturing events and a lower capturing probability per capturing event of 0.89
+Now we have a higher survival probability of 0.69 between capturing events and a lower capture probability per capturing event of 0.89
 
 # Exercise
 
@@ -323,8 +326,7 @@ cjs_m2 <- crm(
   m2_proc,
   m2_design,
   model.parameters = list(Phi = phi_dot,
-                          p = p_sex),
-  accumulate = FALSE
+                          p = p_sex)
 )
 
 cjs_m2
