@@ -391,8 +391,10 @@ library(maxnet)
 
 # do a random sampling of the 'background'
 
-
+https://scottrinnan.wordpress.com/2015/08/31/how-to-construct-a-bias-file-with-r-for-use-in-maxent-modeling/
+  
 # append presences and absences location data
+
 
 # extract from raster stack
 
