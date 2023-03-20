@@ -56,7 +56,7 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
    library(tmap)
    library(dismo)
    library(terra)
-   library(GISTools)
+ #  library(GISTools)
    library(rgdal)
    library(maptools)
    library(viridis)
@@ -119,9 +119,12 @@ Loading many rasters can be done in one go.
 # use 'pattern' for searching for special file types, here .asc-files:
 files <- list.files(path= maps_wd, pattern='.asc$',
                     full.names=TRUE )
-files # these are just names! To load them as spatial objects, use raster() or stack()
-predictors <- c(files[c(9,12,22,24)]) # note that I only load 4 rasters
+files # these are just names! To load them as spatial objects, use rast()
+## note that I only load 4 rasters:
+# predictors <- c(files[c(9,12,22,24)]) # for full data set
+predictors <- rast(x = c(files[c(1,5,6,7)]) ) # for github repository data
 
+predictors
 ```
 
 ### Plot rasters
@@ -152,7 +155,6 @@ River_shp_sf <- st_read(dsn = vecs_wd,
 ```
 
 ### Load point df and convert to spatial object
-
 
 These are our observations of the species.
 ```{r}
@@ -231,10 +233,9 @@ https://cran.r-project.org/web/packages/corrplot/vignettes/corrplot-intro.html
 
 ## Sampling bias correction
 
-
 We are now creating a very rudimentary bias correction file. Let's assume that doing field work in the province of Sabah, Malaysia, is easy and the field sampling has concentrated on these areas. Further, it is easier to sample in lowlands and flat slopes. Usually, protected areas (PAs) are also well studied areas, where the sampling intensity is high. And let's assume that it was not possible to get a research permit for Indonesia and that therefore very few field studies had been conducted here. Please note: this is a completely fictive example! You should have the information about the sampling bias.
 
-That is, we create a file that is representing these differences in sampling effort. this is easiest to do in raster manipulation. We first create a raster from our shapefile with the country outlines. 
+That is, we create a file that is representing these differences in sampling effort. This is easiest to do with raster manipulation. We first create a raster from our shapefile with the country outlines. 
 
 ```{r}
 head(Borneo_shp_sf)
@@ -380,34 +381,9 @@ NODATA_value  -9999   <br>
 ```{r}
 #### meanwhile clicking Maxent.... 
 
-# (or: do it with R package dismo, but this is another story
+# (or: do it with R package dismo/ biomod2/ maxnet, but this is another story
 #  which will be taught another time....)
 ```
-
-
-
-```{r}
-library(maxnet)
-
-# do a random sampling of the 'background'
-
-https://scottrinnan.wordpress.com/2015/08/31/how-to-construct-a-bias-file-with-r-for-use-in-maxent-modeling/
-  
-# append presences and absences location data
-
-
-# extract from raster stack
-
-
-data(bradypus) # data containing presences/ absences and values of env var
-p <- bradypus$presence # a vector of 1 and 0
-data <- bradypus[,-1] #delete p
-mod <- maxnet(p, data) # call model
-plot(mod, type="logistic") #response curves
-
-predict(mod, newdata, clamp=T, type=c("logistic"))
-```
-
 
 
 
@@ -446,7 +422,7 @@ infiles
 ## please use the workaround with function aggregate() from above:
 # me_stack <- aggregate(stack(infiles[c(1:4)]),fact= 50, FUN = mean )
 
-me_stack <- stack(infiles[c(1:4)])
+me_stack <- rast(infiles[c(1:4)])
 
 # name sequence according to infiles list above
 names(me_stack) <- c('curr_noBias','fut_noBias',
@@ -464,8 +440,6 @@ boxplot(me_stack,layers = c(1,3,2,4),notch=T,outline=F)
 ```
 
 How would you interpret the results?
-
-
 
 ## Threshold selection
 
@@ -486,7 +460,8 @@ me_res
 #     /withbias/maxentResults.csv"
 ```
 
-Now we do some elegant trick: we store both files as two objects in a list! Similar to tacking rasters, a bit....
+Now we do some elegant trick: we store both files as two objects in a list! 
+Similar to stacking rasters, a bit....
 ```{r}
 store_res <- lapply(me_res,FUN=read.csv) #store as list obj.
 ## Check the following out:
@@ -501,8 +476,10 @@ We are searching for the column with the threshold.
 ## (= nrow command) to access avg value of all repetitions at the lowest row
 
 zename<-'X10.percentile.training.presence.logistic.threshold' # check if the column name is the same !!!!!
-# Achtung! 
-# In MaxEnt 3.4.1 heisst Spalte 'X10.percentile.training.presence.Logistic.threshold'
+## Achtung! 
+## In MaxEnt 3.4.1 the column name is:
+## 'X10.percentile.training.presence.Logistic.threshold'
+## with capital L in logistic
 zename
 ```
 
@@ -533,7 +510,7 @@ all_bias <- rep(c(t_noBias,t_withBias), each=2)
 all_bias
 ```
 
-Now set the thresholds to the stack. If you don't remember the stack (me_stack), plot it again.Test different thresholds and see how the predictions change:
+Now set the thresholds to the stack. If you don't remember the stack (me_stack), plot it again. Test different thresholds and see how the predictions change:
 
 ```{r}
 binary_thresh <- me_stack >= all_bias
@@ -554,9 +531,9 @@ Now let's check how global change affects the protected areas. Does the suitabil
 ```{r}
 # Extract relative probability values inside protected areas PAs
 # check if overlay correct - only works when you have NOT aggregated the maps
-compareRaster(PA_ras,me_stack[[1]]) 
+compareGeom(PA_ras,me_stack[[1]]) 
 
-ex <- which(values(PA_ras)==1)
+ex <- which(values(PA_ras)==1) ##remember PA_ras == 1 where the PAs are
 # ex # gives Pointer to elements/ Index
 ex_stack <- extract(x=me_stack, y=ex)
 head(ex_stack)
@@ -573,7 +550,7 @@ Calculate no. of cells (=area) of suitable habitat in PAs
 ex_binary <- extract(x=binary_thresh, y=ex)
 head(ex_binary)
 ## In the following, we are summing the cells with 'TRUE'
-ex_binary[1:2,]; colSums(ex_binary,na.rm=T) # 2 cmnds in line with ; !
+colSums(ex_binary,na.rm=T) 
 ```
 
 Interestingly: when correcting for sampling bias, the future scenarios have the lowest number of suitable habitat inside PAs: <br>
@@ -584,13 +561,14 @@ curr_noBias    fut_noBias curr_withBias  fut_withBias   <br>
       
 ```{r, echo=FALSE, eval=FALSE}
 ################# just in case for Netlogo   ###################################
-### maps have to be smaller and instead of NA put -1 ###
+########## maps have to be smaller and instead of NA put -1 ####################
+################################################################################
 
-infiles # remember, out folder content
+infiles # remember, output folder content
 
 # chose one:
-my_MaxEnt_avg_Map <- raster(infiles[1])
-my_MaxEnt_avg_Map@crs <- CRS("+proj=longlat +datum=WGS84")
+my_MaxEnt_avg_Map <- rast(infiles[1])
+# my_MaxEnt_avg_Map@crs <- CRS("+proj=longlat +datum=WGS84") #not needed with {terra}-package
 
 # plot
 plot(my_MaxEnt_avg_Map,col=viridis(100))
@@ -609,14 +587,19 @@ writeRaster(probab_agg, filename="probab_agg_int",format="ascii",
 ```
 
 # Least cost path for connectivity
+
 ```{r}
 #install.packages('gdistance')
 library(gdistance)
 #?gdistance
+# we need a workaround, because we need the PAs now as SpatialPolygonDataFrame, 
+# and not as sf-Object (gdistance works with old format)
+
+PA_shp_sp <- as(PA_shp_sf, "Spatial")
 
 # Set start and end points: centers of the first two PA polygons
-start <- gCentroid(PA_shp[1,1], byid=FALSE, id = NULL)
-end   <- gCentroid(PA_shp[2,1], byid=FALSE, id = NULL)
+start <- gCentroid(PA_shp_sp[1,1], byid=FALSE, id = NULL)
+end   <- gCentroid(PA_shp_sp[2,1], byid=FALSE, id = NULL)
 
 # Several commands in one line when separated by ';':
 plot(me_stack[[1]]); points(start); points(end)
@@ -628,17 +611,23 @@ plot(me_cr); points(start,pch=15); points(end,pch=15)
 
 ### Necessary calculations
 # Calculate the transition layer
-trans <- transition(x = me_cr,
+
+# but first, we need to backtransform the SpatRaster {terra}-Object
+# into a RasterLayer {raster}-Object:
+me_cr_raster <- raster(me_cr)
+
+trans <- transition(x = me_cr_raster,
                     transitionFunction = mean,
                     directions = 4,
                     symm = F)
 class(trans)
 
 # Calculate the shortest weighted connection
-sPath <- shortestPath(trans, start, end,
+sPath_sp <- shortestPath(trans, start, end,
                       output="SpatialLines")
 
-crs(sPath) <- "+proj=longlat +datum=WGS84 +no_defs"
+# not needed any more
+# crs(sPath_sp) <- "+proj=longlat +datum=WGS84 +no_defs"
 
 
 # Calculate the length of the path
@@ -646,42 +635,49 @@ costDistance(trans, start, end) #units?
 
 
 # Make a plot
-plot(me_cr,col=viridis(100)); points(start,pch=15); points(end,pch=15)
-lines(sPath,lwd=1, col= 'red'); plot(PA_shp, border='white', lwd=0.5,add=T)
+plot(me_cr,col=viridis(100)); points(start,pch=17,col='white'); points(end,pch=15, col='white')
+lines(sPath_sp,lwd=1, col= 'red'); plot(PA_shp_sp, border='white', lwd=0.5,add=T)
 ```
 
 
 ```{r, echo=FALSE, eval=FALSE}
 # where does the animal corridor intersect rivers?
 # in sf package
-River_inter1 <- st_intersection(x = River_shp_sf, y = as(sPath, "sf")) 
+River_inter1 <- st_intersection(x = River_shp_sf, y = as(sPath_sp, "sf")) 
 # in sp package
 # River_inter_sp <- gIntersection(River_shp, sPath) 
 
-plot(sPath,lwd=3); plot(PA_shp,border='grey',lwd=1,add=T)
-plot(River_shp,col='blue',lwd=2,add=T)
+plot(sPath_sp,lwd=3); plot(PA_shp_sp,border='grey',lwd=1,add=T)
+plot(River_shp_sf,col='blue',lwd=2,add=T)
 plot(River_inter1,col='red',lwd=4,add=T); box()
 ```
 
 
 ```{r, echo=FALSE, eval=FALSE}
-######## currently out of order
-# Which connections intersect the PAs?
-PA_inter1 <- st_intersection(x = PA_shp_sf, y = as(sPath, "sf")) 
+## Which connections intersect the PAs?
 
-plot(sPath,lwd=3); plot(PA_shp,border='blue',lwd=2,add=T)
+## as PA_shp_sf has an invalid topology, we need the workaround with the old 
+## {rgeos}package; https://github.com/r-spatial/sf/issues/1902
+# PA_inter1 <- st_intersection(x = PA_shp_sf, y = as(sPath_sp, "sf")) 
+PA_inter1 <- gIntersection(PA_shp_sp, sPath_sp) # old way
+
+plot(sPath_sp,lwd=3); plot(PA_shp_sp,border='blue',lwd=2,add=T)
 lines(PA_inter1,col='red',lwd=4); box()
 ```
 
 
 ```{r, echo=FALSE, eval=FALSE}
 ### Save new line as shapefile
-crs(sPath) <- CRS('+proj=longlat +datum=WGS84')
 cp_line <- SpatialLinesDataFrame(sl=sPath,
                                  data = data.frame(name = c(1:length(sPath@lines))))
 writeOGR(obj=cp_line,dsn=output_wd,layer='costpath_line',
          driver = 'ESRI Shapefile', overwrite = TRUE)
-#### end currently out of order
+# but: better use st_write()  
+
+
+## TODO: check out this package:
+# https://cran.r-project.org/web/packages/leastcostpath/vignettes/leastcostpath-1.html
+
 ################  end #######################
 ```
 
