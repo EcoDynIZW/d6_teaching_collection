@@ -172,7 +172,7 @@ H_vegan
 ## Properties of Diversity indices
 Shannon diversity vs Hill numbers
 
-If we have two communities with no species in common, the diversity of both togheter should be the sum of the diversities of each one
+If we have two communities with no species in common, the diversity of both together should be the sum of the diversities of each one
 ```{r shannon_vs_hill}
 # We create a second community with no species in common with the first one
 birds2 <- data.frame(Species = c('Sparrow', 'Dove', 'Crow'),
@@ -232,6 +232,7 @@ Load data from the library about spider samples in two locations
 ```{r load_inext_data}
 data(spider)
 str(spider)
+?spider
 ```
 
 ```{r run_inext_q0}
@@ -273,12 +274,14 @@ ggiNEXT(example1, type=1) # Curve for sample size
 
 Rarefaction/extrapolation curves for sample size for all 3 numbers divided by site
 ```{r}
-ggiNEXT(example2, type=1, facet.var="site")
+ggiNEXT(example2, type=1, facet.var="Assemblage")
 ```
 
 Rarefaction/extrapolation curves for sample size separated by "order" (q)
 ```{r}
-ggiNEXT(example2, type=1, facet.var="both")
+ggiNEXT(example2, type=1, facet.var="Both")
+?ggiNEXT
+ggiNEXT(example2, type=1, facet.var="Order.q")
 # adding grey=TRUE, we get a plot in black and white theme
 ```
 
@@ -328,7 +331,7 @@ estINEXTcover2 <- estimateD(spider, datatype = "abundance", base = "size", level
 habitat <- factor(c("Girdled", "Logged"))
 
 # plot simple
-mysub <- subset(estINEXTcover2, estINEXTcover2$order == 0 )
+mysub <- subset(estINEXTcover2, estINEXTcover2$Order.q == 0 )
 plot(mysub$qD ~ habitat, border = c("green4", "red"), 
         xlab = "Habitats", ylab = "Est. Species richness")
 
@@ -340,7 +343,7 @@ ggplot(mysub, aes(x = habitat, y = qD)) +
                 width = 0.2) +
   xlab("Habitats") +
   ylab("Est. Species richness") +
-  theme_bw()
+  theme_bw() 
 ```
 
 

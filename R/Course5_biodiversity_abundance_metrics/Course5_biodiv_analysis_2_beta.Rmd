@@ -61,9 +61,9 @@ Let's calculate Jaccard diversity using the data from the power point
 ```{r Jaccard_birds}
 
 # Create dataframes for the two communities:
-Grunewald <- data.frame(Species = c('BT', 'Robin', 'Magpie','Roller', 'Swallow', 'GT'),
+Gruenewald <- data.frame(Species = c('BT', 'Robin', 'Magpie','Roller', 'Swallow', 'GT'),
                          Abundance = c(3, 2, 2, 1, 2, 4))
-Grunewald
+Gruenewald
 
 Alex <- data.frame(Species = c('BT', 'Dove', 'Magpie', 'GT', 'Crow'),
                    Abundance =  c(3, 4, 1, 5, 2))
@@ -71,10 +71,10 @@ Alex
 
 # Now let's get a, b and c needed to calculate Jaccard index
 
-Common <- merge(Grunewald, Alex, by = 'Species') # create a dataframe with only the common species of the two communities
+Common <- merge(Gruenewald, Alex, by = 'Species') # create a dataframe with only the common species of the two communities
 a <- nrow(Common) # get the number of common species
-Unique_Grun <- sum(! Grunewald$Species %in% Alex$Species) # get the number of unique species for Grunewald
-Unique_Alex <- sum(! Alex$Species %in% Grunewald$Species) # get the number of unique species for Grunewald
+Unique_Grun <- sum(! Gruenewald$Species %in% Alex$Species) # get the number of unique species for Grunewald
+Unique_Alex <- sum(! Alex$Species %in% Gruenewald$Species) # get the number of unique species for Grunewald
 J <- a / (a + Unique_Grun + Unique_Alex) # calculate Jaccard index
 J 
 
@@ -86,9 +86,9 @@ J
 ```{r BC_birds}
 
 # Create dataframes for the two communities:
-Grunewald <- data.frame(Species = c('BT', 'Robin', 'Magpie','Roller', 'Swallow', 'GT'),
+Gruenewald <- data.frame(Species = c('BT', 'Robin', 'Magpie','Roller', 'Swallow', 'GT'),
                          Abundance = c(3, 2, 2, 1, 2, 4))
-Grunewald
+Gruenewald
 
 Alex <- data.frame(Species = c('BT', 'Dove', 'Magpie', 'GT', 'Crow'),
                    Abundance =  c(3, 4, 1, 5, 2))
@@ -96,11 +96,11 @@ Alex
 
 # Now let's get a, b and c needed to calculate Jaccard index
 
-Common <- merge(Grunewald, Alex, by = 'Species') # create a dataframe with only the common species of the two communities
+Common <- merge(Gruenewald, Alex, by = 'Species') # create a dataframe with only the common species of the two communities
 Common$Min <- unlist(lapply(1:nrow(Common), FUN = function(x){min(Common[x, 2:3])})) # get the minimum abundance of each common species between the two communities
 Common
 
-S_Grun <- sum(Grunewald$Abundance) # get the total abundance of all species for Grunewald
+S_Grun <- sum(Gruenewald$Abundance) # get the total abundance of all species for Grunewald
 S_Alex <- sum(Alex$Abundance) # get the total abundance of all species for Alex
 BC <- 2*sum(Common$Min) / (S_Grun + S_Alex) # calculate Bray-Curtis 
 BC
@@ -151,14 +151,16 @@ abline(h=0, lty=3)
 abline(v=0, lty=3)
 
 scores(birds_pcoa)
+```
 
 
+## Plot with species weights
+
+```{r PCoA_species2}
 # Add weighted average projection of species
 birds_wa <- wascores(birds_pcoa$points[,1:2], bird_data)
 text(birds_wa, rownames(birds_wa), cex=0.7, col="red")
-
 ```
-
 
 ## Add environmental values
 
