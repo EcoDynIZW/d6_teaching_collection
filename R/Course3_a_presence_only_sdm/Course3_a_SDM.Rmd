@@ -577,13 +577,14 @@ plot(my_MaxEnt_avg_Map,col=viridis(100))
 probab_agg <- aggregate(x=my_MaxEnt_avg_Map,fact=2,fun=mean)
 
 #and make an integer out of the decimals
-probab_agg_int <- as.integer(round(probab_agg*100, digits=0))
+probab_agg_int <- round(probab_agg*100, digits=0)
 plot(probab_agg_int, col=viridis(100))
 
 # save it to import into Netlogo
 getwd() # that's where it is saved now
-writeRaster(probab_agg, filename="probab_agg_int",format="ascii",
-            overwrite=TRUE,NAflag = -9999)
+terra::writeRaster(probab_agg_int, filename="probab_agg_int.asc",
+                   datatype="ascii",
+                   overwrite=TRUE,NAflag = -9999)
 ```
 
 # Least cost path for connectivity
