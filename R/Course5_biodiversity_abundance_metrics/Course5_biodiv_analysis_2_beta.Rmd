@@ -151,16 +151,15 @@ abline(h=0, lty=3)
 abline(v=0, lty=3)
 
 scores(birds_pcoa)
-```
 
-
+# Add weighted average projection of species
 ## Plot with species weights
 
-```{r PCoA_species2}
-# Add weighted average projection of species
 birds_wa <- wascores(birds_pcoa$points[,1:2], bird_data)
 text(birds_wa, rownames(birds_wa), cex=0.7, col="red")
 ```
+
+
 
 ## Add environmental values
 
