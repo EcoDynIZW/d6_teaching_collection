@@ -1999,7 +1999,7 @@ Follow these steps to answer the questions:
 * b. Turn the wild boar data into a simple features object.  Remember to set the correct CRS (the wild boar locations were collected in WGS 84) and to transform it to the same CRS as the raster afterwards!
 * c. Inspect both spatial data sets by plotting the temperature raster with the wild boar locations on top using the R basic plot function. The locations should match the map (if not something went wrong when setting the CRS; check if they are the same).
 * d. Select one of the temperature layers and extract the values for each wild boar location. 
-* e. Create a plot that visualizes the temperature at each wild boar observation (y axis) for each weather category (e.g. box plot or violin plot + raw data). 
+* e. Create a plot that visualizes the temperature at each wild boar observation with 3 or more piglets (y axis) for each number of piglets (e.g. box plot or violin plot + raw data). 
 * f. Create a new variable that holds the weather category as either "sunny" or "other".
 * g. Visualize the temperature at each wild boar observation (y axis) for sunny and other weather (box and whisker plot + raw data). 
 * h. Save the wild boar observations with the local temperature information as an .Rds file.
