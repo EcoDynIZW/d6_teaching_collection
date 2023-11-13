@@ -1999,7 +1999,7 @@ Follow these steps to answer the questions:
 * b. Turn the wild boar data into a simple features object.  Remember to set the correct CRS (the wild boar locations were collected in WGS 84) and to transform it to the same CRS as the raster afterwards!
 * c. Inspect both spatial data sets by plotting the temperature raster with the wild boar locations on top using the R basic plot function. The locations should match the map (if not something went wrong when setting the CRS; check if they are the same).
 * d. Select one of the temperature layers and extract the values for each wild boar location. 
-* e. Create a plot that visualizes the temperature at each wild boar observation with 3 or more piglets (y axis) for each number of piglets (e.g. box plot + raw data). 
+* e. Create a plot that visualizes the temperature at each wild boar observation with 3 or more piglets (y axis) for each number of piglets (e.g. make a boxplot and plot the raw data on top). 
 * f. Create a new variable that holds the weather category as either "sunny" or "other".
 * g. Visualize the temperature at each wild boar observation (y axis) for sunny and other weather (box and whisker plot + raw data). 
 * h. Save the wild boar observations with the local temperature information as an .Rds file.
@@ -2009,7 +2009,7 @@ For the additional question: <br>
 * i. Load the tree cover data set (`tree_cover_density_2012_100m_3035.asc` in `data_berlin`).
 * j. Inspect the data set by plotting the raster using the R basic plot function.
 * k. Extract the tree cover within a buffer of 100m around each wild boar location (hint: use the help to inspect the arguments of `extract()`). 
-* l. Create a plot that shows the tree cover (y axis) based on the group size (box plot + raw data).
+* l. Create a boxplot that shows the tree cover (y axis) based on the group size.
 
 <br><hr><br>
 
