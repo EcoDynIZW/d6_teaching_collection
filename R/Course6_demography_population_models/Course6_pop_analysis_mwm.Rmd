@@ -136,7 +136,7 @@ loc_sf <- st_as_sf(locations, coords = c("Lon", "Lat"), crs = 4326)
 
 #plot the locations
 d6berlin::base_map_imp(globe = TRUE, resolution = 500)+
-  geom_sf(data=loc_sf%>%st_transform(crs=3035),aes(col=Habitat),size=5)+
+  geom_sf(data=st_transform(loc_sf, crs=3035),aes(col=Habitat),size=5)+
   guides(color = guide_legend(direction = "horizontal",
                               title.position = "top", 
                               title.hjust = .5))
