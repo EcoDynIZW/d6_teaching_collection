@@ -104,7 +104,7 @@ starlings <- read.csv(here("data", "data_berlin", "animal_data", "starlings.csv"
 starlings$sex <- as.factor(starlings$sex) # convert to factor
 starlings$habitat <- as.factor(starlings$habitat) # convert to factor
 starlings$infected <- as.factor(starlings$infected) # convert to factor
-names(starlings)[names(starlings) =="X"] <- "ID" # rename ti ID column
+names(starlings)[names(starlings) =="X"] <- "ID" # rename to ID column
 
 # Short overview
 skim(starlings)
