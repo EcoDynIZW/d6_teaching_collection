@@ -60,8 +60,10 @@ package.list=c("here",
                "sf",
                "tmap",
                "devtools",
-               "rnaturalearthdata" 
-               )
+               "rnaturalearthdata", 
+               "ggplot2",
+               "readr",
+               "tidyr")
 
 for (package in package.list) {
   if (!require(package, character.only=T, quietly=T)) {
@@ -99,7 +101,7 @@ theme_set(
 # Load and manipulate data
 Here, we want to directly set some columns as factors for all subsequent analyses:
 ```{r data}
-starlings <- read.csv(here("data", "data_berlin", "animal_data", "starlings.csv"))
+starlings <- readr::read_csv(here("data", "data_berlin", "animal_data", "starlings.csv"))
 
 starlings$sex <- as.factor(starlings$sex) # convert to factor
 starlings$habitat <- as.factor(starlings$habitat) # convert to factor
