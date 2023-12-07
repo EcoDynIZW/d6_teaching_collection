@@ -1,6 +1,6 @@
 ---
 title: "Tutorial Part I - Quick introduction to R"
-author: "Stephanie Kramer-Schadt, Alex Courtiol, Moritz Wenzler, Cedric Scherer"
+author: "Stephanie Kramer-Schadt"
 date: "`r Sys.setlocale('LC_TIME','C'); paste('Last Update', format(Sys.time(), '%B %e, %Y'))`"
 output:
   rmdformats::readthedown:
@@ -15,6 +15,9 @@ params:
 ---
 
 <style>
+h1, h2, h3 {
+  margin-top: 50px;
+}
 h1 {
   color: Orange ;
 }
@@ -41,7 +44,7 @@ code {
 # DO NOT RUN THIS CHUNK IN R CONSOLE
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, 
                       fig.width = 9, fig.height = 6, dev = "ragg_png")
-knitr::opts_knit$set(root.dir = 'C:/Users/kramer/PopDynCloud/StephKramer/projects_github/d6_teaching_collection')
+#knitr::opts_knit$set(root.dir = 'C:/Users/kramer/PopDynCloud/StephKramer/projects_github/d6_teaching_collection')
 #or on GUI: knit -> knit directory -> project directory
 ```
 
@@ -50,25 +53,25 @@ knitr::opts_knit$set(root.dir = 'C:/Users/kramer/PopDynCloud/StephKramer/project
 # Basics
 
 The first outline of this course has been developed in 2012 by Alex Courtiol and has ever since 'evolved' in courses I gave and polished by Moritz and Cedric. This short intro contains the most important commands and functions to handle and manipulate data and to follow the course `biodiversity dynamics`.
-<br> 
+ 
 
 
-Disclaimer: This is not a beginner's course to learn R! To deepen your R skills, I recommend one of the tutorials of <br> 
+Disclaimer: This is not a beginner's course to learn R! To deepen your R skills, I recommend one of the tutorials of  
 
-* https://ourcodingclub.github.io/tutorials.html <br>
-* https://cran.r-project.org/doc/contrib/Paradis-rdebuts_en.pdf  <br>
-* https://www.r-bloggers.com/list-of-free-online-r-tutorials/ <br>
-* https://raw.githubusercontent.com/ColauttiLab/RCrashCourse_Book/master/ColauttiRCrashCourseNov22.pdf <br>
+* https://ourcodingclub.github.io/tutorials.html 
+* https://cran.r-project.org/doc/contrib/Paradis-rdebuts_en.pdf  
+* https://www.r-bloggers.com/list-of-free-online-r-tutorials/ 
+* https://raw.githubusercontent.com/ColauttiLab/RCrashCourse_Book/master/ColauttiRCrashCourseNov22.pdf 
 
 I am actually a big fan of `R` cheat-sheets which provide the basic functions in an overview format. For this course, please download (and use) the [base R cheatsheet](https://iqss.github.io/dss-workshops/R/Rintro/base-r-cheat-sheet.pdf).
-<br>
+
 
 If you have downloaded the whole course folder, the easiest is to double-click on the 
 `R`-project file `d6_teaching_collection.Rproj`. Go to `File` &rarr; `New File` &rarr;` R` script (or `R Markdown`) to open an empty script and save it under a different name.
-<br>
+
 
 Then type or copy-paste the code lines in the grey boxes of the provided `Course1_RIntro.rmd` OR `Course1_RIntro.html` file into your `R` script, run the lines and follow the course... For learning reasons, I actually recommend to even type the functions and commands 'by hand' and not only run the code by clicking the code lines in the .rmd file.
-<br>
+
 
 
 ## Setting the work directory
@@ -116,8 +119,10 @@ To keep folders clean, store all output in a separate folder called `output`. Fi
 ## first store your root folder in a name object:
 
 root_wd <- getwd() # the root folder 
-output_wd <- paste0(root_wd,"/","output")
+output_wd <- paste0(root_wd, "/", "output")
 
+## generate folder if it doesn't exist
+if (!file.exists(output_wd)) dir.create(output_wd)
 ```
 
 Please note: for now, this is just text (a character string denoted with ' ') pointing to a location in your directory, not yet a folder! Create the folder either in your explorer manually, or more elegantly with `dir.create()`. To avoid overwriting existing folders, ask first if the folder exists. This should be the case when you work in the downloaded  repository folder structure.
@@ -133,7 +138,7 @@ dir.exists(output_wd)
 
 
 
-## Basics: R for calculus
+## R for calculus
 
 Use hashtags # for comments
 
@@ -149,7 +154,7 @@ what_is_one_plus_one <- 'two'
 ```
 
 
-## Basics: Common mistakes
+## Common mistakes
 
 ### Spelling - Case sensitivity
 
@@ -180,7 +185,7 @@ what_is_one_plus_one <- 1 + 1
 ```
 
 
-## Basics: Getting help
+## Getting help
 
 
 Get used to working with `?` or `??` in front of a function to learn to work with the `R` help. In the following, the example shows how to get help to know how R should be cited with the function `citation()`.
@@ -194,7 +199,7 @@ help(citation)
 ```
 
 
-## Basics: Functions 
+## Functions 
 
 Functions are in most cases indicated by ()
 
@@ -254,6 +259,9 @@ sum(x = vector_of_numbers)
 
 Very helpful if you want to add data or change the value of existing data. We are assigning our numbers now to an object which will contain the wingspans (wsp) of dragonflies (drfly) (in mm).
 
+```{r}
+# TODO: change url as image is not available anymore
+```
 
 <img src="http://phylopic.org/assets/images/submissions/00415ca0-dbca-4312-b871-840fe1c7031b.512.png" width="100" />
 
@@ -326,15 +334,18 @@ wsp_drfly2 == 75 # n.b. difference to = or <- !!!!
 # wsp_drfly2 <- 75  # assign the object wsp_drfly2 the value 75 # NOT RUN !
 # wsp_drfly2 = 75   # same as <-  # NOT RUN !
 ```
-<br>
+
 
 
 # Data Types and Data Manipulation 
 
-## Create Data Set with Vectors
+## Create data set with vectors
 
 Do the following so that we create a big data file, which will be called 'wsp_table', and which will contain the wing spans of butterflies and dragonflies.
 
+```{r}
+# TODO: change url as image is not available anymore
+```
 
 <img src="http://phylopic.org/assets/images/submissions/ab6182d2-5093-444b-92e5-84468218ebf0.512.png" width="100" />
 
@@ -364,7 +375,7 @@ insect_type
 ```
 
 
-## Dataframe [df]
+## Data frame: df
 
 We now create a `data.frame`object, which is similar to an excel table with rows (= first dimension) and columns (= second dimension).
 ```{r, tidy=TRUE}
@@ -386,10 +397,10 @@ wsp_table$wingspan # access columns with dollar $ sign
 
 <h3 class='exercise'>Question Q1.1</h3>
 **What is the average wingspan of both dragonflies and butterflies?**
-<br>
 
-use `wsp` to answer Q1.1.
-<br>
+
+&rarr; Use `wsp` to answer Q1.1.
+
 
 
 ### Indexing elements
@@ -618,12 +629,12 @@ apply(X = wsp_matrix, MARGIN = 2, FUN = mean)
 <h3 class='exercise'>Question Q1.2</h3>
 
 **What is meant with 'MARGIN = 2'? Check the help!**
-<br>
+
 **What happens if you use 1 instead?**
-<br>
 
 
-## Missing Data NA
+
+## Missing data: NA
 
 Sometimes (very often in ecology) we have missing data. Understanding how to handle missing data (NA - not available) is important.
 ```{r}
@@ -645,7 +656,7 @@ lapply(X = wsp_l, FUN = mean)
 lapply(X = wsp_l, FUN = mean, na.rm = TRUE)
 ```
 
-## Data Manipulation: Summary
+## Data wrangling: Summary
 
 Check the type of objects you are working with. This is very helpful especially when working with spatial data types.
 ```{r}
@@ -657,17 +668,17 @@ class(insect_type) ; class(wsp_l$dragonfly)
 class(what_is_one_plus_one)
 ```
 For effective data manipulation, learn the `tidyverse` piping language which comes with packages such as `dplyr` and `broom`.
-<br>
+
 
 # Managing Data 
 
-## Saving and Reading Files 
+## Saving and reading files 
 
 The files will usually be stored under your working directory. Here, we want to have a clean structure and store everything in the output folder.At the beginning of the course, we created the path to the output folder as a character string (called 'output_wd'). We can directly append the file name to that string, so that the file will be stored in the folder.
 ```{r}
 getwd() # cross-check whether you are in the root folder 
 
-(wsp_filename <- paste0(output_wd,"/","wsp_table.csv") ) 
+(wsp_filename <- paste0(output_wd, "/", "wsp_table.csv") ) 
 write.csv(x = wsp_table, file = wsp_filename, row.names = FALSE)
 ```
 
@@ -679,7 +690,7 @@ head(x = wsp_reloaded)
 
 ```
 
-<br>
+
 
 # Plotting with R 
 
@@ -751,19 +762,23 @@ arrows(x0 = 15, y0 =  70, x1 = 17, y1 =  75, col = "black", lwd = 3) #lwd=line w
 text(x = 3, y = 70, labels = "DRAGONFLY",cex=0.8)
 ```
 
+
 ## Other plot types
 
-First, create new data set called " mydata" with new column "wind_speed":
+First, create new data set called `mydata` and add a new column `wind_speed`:
+
 ```{r}
 wind_speed <- rep(x = 50:70, length.out = nrow(wsp_table))
 mydata <- cbind(wsp_table, wind_speed)
 head(x = mydata)
 ```
 
+f
 ### `boxplot` and histogram (`hist`)
 
 We want to plot both plots next to each other, so we have to separate the plotting
 panel into two columns. This is done within the graphical parameters (`par()`) with the argument `mfrow()`, which is treating the panel like a table where we can specify the number of rows and columns.
+
 ```{r}
 par(mfrow = c(1, 2))   # one row, two columns
 # par(mfrow = c(2, 1)) # what happens here? try it out
@@ -833,7 +848,8 @@ box(which = 'figure', col = 'blue', lty = 'dashed')
 box(which = 'outer', col = 'green' , lwd = 5)
 ```
 
-## Saving Plots
+
+## Saving plots
 
 works for jpg, pdf, png, wmf and postscript and is extremely helpful for making the figures for manuscripts, theses etc.
 Btw: You won't see the plot in the panel, it is directly stored in the output folder. Run the code and check!
@@ -863,15 +879,15 @@ dev.off()
 
 Let's be honest, the above plots are ugly. For making nice plots you can use in 
 your thesis or publications, change to R-package ´{ggplot2}´. R-packages are libraries with pre-coded functions. You first need to install them using function `install.packages()` and then load them using `library()` or `require()`.
-<br>
+
 
 I strongly recommend the course by Cedric Scherer on `ggplot2`:  
 * https://www.cedricscherer.com/2019/08/05/a-ggplot2-tutorial-for-beautiful-plotting-in-r/
-<br>
+
 or by the coding club:
-<br>
+
 * https://ourcodingclub.github.io/tutorials/trends-analysis-dataviz/
-<br>
+
 
 The `ggplot` language works in layers to be built and added. First, load the library, and plot the canvas for 'mydata':
 
@@ -998,18 +1014,20 @@ ggplot(mydata, aes(wingspan, wind_speed, fill = factor(insect))) +
 
 The following is playing around with images inserted into plots, i.e. the icons of butterflies and dragonflies. Also, the arrangement of several plots is shown here:
 
-```{r}
+```{r, eval=FALSE}
+# TODO: rphylopic has changed function names and arguments, the for loop doesn't work anymore
+
 # install first
 library(rphylopic) # import the images of butterfly and dragonfly
 library(patchwork) # for arranging the plots, like 'facet' used above
 
 #import phylopic (go to phylopic.org -> browse image -> click on image to get url)
-drfly <- image_data("2894776f-a2cf-4475-b13d-6d8ea1607ea4", size = 128)[[1]]
-bufly <- image_data("ef0f4ab5-9714-45dc-8760-57e9080f941e", size = 128)[[1]]
+drfly <- get_phylopic("2894776f-a2cf-4475-b13d-6d8ea1607ea4", height = 128)
+bufly <- get_phylopic("ef0f4ab5-9714-45dc-8760-57e9080f941e", height = 128)
 
 p1 <- ggplot(mydata, aes(x = wind_speed, y = wingspan)) + 
         geom_point() + 
-        add_phylopic(img = drfly) + 
+        add_phylopic(img = drfly, x = 60, y = 170) + 
         labs(x = 'Wind Speed', y = 'Wing span [mm]', size = 15) +
         theme_light()
 
@@ -1065,17 +1083,17 @@ ggsave(myridgeplot, file = myfilename, width = 4, height = 4)
 
 And find more inspiration here: https://www.r-graph-gallery.com/
 
-<br>
 
 
-# <span class='exercise'>Exercise 1</span>
+
+# <span class='exercise'>Exercise</span>
 
 1. Please load and inspect the following data set on wild boar observations in Berlin: `data_wb_melden_en.csv`. 
-To load the data try both R functions, `read.csv()` and `read.table()`.<br>
+To load the data try both R functions, `read.csv()` and `read.table()`.
 You will find the data to download in the 'data' folder of the repository, i.e.:
-<br>
+  
 data &rarr; data_berlin &rarr; animal_data
-<br>
+
 
 
 2. Use the functions `head()`, `names()`, `levels()`, `str()`, `table()` (hint: choose a column), 
@@ -1095,25 +1113,23 @@ this bar plot with a header and column names as a pdf.<br><br>
 
 Now have a look at the [base R cheatsheet](https://iqss.github.io/dss-workshops/R/Rintro/base-r-cheat-sheet.pdf) and check how much of it you understand.
 <br>
-<br>
-<br>
 
 # Advanced - Programming with R (shortly) 
 
 This is very helpful for understanding your own data (i.e. simulate data where
 you know exactly what happens and where you know what should come out) or
 when you have repeated operations to do.
-<br>
+
 
 **@TUBerlin-Students, skip this part. You don't need to go through 
 the following without prior lectures in statistics**
-<br>
+
 
 ## Simulate your own data
 
 R has a lot of distribution functions to simulate data:  
 https://stat.ethz.ch/R-manual/R-devel/library/stats/html/Distributions.html
-<br>
+
 In the following, I am simulating a data set with an increasing trend. Think of
 climate change, i.e.  increasing temperature (y-axis; trend_data) over 
 time (x-axis; seq_data). That is, there is a functional relationship between time
@@ -1122,16 +1138,16 @@ time step, i.e., the relationship is *linear*. Let's say the mean temperature
 before measuring was 5 °C, i.e. in our case at time step 0. 
 Or, in other words, where the trend-line is crossing the y-axis. Let's call 
 this *intercept*. Then, we can formulate the relationship 
-<br>
+
 
 trend_data = 5 + (0.1 * seq_data)        (eq. 1)
-<br> 
+ 
 
 or 
-<br>
+
 
 y = intercept + (slope * x)
-<br>
+
 
 However, real data often is not so exact, a lot of intrinsic and extrinsic
 effects will influence the measurement. I therefore add a normally distributed
@@ -1176,7 +1192,7 @@ the slope value and sd-argument to see what is happening to your 'prediction'.
 Or you can change the distribution function. 
 
 
-## The *for* loop
+## The `for` loop
 
 saves a lot of time to automate operations, i.e. if you need to do the same 
 operation on 1000 data sets.
@@ -1195,18 +1211,18 @@ for(i in 1:4)
 
 ## Writing your own function
 
-For repetitive actions and often used operations. <br>
+For repetitive actions and often used operations. 
 @TUBerlin-Students , skip this part. You don't need to go through 
 the following without prior lectures in statistics.
-<br>
+
 
 The basic syntax is: 
-<br> 
+ 
 function(*argument*){1 + 1 - *argument*}  
-<br>
+
 The function needs an argument, like e.g. a vector with numbers in the case 
 of the function `mean()`. In the {} some operations are done with the argument.
-<br>
+
 Below, I set up two functions, `f_logit()` and `f_probit()`. Note the similarity of `f_logit()`
 with our linear model above! `f_probit()` is a non-linear relationship; inside this
 function, I call to another function, `exp()`, which needs the argument x. 
@@ -1319,18 +1335,10 @@ abline(h = pres_prob_s, lty = 2, lwd = 0.1)
 The probability of finding the species when there is 50% of forest in the area
 is about `r round(pres_prob_s * 100,digits=0)`%.
 
-<br>
+<br><hr><br>
 
-***
+**Session Info**
 
-<details><summary>Session Info</summary>
-
-```{r sessionInfo}
-Sys.time()
+```{r sessionInfo, echo=FALSE}
 sessionInfo()
 ```
-
-</details>
-
-
-# END
