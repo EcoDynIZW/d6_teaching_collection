@@ -76,7 +76,7 @@ Then type or copy-paste the code lines in the grey boxes of the provided `Course
 
 ## Setting the work directory
 
-If you have opened the `R`-Project, the working directory is automatically set to the root directory (= `d6_teaching_collection`).
+If you have opened the `R`-Project (d6_teaching_collection.Rproj), the working directory is automatically set to the root directory (= `d6_teaching_collection`).
 
 
 
@@ -259,14 +259,6 @@ sum(x = vector_of_numbers)
 
 Very helpful if you want to add data or change the value of existing data. We are assigning our numbers now to an object which will contain the wingspans (wsp) of dragonflies (drfly) (in mm).
 
-```{r}
-# TODO: change url as image is not available anymore
-```
-
-<img src="http://phylopic.org/assets/images/submissions/00415ca0-dbca-4312-b871-840fe1c7031b.512.png" width="100" />
-
-
-
 
 ```{r}
 # Assign the assigned values, i.e. simply 'copy' the values to a new object
@@ -342,12 +334,6 @@ wsp_drfly2 == 75 # n.b. difference to = or <- !!!!
 ## Create data set with vectors
 
 Do the following so that we create a big data file, which will be called 'wsp_table', and which will contain the wing spans of butterflies and dragonflies.
-
-```{r}
-# TODO: change url as image is not available anymore
-```
-
-<img src="http://phylopic.org/assets/images/submissions/ab6182d2-5093-444b-92e5-84468218ebf0.512.png" width="100" />
 
 
 #### Repeat data with command `rep()`
@@ -444,7 +430,6 @@ wsp_table[, 3] # what's wrong?
 
 You can also retrieve more than one value, i.e. here the information on the insect type for three row lines 2 - 5. 
 ```{r}
-
 wsp_table[2:5, 2]
 ```
 
@@ -773,7 +758,7 @@ mydata <- cbind(wsp_table, wind_speed)
 head(x = mydata)
 ```
 
-f
+
 ### `boxplot` and histogram (`hist`)
 
 We want to plot both plots next to each other, so we have to separate the plotting
@@ -1009,57 +994,6 @@ library(ggdensity) #
 ggplot(mydata, aes(wingspan, wind_speed, fill = factor(insect))) +
   geom_hdr(xlim = c(-50, 250), ylim = c(40, 80)) +
   geom_point(shape = 21, size=5)
-```
-
-
-The following is playing around with images inserted into plots, i.e. the icons of butterflies and dragonflies. Also, the arrangement of several plots is shown here:
-
-```{r, eval=FALSE}
-# TODO: rphylopic has changed function names and arguments, the for loop doesn't work anymore
-
-# install first
-library(rphylopic) # import the images of butterfly and dragonfly
-library(patchwork) # for arranging the plots, like 'facet' used above
-
-#import phylopic (go to phylopic.org -> browse image -> click on image to get url)
-drfly <- get_phylopic("2894776f-a2cf-4475-b13d-6d8ea1607ea4", height = 128)
-bufly <- get_phylopic("ef0f4ab5-9714-45dc-8760-57e9080f941e", height = 128)
-
-p1 <- ggplot(mydata, aes(x = wind_speed, y = wingspan)) + 
-        geom_point() + 
-        add_phylopic(img = drfly, x = 60, y = 170) + 
-        labs(x = 'Wind Speed', y = 'Wing span [mm]', size = 15) +
-        theme_light()
-
-###
-p2 <- ggplot(mydata, aes(x = wind_speed, y =wingspan)) + 
-        geom_point(color = rgb(0,0,0,0)) + 
-        theme_light()
-
-sub_drag <- subset(mydata, insect == 'dragonfly')
-sub_butt <- subset(mydata, insect == 'butterfly')
-
-for (i in 1:nrow(sub_drag)) {
-  p2 <- p2 + add_phylopic(drfly, 1, 
-                          sub_drag$wind_speed[i], 
-                          sub_drag$wingspan[i],10,'blue')}
-for (j in 1:nrow(sub_butt)) {
-  p2 <- p2 + add_phylopic(bufly, 1, 
-                          sub_butt$wind_speed[j], 
-                          sub_butt$wingspan[j],10,'red')}
-
-###
-p3 <- ggplot(mydata, aes(x = wingspan, y = factor(insect))) +
-        geom_density_ridges(fill = "gray90") + 
-        add_phylopic(img = bufly, alpha=1, 
-                     x = 50, y = 1.5, ysize = 20) +
-        add_phylopic(img = drfly, alpha = 1, 
-                     x = 80, y = 3, ysize = 25)  +
-        labs(x = "Wing span [mm]", y = "Taxon") +
-        theme_light()
-
-### panel p3 on top, and below p1 and p2
-p3 / (p1 + p2) + plot_annotation(tag_levels = "A", tag_suffix = ")")
 ```
 
 
