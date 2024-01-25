@@ -448,7 +448,7 @@ What does the slot with extent tells you? Looks like decimal degrees, i.e. could
 latitude and longitude. 
 
 
-Now have a look at the slot `crs` (CRS stands for coordinate reference system): Nicely in the new `{terra}`-package, the Coordinate Reference System (map projection) is automatically set in the following way: If this argument is missing when loading data with `rast(x= ..., crs= ...)`, and the x coordinates are within -360 .. 360 and the y coordinates are within -90 .. 90, "+proj=longlat +datum=WGS84" is used.
+Now have a look at the slot `crs` (CRS stands for coordinate reference system): Nicely in the new `{terra}`-package, the Coordinate Reference System (map projection) is automatically set in the following way: If this argument is missing when loading data with `rast(x= ..., crs= ...)`, and the x coordinates are within -360 .. 360 and the y coordinates are within -90 .. 90, automatically "+proj=longlat +datum=WGS84" is used.
 
 In this case, (OGC:CRS84) stands for 'Open Geospatial Consortium' standards to represent the *c*oordinate *r*eference *s*ystem (CRS) WGS84. The parameters for this CRS are now stored in so-called 'well-known text' (WKT) files. We will come back to that later. 
 
@@ -459,8 +459,8 @@ is not yet set/ assigned (because you import a raster map as a simple matrix or 
 a file), this is the first thing you should do!
 
 ```{r}
-# str(ras_bio_asc_01) ## check this
-crs(ras_bio_asc_01)   ## crs = coordinate reference system. If empty, assign it!
+# str(Bor_mat) ## check this
+crs(Bor_mat)   ## crs = coordinate reference system. If empty, assign it!
 ```
 
 
