@@ -44,6 +44,12 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
 #knitr::opts_knit$set(root.dir = 'C:/Users/kramer/PopDynIZW Dropbox/Steph Kramer/_GitHub')
 ```
 
+```{r}
+#install.packages("installr")
+#installr::install.rtools()
+```
+
+
 Let me start with a big thanks to Cedric Scherer, Moritz Wenzler, Pierre Gras and Juergen
 Niedballa who constantly helped to improve the course since its start in 2014! 
 I am deeply indebted to you!
@@ -159,10 +165,10 @@ install.packages(unavailable)
 
 ## install development version of rnaturalearth as currently the 
 ## download doesn't work in the CRAN package version
-devtools::install_github("ropensci/rnaturalearth")
+devtools::install_github("ropensci/rnaturalearth", force = TRUE)
 
 ## install rgeoboundaries from GitHub (not available on CRAN yet)
-devtools::install_github("wmgeolab/rgeoboundaries")
+devtools::install_github("wmgeolab/rgeoboundaries", force = TRUE)
 ```
 
 ## ...and load packages
@@ -444,16 +450,11 @@ Now have a look at the object:
 Bor_mat
 ```
 
-What does the slot with extent tells you? Looks like decimal degrees, i.e. could be
-latitude and longitude. 
+What does the slot with 'extent' tells you? Looks like coordinates in decimal degrees, i.e.  latitude and longitude. 
 
+  Now have a look at the slot `coord. ref.` (or `crs`. CRS stands for *c*oordinate *r*eference *s*ystem): Nicely in the new `{terra}`-package, the CRS (map projection) is automatically set in the following way: If the `crs` argument is missing when loading data with `rast(x= ..., crs= ...)`, and the x coordinates are within -360 .. 360 and the y coordinates are within -90 .. 90, automatically "+proj=longlat +datum=WGS84" is assigned. WGS84 is the global reference system for geospatial information and is the reference system for the Global Positioning System (GPS). In this case, (OGC:CRS84) stands for 'Open Geospatial Consortium' OGC standards to represent the coordinate reference system WGS84. The parameters for this CRS are now stored in so-called 'well-known text' (WKT) files. We will come back to that later. 
 
-Now have a look at the slot `crs` (CRS stands for coordinate reference system): Nicely in the new `{terra}`-package, the Coordinate Reference System (map projection) is automatically set in the following way: If this argument is missing when loading data with `rast(x= ..., crs= ...)`, and the x coordinates are within -360 .. 360 and the y coordinates are within -90 .. 90, automatically "+proj=longlat +datum=WGS84" is used.
-
-In this case, (OGC:CRS84) stands for 'Open Geospatial Consortium' standards to represent the *c*oordinate *r*eference *s*ystem (CRS) WGS84. The parameters for this CRS are now stored in so-called 'well-known text' (WKT) files. We will come back to that later. 
-
-However, sometimes the slot 'coord. ref' is empty, i.e. if other coordinates than decimal degrees are used, e.g. UTM. That means, without knowing the reference system, the map cannot be
-plotted at the exact location on the globe. Thus, when you get a map, always
+However, sometimes the slot `coord. ref.` is empty, i.e. if other coordinates than decimal degrees are used, e.g. UTM. That means, without knowing the reference system, the map cannot be plotted at the exact location on the globe. Thus, when you get a map, always
 make sure you also get the information of the coordinate reference system! If it 
 is not yet set/ assigned (because you import a raster map as a simple matrix or points from
 a file), this is the first thing you should do!
@@ -503,7 +504,8 @@ crs(ras_bio_asc_01) <- "+init=epsg:4326"
 ```
 
 Projections can also be transferred from one object to another, 
-but only when the CRS hasn't yet been specified.  
+but only when the CRS hasn't yet been specified and the coordinates are
+stemming from the same system, i.e. longitude/ latitude.  
   
 In the following, load the topographic map (digital elevation model) of 
 Borneo (`Bor_dem.asc` or `bio_asc_24.asc`) and assign it the same CRS as `Bor_mat`, 
@@ -511,7 +513,7 @@ because we know they are overlaying (you can check that with the raster extents)
 
 ```{r new-raster-import}
 ## ras_bio_asc_24 = DEM = digital elevation model
-ras_bio_asc_24 <- rast(x = paste0(maps_wd, "/bio_asc_24.asc")) ## `raster()` in {raster} 
+ras_bio_asc_24 <- rast(x = paste0(maps_wd, "/bio_asc_24.asc"))  
 
 crs(ras_bio_asc_24)
 
@@ -543,8 +545,8 @@ we create a clip_extent based on the spatial coordinates. The command 'crop' the
 clips the raster map.
 
 ```{r, fig.height=5}
-ext(x = ras_bio_asc_01) ## `extent()` with {raster}
-clip_extent <- ext(117.2, 117.45, 5.4, 5.5)
+ext(x = ras_bio_asc_01) ## get the extent
+clip_extent <- ext(117.2, 117.45, 5.4, 5.5) ## create a subset
 ras_bio_asc_01_cr <- crop(x = ras_bio_asc_01, y = clip_extent)
 
 plot(ras_bio_asc_01_cr, col = viridis::inferno(10))
@@ -575,13 +577,13 @@ ext(ras_bio_asc_01_cr)
 xmin(ras_bio_asc_01_cr) ## or: xmin(ext(ras_bio_asc_01_cr))
 ncol(ras_bio_asc_01_cr)
 head(ras_bio_asc_01_cr)
-crs(ras_bio_asc_01_cr) ## != CRS(ras_bio_asc_01_cr)
+crs(ras_bio_asc_01_cr) ## != CRS(ras_bio_asc_01_cr) ## mind the spelling
 
 ## crs = coordinate reference system defined
 ## CRS creates projection and takes args for crs!
 ## e.g. 
 wgs84_crs_args <- CRS("+proj=longlat +datum=WGS84")
-# wgs84_crs_args  ## please check
+# wgs84_crs_args  ## please check! You will see the WKT representation of the parameters
 ```
 
 ```{r ras-data-structure-3}
@@ -592,7 +594,7 @@ res(x = ras_bio_asc_01_cr)  ## resolution = cell size
 ```
 
 
-An important function is `crds()` (`coordinates()` in the `{raster}` package), which returns the centroids of
+An important function is `crds()`, which returns the centroids of
 each raster cell:
 
 ```{r centroid}
@@ -612,10 +614,6 @@ slope <- terrain(x = ras_bio_asc_24, v = "slope", unit = "radians", neighbors = 
 aspect <- terrain(x = ras_bio_asc_24, v = "aspect", unit = "radians", neighbors = 8) ## arg `v` called `opt` in {raster}
 Bor_hs <- shade(slope, aspect, angle = 45, direction = 270) ## `hillShade()` in {raster}
 
-## {raster} equivalent:
-#slope <- terrain(x = ras_bio_asc_24, opt = "slope", unit = "radians", neighbors = 8)
-#aspect <- terrain(x = ras_bio_asc_24, opt = "aspect", unit = "radians", neighbors = 8)
-#Bor_hs <- hillShade(slope, aspect, angle = 45, direction = 270)
 ```
 
 
@@ -633,11 +631,10 @@ another course.
 
 ## Visualising rasters
 
-Difference between *plot* and *image*
 
 ### `plot()`
 
-*plot* keeps the proportion of the map / cells (e.g. squares here).
+There is a difference between *plot* and *image*. *plot* keeps the proportion of the map / cells (e.g. squares here).
 
 ```{r plot-versus-image-1}
 plot(x = ras_bio_asc_01, col = viridis::viridis(256))
