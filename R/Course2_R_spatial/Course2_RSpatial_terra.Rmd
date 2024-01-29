@@ -66,7 +66,9 @@ data types — vector data (points, lines, polygons, aka ESRI shapefiles) and ra
 
 Recently, `{sf}` objects have been developed to handle vector data more easily. Those
 objects can be treated like simple `data.frames`. For raster data there are fast and modern
-packages — namely `{terra}` and `{stars}`. The `{terra}` package is also especially useful for remote sensing data; it has a single class `SpatRaster` class. The course is updated to use the `{terra}` package. 
+packages — namely `{terra}` and `{stars}`. The `{terra}` package is also especially useful 
+for remote sensing data; it has a single class `SpatRaster` class. 
+The course is updated to use the `{terra}` package. 
 
 In addition to different data types, the course provides sections on coordinate
 projections and the most important geo-spatial operations. Last but not least -
@@ -219,7 +221,7 @@ vignette("sf1") # vignette("intro_sp")
 # https://r-spatial.github.io/sf/articles/
 ```
 
-## Geeky stuff for coders
+<details><summary> Optional - geeky stuff for coders </summary>
 
 Important is the first line here for setting the namespace. Sometimes, packages use the same
 name for a function that does different things (like *plot*), so it is helpful to set the
@@ -234,6 +236,10 @@ terra::plot # the :: provides the namespace,
 showMethods(f = 'plot') ## S4 type method
 methods(generic.function = 'plot') ## S3 type method
 ```
+
+</details>
+
+
 
 ## Assign the workspace
 
@@ -299,7 +305,7 @@ Every time you want to work on your project, you open the Rstudio session by
 double-clicking that `.Rproj` file, which ensures that the root working directory 
 is correctly set.
 
-</details
+</details>
 
 
 
@@ -785,7 +791,7 @@ persp(Bor_dem_AEA, xlab = "Easting", ylab = "Northing",
 ## Raster Stacks
 
 A raster stack is a collection of `RasterLayer` objects
-with the same spatial extent and resolution, similar to a geodatabase. 
+with the same spatial extent and resolution, similar to a geo-database. 
 Go into the maps folder and check what is inside:
 
 ```{r raster-stacks-dir}
@@ -812,7 +818,7 @@ We load them all together with `terra::rast()`
 
 ```{r predictor-stack}
 predictors <- rast(x = files.full[c(1, 2, 4, 6)]) 
-crs(predictors)
+crs(predictors) #ask whether/ in which CRS the coordinates are in
 ## it is already assigned. If not:
 #crs(predictors) <- "+proj=longlat +datum=WGS84" #or# ... <- "EPSG:4326"
 ```
@@ -838,17 +844,15 @@ plot(predictors$bio_asc_42)
 #plot(predictors[[4]])
 ```
 
-
-
+Plotting all layers:
 
 ```{r plot-full-stack-base}
 plot(x = predictors)
 ```
 
 
-With `{tmap}`, plotting all stack layers at once can be a problem: 
-
-This is standardizing the legend to the min and max of all layers, which is 
+Hint: With `{tmap}`, plotting all stack layers at once is not recommended: 
+`{tmap}` is standardizing the legend to the min and max of all layers, which is 
 problematic if maps are not in the same units. That's why you cannot see the
 information in the maps:
 
@@ -860,16 +864,16 @@ tm_shape(shp = predictors) + tm_raster()
 
 ### Extract values from stacks
 
-With the help of the `{rasVis}` package we can plot violin charts to visualize the summary statistics:
+With the help of the `{rasVis}` package we can plot violin charts `bwplot()` to visualize the summary statistics of a raster across all raster cells:
 
 ```{r violin-plot-predictors}
-rasterVis::bwplot(x = predictors[[c(1, 3)]]) # bwplot(predictors)
+rasterVis::bwplot(x = predictors[[c(1, 3)]]) 
 ## n.b. double [[ ]] because stack is a list of spatial rasters
 ```
 
 
-Again, these do not look nice because of the different axis scaling.
 
+<details><summary> Optional - violin plots in ggplot2 </summary>
 
 For advanced users: More beautiful violin plots can be found in ggplot2. 
 For this, we need to transform the `RasterLayer` data
@@ -937,6 +941,8 @@ p2 <- ggplot(data = df3_bio24, aes(x = grp, y = val)) +
       geom_jitter(height = 0, width = 0.05, alpha = 0.2, size = 1.5, colour = "#3366FF") +
       labs(x = NULL, y = "")
 
+p1
+p2
 ## multipanel plot with {patchwork}
 (p1 + p2) * theme_minimal(base_size = 15) ## apply custom style
 ```
@@ -951,10 +957,13 @@ or get inspiration here:
 * https://www.cedricscherer.com/2019/08/05/a-ggplot2-tutorial-for-beautiful-plotting-in-r/
 *https://www.r-graph-gallery.com/
 
+</details>
+
+
 Back to spatial R!
 
 
-Retrieve metrics/ statistics from the rasters:
+Retrieve metrics/ statistics from the rasterLayers:
 
 ```{r metrics-raster}
 #- Extract information from all rasters in one command
