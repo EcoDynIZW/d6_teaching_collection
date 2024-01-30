@@ -167,10 +167,10 @@ install.packages(unavailable)
 
 ## install development version of rnaturalearth as currently the 
 ## download doesn't work in the CRAN package version
-devtools::install_github("ropensci/rnaturalearth", force = TRUE)
+devtools::install_github("ropensci/rnaturalearth")
 
 ## install rgeoboundaries from GitHub (not available on CRAN yet)
-devtools::install_github("wmgeolab/rgeoboundaries", force = TRUE)
+devtools::install_github("wmgeolab/rgeoboundaries")
 ```
 
 ## ...and load packages
@@ -553,7 +553,7 @@ plot(ras_bio_asc_01_cr, col = viridis::inferno(10))
 ```
 
 
-## Accessing *RasterLayer*
+## Accessing *SpatRaster* objects
 
 First, have a look at the internal data structure
 of the raster object:
@@ -688,11 +688,10 @@ tmap_save(i.m, paste0(output_wd,"/BorneoMAT_4326.html"))
 # tmap_save(i.m, here("output","BorneoMAT_4326.html"))
 ```
 
+<details><summary> Optional - Visualising rasters with the `{ggplot2}` package </summary>
 
-### Optional: Visualising with the `{ggplot2}` package
-
-optional; for advanced R-users familiar with `ggplot()` coding style: Beautiful plots can also be made with `{ggplot2}`; 
-however, `RasterLayer` objects cannot directly be plotted. One can use the [`{stars}` package](https://r-spatial.github.io/stars/). 
+For advanced R-users familiar with `ggplot()` coding style: Beautiful plots can also be made with `{ggplot2}`; 
+however, `SpatRaster` objects cannot directly be plotted. One can use the [`{stars}` package](https://r-spatial.github.io/stars/). 
 
 The [`{stars}` package](https://r-spatial.github.io/stars/) is another package 
 aimed at working with spatial data, namely spatio-temporal arrays (such as raster 
@@ -745,7 +744,7 @@ The saved map: check output folder
 Further beautiful ideas with ggplot:
 https://eliocamp.github.io/metR/reference/geom_contour_tanaka.html
 
-
+</details>
 
 
 ### 3D plot with `persp()`
@@ -790,7 +789,7 @@ persp(Bor_dem_AEA, xlab = "Easting", ylab = "Northing",
 
 ## Raster Stacks
 
-A raster stack is a collection of `RasterLayer` objects
+A raster stack is a collection of `SpatRaster` objects
 with the same spatial extent and resolution, similar to a geo-database. 
 Go into the maps folder and check what is inside:
 
@@ -806,8 +805,6 @@ files.rel[1:3]
 ```
 
 Tip of the day: Always work with the full path, as you might have stored interim results of maps with the same name in other folders than your target folder. You can avoid using the wrong maps by using the full path specification to the respective data files.
-
-### Working with stacks 
 
 The advantage is that you do not need to apply a command to each raster map 
 separately, but can do it 'all in one'. E.g., We can set the crs of each 
@@ -832,7 +829,6 @@ predictors[[1]] ## now you address the first layer
 ## with {terra} you can also use $ syntax:
 predictors$bio_asc_01
 ```
-
 
 
 ### Plotting stacks 
@@ -862,7 +858,86 @@ tm_shape(shp = predictors) + tm_raster()
 ```
 
 
-### Extract values from stacks
+
+## Manipulating rasters
+
+Do any kind of raster algebra (summing, dividing,...) with the raster. Important: if you are adding the values of two `SpatRaster` objects, the projection and extent must be the same.
+
+```{r manipulate-raster-calc}
+new_ras <- ras_bio_asc_01 + ras_bio_asc_24 + 100
+```
+
+
+For changing cell size use aggregate() or resample():
+
+```{r manipulate-raster-aggrgeate}
+## collapse 20*20 cells into 1 using function (fun) 'mean':
+ras_bio_asc_01_agg <- aggregate(x = ras_bio_asc_01, fact = 20, fun = mean) 
+```
+
+
+We finally plot the two new rasters next to each other:
+
+```{r plot-manipulated-rasters}
+par(mfrow = c(1,2)) # recap from course 1: plots in 1 row and 2 columns
+plot(x = new_ras, col = rev(rainbow(5)))
+plot(ras_bio_asc_01_agg)
+par(mfrow = c(1,1)) # remember to set it back to the default
+```
+
+
+
+### Queries on raster values
+
+You can easily access the cell information of the raster via `values()`
+
+```{r change-raster-values}
+## convert ras_bio_asc_01 to degree Celsius units (divide by 10)
+range(values(ras_bio_asc_01), na.rm = TRUE)
+```
+
+Visualise range of the values with a simple boxplot (see course 1 R Intro).
+
+```{r raster-boxplot}
+boxplot(values(ras_bio_asc_01), na.rm = TRUE, outline = FALSE) ## outline = outliers
+```
+
+Similarly, we can look at the distribution of the values in each single layer of a raster stack.
+
+```{r}
+boxplot(predictors, outline = FALSE)
+```
+
+
+Find areas with mean annual temp above 25 degrees Celsius
+
+```{r change-raster-values-binary-query}
+## first divide by 10 to get 'realistic' temperature ranges. Remember the values
+## of the raster had integer values because this data type uses less computer memory
+## than a floating-point number (meaning numbers with digits)
+
+mean.t.c <- ras_bio_asc_01 / 10
+range(values(mean.t.c), na.rm = TRUE)
+
+## now ask which ones are above 25 degrees Celsius
+mean.t.c.25 <- mean.t.c >= 25
+```
+
+Have a look at the result using a binary plot:
+
+```{r binary-plot}
+plot(x = mean.t.c.25)
+```
+
+
+Retrieve metrics/ statistics from the `SpatRaster` objects with function `global()`:
+
+```{r metrics-raster}
+round(x = global(x = predictors, stat = 'mean', na.rm = TRUE), digits = 2) 
+```
+
+
+<details><summary> Optional - pretty violin plots in ggplot2 </summary>
 
 With the help of the `{rasVis}` package we can plot violin charts `bwplot()` to visualize the summary statistics of a raster across all raster cells:
 
@@ -871,12 +946,9 @@ rasterVis::bwplot(x = predictors[[c(1, 3)]])
 ## n.b. double [[ ]] because stack is a list of spatial rasters
 ```
 
-
-
-<details><summary> Optional - violin plots in ggplot2 </summary>
-
-For advanced users: More beautiful violin plots can be found in ggplot2. 
-For this, we need to transform the `RasterLayer` data
+However, these plots are not really pretty. 
+More beautiful violin plots can be found in ggplot2. 
+For this, we need to transform the `SpatRaster` data
 into a data.frame first:
 
 ```{r violin-ggplot-prep}
@@ -957,70 +1029,13 @@ or get inspiration here:
 * https://www.cedricscherer.com/2019/08/05/a-ggplot2-tutorial-for-beautiful-plotting-in-r/
 *https://www.r-graph-gallery.com/
 
+Back to spatial R!
+
 </details>
 
 
-Back to spatial R!
 
-
-Retrieve metrics/ statistics from the rasterLayers:
-
-```{r metrics-raster}
-#- Extract information from all rasters in one command
-# cellStats(predictors, 'mean')
-round(x = global(x = predictors, stat = 'mean', na.rm = TRUE), digits = 2) 
-   ## `global()` -> `cellStats()` in {raster}
-```
-
-
-## Manipulating rasters
-
-Do any kind of raster algebra:
-
-```{r manipulate-raster-calc}
-new_ras <- ras_bio_asc_01 + ras_bio_asc_24 + 100
-```
-
-
-For changing cell size use aggregate() or resample():
-
-```{r manipulate-raster-aggrgeate}
-# collapse 20*20 cells into 1 using function 'mean':
-ras_bio_asc_01_agg <- aggregate(x = ras_bio_asc_01, fact = 20, fun = mean) 
-```
-
-
-We finally plot the two new rasters next to each other:
-
-```{r plot-manipulated-rasters}
-par(mfrow = c(1,2)) # recap from course 1: plots in 1 row and 2 columns
-plot(x = new_ras, col = rev(rainbow(5)))
-plot(ras_bio_asc_01_agg)
-par(mfrow = c(1,1)) # remember to set it back to the default
-```
-
-
-
-### Change and query raster values
-
-```{r change-raster-values}
-# convert ras_bio_asc_01 to degree Celsius units (divide by 10)
-range(values(ras_bio_asc_01), na.rm = TRUE)
-mean.t.c <- ras_bio_asc_01 / 10
-range(values(mean.t.c), na.rm = TRUE)
-# find areas with mean annual temp >= 25 deg C
-mean.t.c.25 <- mean.t.c >= 25
-```
-
-
-Have a look at the result using a binary plot:
-
-```{r binary-plot}
-plot(x = mean.t.c.25)
-```
-
-
-### Accessing cell values
+### Accessing and changing single raster cell values
 
 Remember the function **`extract()`**. In the following, we extract from the
 small raster the first three values (= cols 1-3; longitude or x-axis) 
@@ -1028,7 +1043,7 @@ at line 5 (= row 5; latitude or y-axis).
 
 ```{r accessing-raster-values}
 cells <- cellFromRowCol(object = ras_bio_asc_01_cr, row = 5, col = 1:3)
-cells    ## Note: returns cell ID number, the index / rownumber! Not the value!!!!
+cells    ## Note: returns cell ID number = the index / row number! Not the value!!!!
 
 ## returns cell values!: 
 extract(x = ras_bio_asc_01_cr, y = cells) 
@@ -1036,33 +1051,62 @@ extract(x = ras_bio_asc_01_cr, y = cells)
 ## plot it:
 plot(x = ras_bio_asc_01_cr)
 ## to plot the points on top, insert the 'cells' index into 
-## the data frame of the coordinates of the RasterLayer object ras_bio_asc_01_cr
+## the data frame of the coordinates (crds) of the SpatRaster object ras_bio_asc_01_cr.
+## Do you fully understand the following line?:
 points(x = crds(ras_bio_asc_01_cr)[cells,], col = "blue")
 ```
 
+Change raster values in an existing raster:
+
+```{r change-raster-values-again}
+## get the coordinates; cells was the object containing the index (i.e. the cell numbering)
+## the function returns a matrix (it could have been easy...)
+xy <- xyFromCell(object = ras_bio_asc_01_cr, cell = cells) 
+xy
+class(xy)
+
+extract(x = ras_bio_asc_01_cr, y = xy) ## direct access to the cell values, not the index         
+
+## Change values of a raster, e.g. for adding forest or creating a corridor
+## take care! -> irreversible! better work on a copy!
+copy_ras <- ras_bio_asc_01_cr
+copy_ras[cells] <- 250 # here we set all values in the raster at the position index cells to 250
+plot(x = copy_ras, col = viridis(20))
+```
+
+
+
+<details><summary> Optional - extract values from a stack </summary>
    
-Advantage of working with stacks: Extract raster values from all rasters at once (raster stack):
-
-
+Advantage of working with stacks: Extract raster values 
+from all `SpatRaster` objects at once (raster stack).
 This is very important if you want to create your master table, i.e. based 
 on the xy-coordinates of your species sightings (i.e. GPS point locations), 
-you could extract the important environmental predictors at that location. 
+you could extract the underlying values of all  environmental predictors 
+at that location in one go. 
 
 
-We do that for an area in the center of Borneo. For this, we first get the
+We do that for an area in the center of Borneo. For this, first get the
 row and column indices of the center of a large Borneo map, e.g. `ras_bio_asc_01`, and
 5 x 5 cells in addition, i.e. a square with an area of 5 km x 5 km:
 
 ```{r extract-raster-values}
+## divide by 2 to get the center cell
 center_x = floor(nrow(predictors) / 2) ## learn about the functions round(), 
 center_y = floor(ncol(predictors) / 2) ##                 ceiling(), floor()
 center_x; center_y ## center coordinates of the Borneo maps
 
-stack_cells <- cellFromRowCol(
+## start from center cell and go 5 cells in x and y direction
+## This should yeald 25 cells
+stack_cells <- terra::cellFromRowColCombine(
   object = ras_bio_asc_01, 
-  row = center_x:(center_x + 5), 
-  col = center_y:(center_y + 5)
+  row = c(center_x:(center_x + 4)), 
+  col = c(center_y:(center_y + 4))
 )
+
+## check 
+#?cellFromRowColCombine
+## to get an overview over all possible functions to get acces to the raster
 
 head(stack_cells) ## mind: these are index numbers! Not cell values!
 ```
@@ -1073,7 +1117,7 @@ starts at the upper left corner of the map and continues consecutively, i.e.
 the data (`ras_bio_asc_01@data@values`) are one huge vector with length `nrow * ncol`!
 
 
-Now, extract them with the useful function `èxtract()`into an object called 'mastertable' that you can for example use for statistical analyses in R:
+Now, extract them with the useful function `èxtract()` into an object called 'mastertable' that you can for example use for statistical analyses in R:
 
 ```{r extract-raster-values-finally}
 pred_dat <- extract(predictors, stack_cells) 
@@ -1084,43 +1128,32 @@ mastertable <- data.frame(stack_cells, pred_dat)
 mastertable
 ```
 
-
-Change raster values:
-
-```{r change-raster-values-again}
-## get the coordinates; cells was the object containing the index (i.e. the cell numbering)
-## the function returns a matrix (it could have been easy...)
-xy <- xyFromCell(object = ras_bio_asc_01_cr, cell = cells) 
-      # coordinates(ras_bio_asc_01_cr)[cells,] ## in {raster} package
-xy
-class(xy)
-
-extract(x = ras_bio_asc_01_cr, y = xy)          
-# extract(ras_bio_asc_01_cr, cells) ## in {raster} package
-
-## Change values, e.g. for adding forest or creating a corridor
-## take care! -> irreversible! better work on a copy!
-copy_ras <- ras_bio_asc_01_cr
-copy_ras[cells] <- 250 # here we set all values in the raster at the position index cells to 250
-plot(x = copy_ras, col = viridis(20))
-```
+</details>
 
 
 ### Compute distance to points
 
+From the three selected cells in the small raster 'ras_bio_asc_01_cr', we want to
+calculate the distance to each other cell in the raster.
+
 ```{r create-spat-vect}
+## remember from above: the object 'xy' was a matrix ## check #class(xy)
 ## turn first into SpatVector - this is the format needed for the distance() function below
-sv_xy <- vect(xy) 
+## we do this just for 1 cell (point),
+sv_xy <- vect(xy)[1] 
 sv_xy
 ```
 
 Check the object `sv_xy`: since `xy` was a simple matrix and not a spatial object, there is no crs assigned. The slot for 'coord.ref.' is empty. That means, we now have to first assign
 the CRS so that the following functions know where exactly the different layers are on earth.
+
 ```{r}
 crs(sv_xy) <- "epsg:4326"
 
 ## check: 
 sv_xy
+
+## Nice!
 ```
 
 Now the CRS is set/ assigned and we can continue with distance calculations:
@@ -1128,36 +1161,22 @@ Now the CRS is set/ assigned and we can continue with distance calculations:
 ```{r compute-distance}
 ## calculate distance
 my_dist <- distance(x = ras_bio_asc_01_cr, y = sv_xy)
-   ## `distanceFromPoints(object = ras_bio_asc_01_cr, xy = xy)` in {raster}
 plot(x = my_dist) ## units?
-points(xy)
-```
-
-```{r add-points-to-plot, fig.height=4.5}
-## nicer plot adding the points from which a distance should be computed.
-## please ignore the following 4 lines, just run them,  
-## you will learn that when working with vector data below
-
-xy_sf <- sf::st_as_sf(x = sv_xy)
-
-tmap_mode(mode = "plot")
-
-tm_shape(shp = my_dist) + 
-    tm_raster(n = 100, palette = rev(grDevices::terrain.colors(100)),
-              legend.show = FALSE) +
-  tm_shape(shp = xy_sf) + 
-  tm_dots(size = 1)
+points(sv_xy)
 ```
 
 
 Calculate distance from many points:
 
 ```{r compute-distance-multiple}
-cells1 <- c(cells, 250, 360) ## add two more points to cells = cells1
+cells1 <- c(cells, 250, 360) ## add  more randomly chosen points to cells = cells1
 sv_xy_2 <- vect(xyFromCell(ras_bio_asc_01_cr, cells1)) ## we create a new spatVect
 crs(sv_xy_2) <- "epsg:4326" ## same procedure as above
 my_dist <- distance(x = ras_bio_asc_01_cr, y = sv_xy_2)
+
+# viz
 plot(my_dist) #units?
+points(sv_xy_2) #
 ```
 
 
@@ -1165,7 +1184,8 @@ plot(my_dist) #units?
 
 Save the raster (not the plot...): There are many exchange formats for rasters. 
 The best choice is considered to be GeoTiff, which also saves the projection and is smaller than 
-ascii. However, for modelling e.g. in MaxEnt, the raster maps are needed in ascii-format.
+ascii. However, for modelling e.g. in MaxEnt, the raster maps are needed in ascii-format. Also,
+ascii type files can be opened easily in any text editor. Try this with the small cropped raster.
 
 ```{r save-raster}
 
@@ -1928,7 +1948,7 @@ myxydataframe  <- sf::st_as_sf()
 ## Save spatial data
 
 ```{r, eval=FALSE}
-terra::writeRaster() ## RasterLayer
+terra::writeRaster() ## SpatRaster
 sf::st_write()       ## vector data
 ```
 
