@@ -1454,7 +1454,7 @@ tm_shape(shp = PA_shp[, 1]) +
 
 
 
-### Save vector data
+## Saving vector data
 
 Work with subsets, select Malaysia, save and plot as shapefile
 with st_write():
@@ -1468,16 +1468,6 @@ st_write(obj = Mal_PA_shp,
          layer = 'ProtectedAreasMalaysia',
          driver = 'ESRI Shapefile', 
          delete_layer = TRUE)
-```
-
-and plot the protected areas of the Malaysian part of Borneo:
-
-```{r work-with-subsets2, fig.height=10.5}
-tmap_mode(mode = "plot")
-tm_shape(shp = Borneo_shp) + 
-    tm_polygons(border.col = "blue") +
-  tm_shape(shp = Mal_PA_shp) + 
-    tm_polygons(col = "red")
 ```
 
 
