@@ -1209,20 +1209,18 @@ terra::writeRaster(x = ras_bio_asc_01_agg,
 
 # Vector data / shapefiles
 
-## Polygons and lines
-
-### Import shapefiles
+## Import shapefiles
 
 Currently, there are two packages *sp* and *sf* (standing for simple features),
 both with still important functionality. However, sf is much easier to use and handle. 
 The suggestion currently is: [learn both!](https://www.r-bloggers.com/2018/03/should-i-learn-sf-or-sp-for-spatial-r-programming/)
 
 In the following, the most important commands are provided for the sf-package,
-and if necessary, also for the sp-package:
+and if necessary, also for the sp-package. We start with loading an ESRI shapefile.
 
 ```{r sf-versus-sp}
 ## Border of countries and provinces of Borneo
-## - only loading columns 1:3, 5, 7, 17, 18 of attribute table:
+## - only loading columns 1:3, 5, 7, 17, 18 of its attribute table (a. t.):
 Borneo_shp <- st_read(dsn = vecs_wd, layer = "borneo_admin")[, c(1:3, 5, 7, 17, 18)] 
 
 ## Protected Areas (National Parks, Nature Reserves, Forest Reserves)
@@ -1239,7 +1237,10 @@ River_shp  <- st_read(dsn = vecs_wd, layer = "sn_100000")
 Admin_shp <- st_read(dsn = vecs_wd, layer = "borneo_admin")[,c(1:3,5,7,17,18)]
 ```
 
-#### Transformations between simple feature '{sf}' and SpatialPolygonsDataFrame '{sp}'
+More here:
+- https://cran.r-project.org/web/packages/sf/vignettes/sf1.html
+
+#### Transformations between simple feature `{sf}` and SpatialPolygonsDataFrame `{sp}`
 
 ```{r sf-versus-sp2}
 ## transformations
@@ -1248,28 +1249,56 @@ Admin_sf <- as(Admin_sp, "sf")       ## from sp object to sf object
 ```
 
 
-### Working with vector data
+## Import spatial points
+
+Usually, shapefiles come with a `.proj` file defining the projection, but not
+always. Please always check whether the projection is set. In the following, we load two point datasets of different species locations.
+
+```{r check-projection}
+pt_shp <- st_read(dsn = paste0(anim_wd, "/FCsim.shp"))
+pt_shp  ## CRS is missing!
+st_crs(pt_shp) <- 4326 ## set it with command st_crs()
+pt_shp
+```
+
+Spatial points are defined by two columns with x and y coordinates, can be 
+imported as normal `data.frames` and then converted to spatial objects: 
+
+```{r convert-df-to-spatial}
+pt_file <- paste0(anim_wd, "/MyNewSpecies.csv")
+df_recs <- read.table(file = pt_file, header = TRUE, sep = ',') # animal records
+class(x = df_recs)
+head(x = df_recs)
+```
+
+This is still a `data.frame`, not yet a spatial object. See below of how to convert a data.frame into a spatial `{sf}` object:
+
+```{r convert-df-to-sf}
+recs_sf <- st_as_sf(x = data.frame(df_recs),
+                    coords = c("long", "lat"),
+                    crs = 4326,
+                    sf_column_name = "geometry")
+```
+
+
+## Working with vector data
+
+Explore the objects and retrievable information:
+
+```{r}
+str(object = PA_shp) ## explore the object
+PA_shp
+attributes(x = PA_shp)
+```
+
 
 Accessing simple feature objects — easy handling, similar to `data.frames`:
 
 ```{r accessing-simple-features}
 ## Please note the similarity to accessing info from rasters.
-str(object = ext(PA_shp)) ## `extent()` in {raster}
+ext(PA_shp) ## extent
 xmin(ext(PA_shp))
 names(x = PA_shp) ## returns column names of a.t.
-```
-
-
-Accessing `SpatialPolygonsDataFrames` of the former {sp}-package:
-
-```{r accessing-spatalpolygonsdataframe}
-# TODO: outdated as readOGR was replaced by st_read
-
-## Much more complex than sf-objects.
-class(Admin_shp)
-str(object = ext(Admin_shp))
-xmin(ext(Admin_shp))
-names(x = Admin_shp) ## returns column names of a.t.
 ```
 
 
@@ -1277,19 +1306,16 @@ Summarizing spatial information for each column of attribute table [a.t.]:
 
 ```{r summarize-spatial-data}
 summary(object = PA_shp)
-str(object = PA_shp)
-PA_shp
-attributes(x = PA_shp)
 ```
 
 
-Have a look at the content:
+Have a look at the content of the attribute table. It looks like a `data.frame`, but has
+the geometry stored as last column (recap from the introductory lecture).
 
 ```{r inspect-summary-table}
-head(x = PA_shp)   
-tail(x = PA_shp)
+head(x = PA_shp)  ## first 6 lines
+#tail(x = PA_shp) ## last 6 lines
 ```
-
 
 Retrieving information of a.t. — recap working with `data.frames` 
 from `Day1_R-Intro` course.
@@ -1299,12 +1325,13 @@ PA_shp[1, ] ## returns first entry (row) of all 4 columns
 ```
 
 ```{r retrieve-information-summary-table-2}
-PA_shp[, 2] ## returns summary of col only!
+PA_shp[, 2] ## returns content of column 2 only!
 ```
 
 ```{r retrieve-information-summary-table-3}
 ## PA_shp$NAME_ENG ## returns a long list  
-head(x = PA_shp$NAME_ENG) ## using fct head() to only show the first 6 entries
+head(x = PA_shp$NAME_ENG) 
+## using head() to only show the first 6 entries only of column 'NAME_ENG'
 ```
 
 ```{r retrieve-information-summary-table-4}
@@ -1322,10 +1349,45 @@ which(x = PA_shp$COUNTRY == 'Malaysia')
 
 ## Visualising vector data
 
-### `{ggplot2}` package
+#### `plot()`
 
-You can use many packages, e.g. `{ggplot2}`, to plot `{sf}` objects:
+It is ok to use a simple `plot()` function for `{sf}` objects. However, 
+mind that this object has 7 columns, so each column holds information that will 
+be plotted, i.e. you will plot 7 single plots. So do a little transformation:
+either plot just one column, or define it as `{sp}` object:
+
+```{r base-plot-sf-1, fig.height=7}
+# plot(Borneo_shp) ## not run!
+plot(Borneo_shp[,1]) ## select column
+```
+
+
+Plotting `{sp}` objects:
+
+```{r base-plot-sf-2}
+## Defining it as(..., "Spatial"), i.e. transforming it to a `{sp}` object (see above)
+plot(as(Borneo_shp, "Spatial")) ## plot geometry without information of a col
+```
+
+```{r base-plot-sp, fig.height=9}
+plot(Admin_sp) ## ending _sp shows it as an `{sp}` object
+```
+
+Points in `data.frames` can be plotted, as long as the coordinates are the same, 
+can also be plotted in space. We first plot the polygon, then add the points (note, one is a simple `data.frame`,the other is a shapefile):
+
+```{r plot-sf-points, fig.height=9}
+plot(x = as(Borneo_shp, "Spatial"), col = 'grey', border = 'white') ## polygon
+points(x = df_recs$long, df_recs$lat, cex = 0.5, pch = 15) ## simple d.f.! 
+plot(x = as(pt_shp, "Spatial"), col = 'blue', add = TRUE) 
+```
+
+
+#### `{ggplot2}` package
+
+`{ggplot2}` is currently the best way to plot `{sf}` objects:
 https://www.r-spatial.org/r/2018/10/25/ggplot2-sf.html.
+The parameter `geom_sf()` is set here.
 
 ```{r ggplot-sf, fig.height=7.5}
 ggplot(data = PA_shp) +
@@ -1338,9 +1400,11 @@ ggplot(data = PA_shp) +
 Note that it does NOT work for `{sp}` objects (`SpatialPolygonsDataFrame`).
 
 
-### `{tmap}` package
+#### `{tmap}` package
 
-#### Static map
+*Static map*
+
+The site ID is colour-coded here in a gradient
 
 ```{r tmap-sf, fig.height=7.5}
 tmap_mode(mode = "plot")
@@ -1349,7 +1413,38 @@ tm_shape(shp = PA_shp[, 1]) +
 ```
 
 
-#### Interactive map
+You can also plot several layers or highlighted details.
+For example, we can plot a single selected protected area. Administrative area borders are black, protected areas green, and the single selected one is red.
+
+```{r tmap-sp, fig.height=10.5}
+tmap_mode(mode = "plot")
+
+tm_shape(shp = Borneo_shp) + 
+    tm_polygons(border.col = "black") +
+  tm_shape(PA_shp[,1]) + 
+    tm_polygons(border.col = "deepskyblue4") +
+  tm_shape(PA_shp[1, ]) + 
+    tm_polygons(border.col = "red")
+```
+
+
+Add spatial points (note: it does not work with `data.frames`) to the plot. 
+
+```{r plot-new-sf-object, fig.height=8}
+tmap_mode(mode = "plot")
+
+tm_shape(shp = Borneo_shp) + 
+    tm_polygons(col = "grey", border.col = "white") +
+  tm_shape(shp = recs_sf) + 
+    tm_dots(shape = 3, size = 0.25) +
+  tm_shape(shp = pt_shp) + 
+    tm_dots(col = "blue") 
+```
+
+
+
+
+*Interactive map*
 
 ```{r tmap-sf-interactive}
 tmap_mode(mode = "view")
@@ -1358,62 +1453,14 @@ tm_shape(shp = PA_shp[, 1]) +
 ```
 
 
-### `plot()`
 
-It is also possible to use a simple `plot()` function for `{sf}` objects. However, 
-mind that this object has 7 columns, so each column holds information that will 
-be plotted, i.e. you will plot 7 single plots. So do a little transformation:
-either plot just one column, or define it as spatial:
+### Save vector data
 
-```{r base-plot-sf-1, fig.height=7}
-# plot(Borneo_shp) ## not run
-plot(Borneo_shp[,1]) ## select column
-```
-
-```{r base-plot-sf-2}
-plot(as(Borneo_shp, "Spatial")) ## plot geometry without information of a col
-```
-
-Now we illustrate how to plot objects created with the `{sp}` package.
-
-Here, the basic plot function works:
-
-```{r base-plot-sp, fig.height=9}
-plot(Admin_sp)
-```
-
-### `spplot()` for `sp` Objects
-
-There is also a special function for plotting `{sp}` objects. However, once 
-again you need to select which information you want to plot.
-
-```{r ssplot-sp, fig.height=9}
-# spplot(Admin_sp) ## Don't do that! Each column of the a.t. will be plotted
-head(Admin_sp)
-# TODO: added raster dependency here, decide if we still want to show this as it's outdated anyway
-raster::spplot(Admin_sp[6]) ## only plot one of the geometries, coloured e.g. by shape_length = column 6
-```
-
-An one can use `{tmap}`. For example, we can plot a detail on the map — plot of
-a single selected protected area:
-
-```{r tmap-sp, fig.height=10.5}
-tmap_mode(mode = "plot")
-
-tm_shape(shp = Borneo_shp) + 
-    tm_polygons(border.col = "deepskyblue4") +
-  tm_shape(PA_shp[,1]) + 
-    tm_polygons(border.col = "black") +
-  tm_shape(PA_shp[1, ]) + 
-    tm_polygons(border.col = "red")
-```
-
-### Small exercises, and saving vector data
-
-Simplify your life! Work with subsets, select Malaysia, save and plot as shapefile
+Work with subsets, select Malaysia, save and plot as shapefile
 with st_write():
 
 ```{r work-with-subsets, fig.height=10.5}
+## select the protected areas of Malaysia only:
 Mal_PA_shp <- subset(PA_shp, PA_shp$COUNTRY == 'Malaysia')
 
 st_write(obj = Mal_PA_shp, 
@@ -1423,7 +1470,7 @@ st_write(obj = Mal_PA_shp,
          delete_layer = TRUE)
 ```
 
-and plot:
+and plot the protected areas of the Malaysian part of Borneo:
 
 ```{r work-with-subsets2, fig.height=10.5}
 tmap_mode(mode = "plot")
@@ -1433,49 +1480,13 @@ tm_shape(shp = Borneo_shp) +
     tm_polygons(col = "red")
 ```
 
-Extract elevation per PA and save average to a.t. as a new column:
-
-```{r extract-elevation-layer}
-fewPA <- Mal_PA_shp[c(1:5), 1]
-tmp <- extract(x = ras_bio_asc_24, y = vect(fewPA), xy = TRUE) ## returns a list — each element contains the elevation raster cells (ras_bio_asc_24)
-str(tmp)
-#lapply(tmp, FUN = summary)
-```
-
-Append mean elevation:
-```{r appenad-mean-elevation}
-## a bit complicated:
-# fewPA$mean_elevation <- round(x = unlist(lapply(tmp, FUN = mean, na.rm = TRUE))) 
-
-## ...or for now solved stepwise with aggregate()
-mean_tmp <- aggregate(tmp$bio_asc_24, by = list(Category = tmp$ID), FUN = mean) 
-
-## dplyr approach:
-#mean_tmp <- dplyr::summarize(dplyr::group_by(tmp, ID), x = mean(bio_asc_24, na.rm = TRUE))
-
-fewPA$mean_elevation <- mean_tmp$x
-fewPA
-```
 
 
 ## Geospatial calculation
 
-Using the 'old' `{sp}` package and the `{rgeos}` package, commands for calculating 
-properties of spatial objects were: `gArea()`, `gLength()`, `gDistance()`. 
-Other often used GIS functions relate to basic spatial operations, such as
-`gBuffer()`, `gCentroid()`, `gDifference()`, `gUnion()`, and `gIntersection()`, 
-`gUnionCascaded()` (= dissolve function) and `gSimplify()`.
-Spatial queries were `gIntersects()`, `gContains()`, `gIsValid()`.
-http://www.nickeubank.com/wp-content/uploads/2015/10/RGIS2_MergingSpatialData_part2_GeometricManipulations.html. 
+This refers to the GIS functions of area calculations, distance calculations, spatial overlays and intersections. The new `{sf}` package has the same functionality, with functions starting with `st_`, e.g. `st_buffer()`, `st_intersection()` etc.
 
-The new `{sf}` package has the same functionality, with functions starting with `st_`,
-e.g. `st_buffer()`, `st_intersection()` etc.
-
-- https://cran.r-project.org/web/packages/sf/vignettes/sf1.html
 - https://geocompr.robinlovelace.net/spatial-operations.html
-
-
-## Spatial queries and transformations
 
 ### Area calculation
 Returns the area in square meters:
@@ -1484,6 +1495,7 @@ Returns the area in square meters:
 # st_area(x = Borneo_shp) ## returns long vector
 head(st_area(x = Borneo_shp))
 ```
+
 
 ### CRS projection
 
@@ -1540,85 +1552,10 @@ head(x = Borneo_shp_moll)
 ```
 
 
-The following for `{sp}` objects:  
 
-```{r sp-area}
-# TODO: decide if this can/should be removed
+### Spatial overlay and intersections
 
-#gArea(Borneo_shp_moll, byid=TRUE) / 1e6 ## does not work, as Borneo_shp_moll is sf-object!
-head(rgeos::gArea(Admin_sp, byid = TRUE) / 1e6) ## what does the warning message mean? -> check CRS!
-Admin_sp_moll <- spTransform(Admin_sp, c("+proj=moll +datum=WGS84"))
-head(rgeos::gArea(Admin_sp_moll, byid = TRUE) / 1e6) ## now it works!
-```
-
-
-## Points
-
-### Import spatial points
-
-Usually, shapefiles come with a `.proj` file defining the projection, but not
-always. Please always check whether the projection is set:
-
-```{r check-projection}
-pt_shp <- st_read(dsn = paste0(anim_wd, "/FCsim.shp"))
-pt_shp  ## CRS is missing!
-st_crs(pt_shp) <- 4326 ## set it with command st_crs()
-pt_shp
-```
-
-Spatial points are defined by two columns with x and y coordinates, can be 
-imported as normal `data.frames` and then converted to spatial objects: 
-
-```{r convert-df-to-spatial}
-pt_file <- paste0(anim_wd, "/MyNewSpecies.csv")
-df_recs <- read.table(file = pt_file, header = TRUE, sep = ',') # animal records
-class(x = df_recs)
-head(x = df_recs)
-```
-
-See below of how to convert a data.frame into a spatial `{sf}` object.
-
-
-### Plot the points
-
-Simple data frames with location information, as long as the coordinates are the same, 
-can also be plotted in space. We first plot the polygon:
-
-```{r plot-sf-points, fig.height=9}
-plot(x = as(Borneo_shp, "Spatial"), col = 'grey', border = 'white') ## polygon
-points(x = df_recs$long, df_recs$lat, cex = 0.5, pch = 15) ## simple d.f.! 
-plot(x = as(pt_shp, "Spatial"), col = 'blue', add = TRUE) 
-```
-
-
-`{tmap}` can only handle spatial objects, so the data frame `df_recs` needs to 
-be converted into an `{sf}` object first. 
-
-You have to define which columns contain the coordinates via `coords = `:
-
-```{r convert-df-to-sf}
-recs_sf <- st_as_sf(x = data.frame(df_recs),
-                    coords = c("long", "lat"),
-                    crs = 4326,
-                    sf_column_name = "geometry")
-```
-
-
-```{r plot-new-sf-object, fig.height=8}
-tmap_mode(mode = "plot")
-
-tm_shape(shp = Borneo_shp) + 
-    tm_polygons(col = "grey", border.col = "white") +
-  tm_shape(shp = recs_sf) + 
-    tm_dots(shape = 3, size = 0.25) +
-  tm_shape(shp = pt_shp) + 
-    tm_dots(col = "blue") 
-```
-
-
-## Spatial overlay
-
-### Vector data
+#### Points and polygons
 
 ```{r spatial-overlay-1}
 ## retrieve the geometry (location) indices of PA_shp at
@@ -1629,7 +1566,7 @@ nrow(insidePA) ## 11
 ```
 
 
-### Vector and raster data interaction
+#### Point and raster data intersections
 
 ```{r spatial-overlay-2}
 # for a RASTER: extract mean ann. temp. from ras_bio_asc_01
@@ -1639,22 +1576,50 @@ recs_sf$mean_t <- mean_t$bio_asc_01
 mean(x = recs_sf$mean_t) # hist(sp_recs_sf$mean_t)
 ```
 
+#### Polygon and raster data intersections
 
-### Saving vector data
+Extract elevation per PA and save average to attribute table of the shapefile/ vector data as a new column. The elevation raster was uploaded as ras_bio_asc_24 (see above, raster data section).
 
-Save as ESRI shapefile to import in any GIS
+```{r extract-elevation-layer}
+fewPA <- Mal_PA_shp[c(1:5), 1] ## select only 5 PAs to speed up computation
 
-```{r save-vector-data}
-st_write(obj = insidePA,
-         dsn = output_wd, 
-         layer = "inPA",
-         driver = "ESRI Shapefile",
-         delete_layer = TRUE)
+## returns a data.frame — each ID contains multiple elevation raster cells (ras_bio_asc_24).
+## the shapefile has to be turned into a spatial vector
+tmp <- extract(x = ras_bio_asc_24, y = vect(fewPA), xy = TRUE) 
+str(tmp) ## overview over the 'data.frame' object. It should have 5 IDs for example. Let's check:
+unique(tmp$ID)
+
+## As a protector area feature of the shapefile comprises several elevation raster cells,
+## they are all appended in the extracted data.frame
+head(tmp)
+
+## use tapply (see course 1 - R Intro) to check the values. 
+## The protected area with ID = 1 seems to comprise high elevation
+PA_elev <- tapply(X=tmp$bio_asc_24, INDEX = tmp$ID, FUN = mean)
+PA_elev
+## you can either transform this info to a data.frame....
+PA_elev <- data.frame(PA_elev)
+
+```
+
+Append mean elevation to the shapefile:
+```{r appenad-mean-elevation}
+## ...or use function 'aggregate()'. this returns a `data.frame`. 
+## The elevation info is in column 'x'
+mean_tmp <- terra::aggregate(tmp$bio_asc_24, by = list(Category = tmp$ID), FUN = mean) 
+
+## Since both objects, the shapefile 'fewPA' and the data.frame 'mean_tmp' (or 'PA_elev') 
+## are ordered by ID,
+## you can directly append the information to the attribute table of 'fewPA'
+fewPA$mean_elevation <- mean_tmp$x
+#fewPA$mean_elevation <- PA_elev ## alternatively
+
+fewPA
 ```
 
 
 
-# Data Sources
+# Spatial data sources
 
 ## `{rnaturalearth}`
 
@@ -1827,7 +1792,7 @@ plot(elev_usa)
 
 # Composite plots: plotting several layers and data types
 
-#### Simple composite plot
+## Simple composite plot
 
 Plot the hillshade (3D relief) and add temperature colours on top: alpha value 
 gives semi-transparency. The extent is plotted as a red box, and the centroid coordinates of the raster cells are plotted as points. 
@@ -1840,7 +1805,7 @@ plot(ext(ras_bio_asc_01_cr), add = TRUE, col = 'red')
 ```
 
 
-#### Composite plot with `{tmap}`
+## Composite plot with `{tmap}`
 
 In the following, we will create a `SpatialPointDataFrame` from the
 small clipped/ cropped raster  with the `{sf}` package and plot it on top of the 
@@ -1895,7 +1860,7 @@ tm_shape(shp = hillsh, raster.downsample = TRUE) +
  
 
 
-# An Advanced Map with {tmap}
+## An Advanced Map with {tmap}
 
 At the end, an example of a beautiful map, created with `tmap`: 
 
@@ -1937,6 +1902,8 @@ tm_shape(shp = hillsh) +
 
 # Recap: the most important functions for spatial data
 
+TL;DR ? (too long didn't read?). Then at least remember the following most important commands for loading, projecting and saving spatial data. 
+
 ## Load spatial data
 
 ```{r, eval=FALSE}
@@ -1945,13 +1912,21 @@ myshapefile    <- sf::st_read()
 myxydataframe  <- sf::st_as_sf()
 ```
 
+## Assign CRS to or project spatial data into another CRS
+
+```{r, eval=FALSE}
+crs(myraster)  <- "+init=epsg:4326" ##assign if raster comes without CRS
+myraster_proj  <- terra::project(myraster, 'EPSG:3085') ##example
+
+```
+
+
 ## Save spatial data
 
 ```{r, eval=FALSE}
 terra::writeRaster() ## SpatRaster
 sf::st_write()       ## vector data
 ```
-
 
 
 # <span class='exercise'>Exercise</span>
