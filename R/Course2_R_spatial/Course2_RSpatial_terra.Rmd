@@ -27,7 +27,7 @@ h2, h3, h4, h5, h6, legend {
 p {
   line-height:170%;
 }
-#sidebar h2 {
+sidebar h2 {
   background-color: Indigo;
 }
 code {
@@ -221,20 +221,17 @@ vignette("sf1") # vignette("intro_sp")
 # https://r-spatial.github.io/sf/articles/
 ```
 
-<details><summary> Optional - geeky stuff for coders </summary>
+## Using the namespace
 
-Important is the first line here for setting the namespace. Sometimes, packages use the same
+Important is setting the namespace. Sometimes, packages use the same
 name for a function that does different things (like *plot*), so it is helpful to set the
 namespace with a :: . That is, provide the library/ package from which you want to
 use the function with 'package::function'.
 
-The other lines show what objects the function can use.
 
 ```{r methods, eval=FALSE}
 terra::plot # the :: provides the namespace, 
             # i.e. that the function 'plot' is from the terra-package
-showMethods(f = 'plot') ## S4 type method
-methods(generic.function = 'plot') ## S3 type method
 ```
 
 </details>
@@ -1477,6 +1474,8 @@ st_write(obj = Mal_PA_shp,
 This refers to the GIS functions of area calculations, distance calculations, spatial overlays and intersections. The new `{sf}` package has the same functionality, with functions starting with `st_`, e.g. `st_buffer()`, `st_intersection()` etc.
 
 - https://geocompr.robinlovelace.net/spatial-operations.html
+- https://r.geocompx.org/geometry-operations#clipping
+
 
 ### Area calculation
 Returns the area in square meters:
@@ -1687,7 +1686,9 @@ The [`{rgeoboundaries}` package](https://github.com/wmgeolab/rgeoboundaries) use
 ```{r rgeoboundaries-world}
 library(rgeoboundaries)
 
-## plotting takes a long time
+gb_adm0() ## political boundary file
+
+## plotting takes a long time!!!
 ggplot(gb_adm0()) + 
   geom_sf(color = "grey40", lwd = .2) + 
   coord_sf(crs = "+proj=eqearth") +
@@ -1723,7 +1724,7 @@ head(available_tags("craft"))
 
 ## building the query, e.g. beekeepers
 beekeeper_query <- 
-  ## you can automatically retrieve a boudning box (pr specify one manually)
+  ## you can automatically retrieve a bounding box (pr specify one manually)
   getbb("Berlin") %>%
   ## build an Overpass query
   opq() %>%
@@ -1754,7 +1755,7 @@ ggplot(beekeper_locations) +
 
 ## `{elevatr}`
 
-The [`{elevatr}`](https://github.com/jhollist/elevatr/) (https://github.com/jhollist/elevatr/) is an R package that provides access to elevation data from AWS Open Data Terrain Tiles and the Open Topography Global data sets API for raster digital elevation models (DEMs).
+The [`{elevatr}`](https://github.com/jhollist/elevatr/) (https://github.com/jhollist/elevatr/) is an R package that provides access to elevation data from AWS (Amazon Web Services) Open Data Terrain Tiles and the Open Topography Global data sets API (application programming interface) for raster digital elevation models (DEMs).
 
 We first need to define a location or bounding box for our elevation data. This can either be a data frame or a spatial object. We use an `sf` object which holds the projection to be used when assessing the elevation data:
 
@@ -1777,10 +1778,10 @@ elev_usa <- get_elev_raster(locations = sf_bbox_usa, z = 5)
 plot(elev_usa)
 ```
 
+<details><summary> Composite plots: plotting several layers and data types </summary>
 
-# Composite plots: plotting several layers and data types
 
-## Simple composite plot
+*Simple composite plot*
 
 Plot the hillshade (3D relief) and add temperature colours on top: alpha value 
 gives semi-transparency. The extent is plotted as a red box, and the centroid coordinates of the raster cells are plotted as points. 
@@ -1793,7 +1794,7 @@ plot(ext(ras_bio_asc_01_cr), add = TRUE, col = 'red')
 ```
 
 
-## Composite plot with `{tmap}`
+*Composite plot with `{tmap}`*
 
 In the following, we will create a `SpatialPointDataFrame` from the
 small clipped/ cropped raster  with the `{sf}` package and plot it on top of the 
@@ -1848,7 +1849,7 @@ tm_shape(shp = hillsh, raster.downsample = TRUE) +
  
 
 
-## An Advanced Map with {tmap}
+*An Advanced Map with `{tmap}`*
 
 At the end, an example of a beautiful map, created with `tmap`: 
 
@@ -1887,6 +1888,7 @@ tm_shape(shp = hillsh) +
             title.size = 2)
 ```
 
+</details>
 
 # Recap: the most important functions for spatial data
 
@@ -1903,9 +1905,13 @@ myxydataframe  <- sf::st_as_sf()
 ## Assign CRS to or project spatial data into another CRS
 
 ```{r, eval=FALSE}
+## Set/ asign the CRS if missing
 crs(myraster)  <- "+init=epsg:4326" ##assign if raster comes without CRS
-myraster_proj  <- terra::project(myraster, 'EPSG:3085') ##example
+st_crs(myshapefile, 'EPSG:3085')
 
+## project it
+myraster_proj  <- terra::project(myraster, 'EPSG:3085') ##example
+myshapefile_prof <- sf::st_transform(myshapefile, 3085)
 ```
 
 
