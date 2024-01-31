@@ -1486,42 +1486,17 @@ Returns the area in square meters:
 head(st_area(x = Borneo_shp))
 ```
 
+Hint: you can calculate the area for single features (e.g. one polygon) or across the whole dataset.
 
-### CRS projection
-
-If no CRS is assigned for a file, the CRS can be set with `st_crs()`. However, if a file 
-has already a CRS, e.g. WGS84 (angular units, longitude and latitude), and you want to change into a projection with planar units (e.g. meters), use `st_transform()`.
-
-```{r sf-transform}
-Borneo_shp_moll <-  st_transform(Borneo_shp, c("+proj=moll +datum=WGS84"))
-class(Borneo_shp_moll) # sf object, data.frame!
+```{r}
+st_area(x = Borneo_shp[3, ]) ## for a single polygon
+head(st_area(x = Borneo_shp, byid = TRUE)) ## for all polygons when byid = TRUE
 ```
 
-```{r mollweide-tmap, fig.height=10}
-tmap_mode(mode = "plot")
-tm_shape(shp = Borneo_shp_moll) + 
-  tm_polygons(border.col = "blue") ## do you see the difference?
-```
-
-Note the change in the area calculation!
-
-```{r area-mollweide}
-head(st_area(x = Borneo_shp_moll)) ## units?
-```
-
-We can also use `{ggplot2}`:
-
-```{r mollweide-ggplot, fig.height=9}
-ggplot(Borneo_shp_moll) +
-  geom_sf(color = "blue") +
-  theme_minimal(base_size = 15) ## set custom plot style
-```
-
-
-Example: Area of Malaysia in Borneo
+Example: Calculate area of Malaysia in km² 
 
 ```{r area-bornep}
-Mal_Borneo_shp <- subset(Borneo_shp_moll, Borneo_shp_moll$NAME_0 == 'Malaysia')
+Mal_Borneo_shp <- subset(Borneo_shp, Borneo_shp$NAME_0 == 'Malaysia')
 head(st_area(x = Mal_Borneo_shp) / 1000000) ## or / 1e6
 
 ## better: use set_units to change the units from m^2 to km^2
@@ -1530,33 +1505,69 @@ head(Mal_Borneo_shp$area)
 ```
 
 
-Example: Calculate area of a polygon and add the area of a polygon as new column to a.t.
+
+
+### CRS projection
+
+Recap: If no CRS is assigned for a file, the CRS can be set with `st_crs()`. However, if a file 
+has already a CRS, e.g. WGS84 (angular units, longitude and latitude), and you want to change into a projection with planar units (e.g. meters), use `st_transform()`.
+
+```{r sf-transform}
+Borneo_shp_moll <-  st_transform(Borneo_shp, c("+proj=moll +datum=WGS84"))
+class(Borneo_shp_moll) # sf object, data.frame!
+```
+
+Plot it and have a look at the changes:
+
+```{r mollweide-tmap, fig.height=10}
+tmap_mode(mode = "plot")
+tm_shape(shp = Borneo_shp_moll) + 
+  tm_polygons(border.col = "blue") ## do you see the difference?
+```
+
+We can also use pretty `{ggplot2}` with `{sf}` objects:
+
+```{r mollweide-ggplot, fig.height=9}
+ggplot(Borneo_shp_moll) +
+  geom_sf(color = "blue") +
+  theme_minimal(base_size = 15) ## set custom plot style
+```
+
+Note the change in the area calculation!
+
+```{r area-mollweide}
+head(st_area(x = Borneo_shp_moll)) 
+head(st_area(x = Borneo_shp))
+```
+
+Example: Add the area of a polygon as new column to a.t.
 
 ```{r area-polygon}
-st_area(x = Borneo_shp_moll[3, ]) ## for a single polygon
-head(st_area(x = Borneo_shp_moll, byid = TRUE)) ## for all polygons
 
+## create the column 'area_km2'
 area_km2 <- set_units(x = st_area(x = Borneo_shp_moll, byid = TRUE), value = km^2)
 Borneo_shp_moll = data.frame(Borneo_shp_moll, area_km2)
 head(x = Borneo_shp_moll)
 ```
 
-
-
 ### Spatial overlay and intersections
 
-#### Points and polygons
+#### Points and polygons with `st_intersection()`
+
+Now we want to know which of our species observations (recs_sf) were taken in protected areas (PA_shp). For this, we use `st_intersection()`:
 
 ```{r spatial-overlay-1}
 ## retrieve the geometry (location) indices of PA_shp at
 ## the locations of sp_recs: which points are in PA_shp
 nrow(recs_sf) ## 500
-insidePA <- st_intersection(x = recs_sf, y = PA_shp)
+insidePA <- st_intersection(x = recs_sf, y = PA_shp) ## takes some seconds
 nrow(insidePA) ## 11
 ```
 
 
-#### Point and raster data intersections
+#### Point and raster data with `extract()`
+
+Then we want to know in which climatic zone we have observed the species 'recs_sf'. For this, we extract the information from the raster of mean annual temperature (ras_bio_asc_01) to the point locations of species observations:
 
 ```{r spatial-overlay-2}
 # for a RASTER: extract mean ann. temp. from ras_bio_asc_01
@@ -1566,9 +1577,9 @@ recs_sf$mean_t <- mean_t$bio_asc_01
 mean(x = recs_sf$mean_t) # hist(sp_recs_sf$mean_t)
 ```
 
-#### Polygon and raster data intersections
+#### Polygon and raster data with `extract()`
 
-Extract elevation per PA and save average to attribute table of the shapefile/ vector data as a new column. The elevation raster was uploaded as ras_bio_asc_24 (see above, raster data section).
+Finally, we want to know in which elevation range our protected areas are located. Extract elevation per PA and save average to attribute table of the shapefile/ vector data as a new column. The elevation raster was uploaded as ras_bio_asc_24 (see above, raster data section).
 
 ```{r extract-elevation-layer}
 fewPA <- Mal_PA_shp[c(1:5), 1] ## select only 5 PAs to speed up computation
@@ -1609,7 +1620,7 @@ fewPA
 
 
 
-# Spatial data sources
+# Spatial data sources in the web
 
 ## `{rnaturalearth}`
 
@@ -1622,10 +1633,6 @@ After loading the package, you can for example quickly access shapefiles of all 
 ```{r data-rnaturalearth}
 library(rnaturalearth)
 
-## store as sp object (SpatialPolygonsDataFrame)
-world <- ne_countries() ## `returnclass = "sp"` by default
-class(world)
-
 ## store as sf object (simple features)
 world <- ne_countries(returnclass = "sf")
 class(world)
@@ -1636,7 +1643,7 @@ sf::st_crs(world)[1]
 This country data set (which is actually not downloaded but stored locally by installing the package) already contains several useful variables, mostly referring to different naming conventions (helpful when joining with other data sets), to identify continents and regions, and also some information on population size, GDP, and economy:
 
 ```{r names-world-rnaturalearth}
-names(world)
+names(world) ## takes some seconds to compute
 ```
 
 We can quickly plot it:
@@ -1672,16 +1679,6 @@ ggplot() +
   theme_void()
 ```
 
-Relief data
-
-```{r relief-rnaturalearth, fig.height=4.5, eval=FALSE}
-# TODO: currently not working ("[rast] file does not exist"), check later if it's just a temporary issue
-relief <- ne_download(type = "MSR_50M", category = "raster",
-                      scale = 110, returnclass = "sf")
-
-plot(relief)
-```
-
 
 ## `{rgeoboundaries}`
 
@@ -1690,6 +1687,7 @@ The [`{rgeoboundaries}` package](https://github.com/wmgeolab/rgeoboundaries) use
 ```{r rgeoboundaries-world}
 library(rgeoboundaries)
 
+## plotting takes a long time
 ggplot(gb_adm0()) + 
   geom_sf(color = "grey40", lwd = .2) + 
   coord_sf(crs = "+proj=eqearth") +
