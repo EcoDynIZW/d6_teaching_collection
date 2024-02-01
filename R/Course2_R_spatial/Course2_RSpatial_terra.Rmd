@@ -653,7 +653,7 @@ tm_shape(shp = ras_bio_asc_01) + tm_raster()
 
 
 If you want to use a static map as high quality plots for your publication, 
-save the output via `tmap_save()`. 
+save the output via `tmap_save()`.
 ```{r tmap-save-static-map}
 tmap_mode("plot")
 
@@ -664,7 +664,7 @@ tmap_mode("plot")
 Make sure that the quality is sufficient by 
 setting the dpi ("dots per inch") to at least 600. We save this map in our output folder.
 
-```{r tmap-save-static-map}
+```{r tmap-save-static-map2}
 tmap_save(m, paste0(output_wd, "/BorneoMap_4326_tmap.png"), 
           units = "mm", width = 90, height = 90, dpi = 600)
 ```
@@ -1811,7 +1811,7 @@ plot(elev_usa)
 
 <details><summary> Optional - composite plots </summary>
 
-# Composite plots: plotting several layers and data types
+### Composite plots: plotting several layers and data types
 
 *Simple composite plot*
 
