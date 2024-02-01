@@ -45,6 +45,7 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
 ```
 
 ```{r}
+## this might be useful if rtools is not yet installed manually
 #install.packages("installr")
 #installr::install.rtools()
 ```
@@ -59,7 +60,7 @@ I am deeply indebted to you!
 The course is intended to be a quick introduction to using R as a GIS. It builds
 on the previous course, Course1_RIntro, and is written in such a way that you can
 understand handling spatial data when knowing the basics of handling data.frames,
-matrices and lists. There is no need to know tidyverse/dplyr coding style.
+matrices and lists. There is no need to know `tidyverse/dplyr` coding style.
 
 This course provides the basics for using the most important spatial
 data types — vector data (points, lines, polygons, aka ESRI shapefiles) and raster data.
@@ -67,7 +68,7 @@ data types — vector data (points, lines, polygons, aka ESRI shapefiles) and ra
 Recently, `{sf}` objects have been developed to handle vector data more easily. Those
 objects can be treated like simple `data.frames`. For raster data there are fast and modern
 packages — namely `{terra}` and `{stars}`. The `{terra}` package is also especially useful 
-for remote sensing data; it has a single class `SpatRaster` class. 
+for remote sensing data; it has a single `SpatRaster` class. 
 The course is updated to use the `{terra}` package. 
 
 In addition to different data types, the course provides sections on coordinate
@@ -97,20 +98,24 @@ https://lkcnhm.nus.edu.sg/app/uploads/2017/06/S33rbz018-041-1.pdf
 ## Useful (web)sites
 
 **1. R news and tutorials**  
+
 * http://www.r-bloggers.com/  
 
 **2. Quick introduction to spatial R**
+
 * https://rspatial.org/    
 * http://pakillo.github.io/R-GIS-tutorial/   
 * http://rstudio-pubs-static.s3.amazonaws.com/7993_6b081819ba184047802a508a7f3187cb.html  
 
-**3. Spatial visualisation** 
+**3. Spatial visualisation**
+
 * check out the packages `{tmap}`, `{ggmap}`, `{leaflet}` and `{cartography}`  
 * https://cran.r-project.org/web/packages/tmap/vignettes/tmap-getstarted.html    
 * A whole book: https://clauswilke.com/dataviz/ with spatial data here: 
   https://clauswilke.com/dataviz/geospatial-data.html 
   
 **4. Overview of spatial packages** 
+
 * http://cran.r-project.org/web/views/Spatial.html =  <br>   http://cran.r-project.org/view=Spatial  
 * https://www.r-spatial.org/
 
@@ -118,6 +123,7 @@ https://lkcnhm.nus.edu.sg/app/uploads/2017/06/S33rbz018-041-1.pdf
 * e.g. here: https://www.rstudio.com/resources/cheatsheets/    
 
 **6. Infos about simple features in R (`{sf}` package)**  
+
 *  https://r-spatial.github.io/sf/index.html  
 *  and nice intro: https://oliviergimenez.github.io/introspatialR/#1    
 *  geocomputation: https://geocompr.robinlovelace.net/spatial-operations.html 
@@ -127,7 +133,8 @@ https://lkcnhm.nus.edu.sg/app/uploads/2017/06/S33rbz018-041-1.pdf
 * for EPSG codes see http://spatialreference.org/ or https://www.nceas.ucsb.edu/~frazier/RSpatialGuides/OverviewCoordinateReferenceSystems.pd  
  
 
-**8. BioMove specials:** 
+**8. BioMove Graduate School specials:** 
+
 *  For analysis of  plot-based biodiversity data: package `{vegan}`  
 *  For analysis of telemetry data: packages `{adehabitatHR}`, `{adehabitatLT}`, `{move}`, `{recurse}`, `{momentuHMM}`, `{moveHMM}`, `{ctmm}`
 
@@ -197,15 +204,18 @@ library(patchwork) ## to combine plots
 library(units) ## handle measurement data
 library(here) ## for easy directory management
 
+## depending on the sequence of installation
+## you might need to reinstall this. But wait for an error message.
 #install.packages("Rcpp", repos="https://rcppcore.github.io/drat")
 
 ```
 
 ## How to call help 
 
+Remember to use '?' or '??' if you want information about a function of package. If you do not understand some of the code below, always check the arguments and help of the function. Vignettes are helpful code demonstrations with examples.
+
 ```{r helps, eval=FALSE}
-## Information about a function or a package. If you do not understand some
-## of the code below, always check the arguments and help of the function.
+## Information about a function or a package. 
 ?terra
 
 ## search for an item:
@@ -215,7 +225,7 @@ library(here) ## for easy directory management
 vignette(package = "sf") # vignette(package="sp")
 
 ## load the instruction of a package (embedded pdf):
-vignette("sf1") # vignette("intro_sp")
+vignette("sf1") 
 
 
 ## For a better version of the sf vignettes see 
@@ -231,12 +241,9 @@ use the function with 'package::function'.
 
 
 ```{r methods, eval=FALSE}
-terra::plot # the :: provides the namespace, 
+terra::plot() # the :: provides the namespace, 
             # i.e. that the function 'plot' is from the terra-package
 ```
-
-</details>
-
 
 
 ## Assign the workspace
@@ -250,13 +257,13 @@ folder structure. Nothing more to do! Continue with chapter
 
 
 
-<details><summary> Click for optional - use own course folder setup </summary>
+<details><summary> Click here for optional - use own course folder setup and R-project </summary>
 
 ### Optional - setting workspace by hand and learn about R-projects
 
-If not: Set your root directory <your folder name>, e.g. the directory under 
+If you have not downloaded the course folder structure with the R-project, you can also do it 'manually': Set your root directory <your folder name>, e.g. the directory under 
 which you store everything
-you need for this course, i.e. the data and the R-Scripts. You could name it
+you need for this course, like the data and the R-Scripts, with `setwd()`. You could name it
 'd6_teaching_collection'.
 
 Create the subfolders relative to root-folder. Please adjust to your setup. 
@@ -276,11 +283,11 @@ A possible folder structure could be:
 ```
 
 
-Traditionally, the working directory was 'hard coded', i.e. the full path was specified:
+Traditionally, the working directory was 'hard coded', i.e. the full path was specified with setting the work directory by `setwd()`.
 
 ```{r wd, eval=1}
 ## adjust the working directory [wd]
-getwd()  ## alternative fct
+getwd()  ## check where you are
 
 ## Set your OWN root directory, the following is just an example of how to do it:
 #root_wd <- setwd("C:/Users/kramer/d6_teaching_collection")
@@ -297,10 +304,10 @@ that are associated with own working directory, workspace, history, and source d
 You can create a project in the RStudio IDE by using the `Create Project` command 
 (available on the Projects menu and on the global toolbar). In our case, we want 
 to create a project in an existing directory where there is already R code and 
-data placed inside that said folder. Now, a hidden folder called `.Rproj.user` and 
+data placed inside that given folder. Now, a hidden folder called `.Rproj.user` and 
 most importantly a file called `your_project.Rproj` should appear in your folder. 
 Every time you want to work on your project, you open the Rstudio session by 
-double-clicking that `.Rproj` file, which ensures that the root working directory 
+double-clicking on that `.Rproj` file, which ensures that the root working directory 
 is correctly set.
 
 End of optional.
@@ -315,7 +322,7 @@ When using R projects, the package `{here}` is a handy helper:
 
 ![Illustration here package by Allison Horst](https://raw.githubusercontent.com/allisonhorst/stats-illustrations/master/rstats-artwork/here.png)
 
-The goal of the `{here}` package is to enable easy file referencing in project-oriented workflows. In contrast to using `setwd()`, which is fragile and dependent on the way you organize your files, `{here}` uses the top-level (=root) directory of a project to easily build paths to files.
+The goal of the `{here}` package is to enable easy file referencing in project-oriented workflows. In contrast to using `setwd()`, which is fragile and dependent on the way you organize your files (see optional section above for details), `{here}` uses the top-level (=root) directory of an `R-project` to easily build paths to files.
 
 The `here()` function from the `{here}` package searches for the `.Rproj` file and 
 will allow you to construct relative paths easily within your project environment:
@@ -367,6 +374,7 @@ course repository, you already have this folder.
 
 ```{r output-wd}
 output_wd <- here("output") # assign the path name
+output_wd ## check
 if (!dir.exists(output_wd)) dir.create(output_wd) # create only if directory does NOT! exist
 ```
 
@@ -395,7 +403,7 @@ and keep name length at a maximum of 13 letters!
 ## Access folder content
 
 You will find a lot of bioclimatic raster files (.asc) in the
-*geo_raster_current_asc* folder, which we named `R-object` maps_wd above:
+*geo_raster_current_asc* folder, which we named `maps_wd` above:
 
 ```{r filenames}
 ## create an object called 'filename' and store the names of the files
@@ -405,10 +413,10 @@ filenames <- list.files(path = maps_wd)
 head(x = filenames)
 
 ## if you want to see all stored files, use
-# filenames
+#filenames
 ```
-Should this be empty, then you have wrongly set the root directory and the data directory. Please check again how your folder structure looks like. By default, this folder should contain six ascii-files. The description what info these maps contain is provided in the DataDescription_Borneo.doc in the 
-'data_borneo' folder that you downloaded with the repository.
+Should this directory be empty, then you have wrongly set the root directory and the data directory. Please check again how your folder structure looks like. By default, this folder should contain six ascii-files. The description what info these maps contain is provided in the *DataDescription_Borneo.doc* in the 
+*data_borneo* folder that you downloaded with the repository.
 
 
 ## Recap from Course 1 Basics in R
@@ -437,7 +445,7 @@ Should this be empty, then you have wrongly set the root directory and the data 
 ## Data import 
 
 First, load a raster map. Please check the description in the folder called
-*DataDescription_Borneo.doc*. The file **bio_asc_01.asc** is showing mean annual 
+*DataDescription_Borneo.doc*. The file *bio_asc_01.asc* is showing mean annual 
 temperature multiplied by 10. Why?  Because it can be stored as integer, 
 not floating type (i.e. with digits), which saves a lot of storage and memory.
 
@@ -458,9 +466,9 @@ Now have a look at the object:
 Bor_mat
 ```
 
-What does the slot with 'extent' tells you? Looks like coordinates in decimal degrees, i.e.  latitude and longitude. 
+What does the slot with *extent* tells you? Looks like coordinates in decimal degrees, i.e.  latitude and longitude. 
 
-  Now have a look at the slot `coord. ref.` (or `crs`. CRS stands for *c*oordinate *r*eference *s*ystem): Nicely in the new `{terra}`-package, the CRS (map projection) is automatically set in the following way: If the `crs` argument is missing when loading data with `rast(x= ..., crs= ...)`, and the x coordinates are within -360 .. 360 and the y coordinates are within -90 .. 90, automatically "+proj=longlat +datum=WGS84" is assigned. WGS84 is the global reference system for geospatial information and is the reference system for the Global Positioning System (GPS). In this case, (OGC:CRS84) stands for 'Open Geospatial Consortium' OGC standards to represent the coordinate reference system WGS84. The parameters for this CRS are now stored in so-called 'well-known text' (WKT) files. We will come back to that later. 
+  Now have a look at the slot `coord. ref.` (or `crs`. CRS stands for **c**oordinate **r**eference **s**ystem): Nicely in the new `{terra}`-package, the CRS (map projection) is automatically set in the following way: If the `crs` argument is missing when loading data with `rast(x= ..., crs= ...)`, and the x coordinate values are within -360 .. 360 and the y coordinate values are within -90 .. 90, automatically "+proj=longlat +datum=WGS84" is assigned. WGS84 is the global reference system for geospatial information and is the reference system for the Global Positioning System (GPS). In this case, (OGC:CRS84) stands for 'Open Geospatial Consortium' OGC standards to represent the coordinate reference system WGS84. The parameters for this CRS are now stored in so-called 'well-known text' (WKT) files. We will come back to that later. 
 
 However, sometimes the slot `coord. ref.` is empty, i.e. if other coordinates than decimal degrees are used, e.g. UTM. That means, without knowing the reference system, the map cannot be plotted at the exact location on the globe. Thus, when you get a map, always
 make sure you also get the information of the coordinate reference system! If it 
