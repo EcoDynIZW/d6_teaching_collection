@@ -1811,7 +1811,7 @@ plot(elev_usa)
 
 <details><summary> Optional - composite plots </summary>
 
-### Composite plots: plotting several layers and data types
+Composite plots: plotting several layers and data types
 
 *Simple composite plot*
 
@@ -1922,6 +1922,8 @@ tm_shape(shp = hillsh) +
 End optional.
 
 </details>
+
+
 
 # Recap: the most important functions for spatial data
 
