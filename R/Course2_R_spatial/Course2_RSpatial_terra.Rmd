@@ -246,7 +246,7 @@ terra::plot() # the :: provides the namespace,
 ```
 
 
-## Assign the workspace
+## Set the workspace
 
 If you have downloaded the repository for the course as described here 
 (https://ecodynizw.github.io/teaching.html), you automatically have adopted our 
@@ -480,8 +480,9 @@ a file), this is the first thing you should do!
 crs(Bor_mat)   ## crs = coordinate reference system. If empty, assign it!
 ```
 
+In this case, it was automatically assigned, so nothing to do for now.
 
-## Assign CRS
+## Set the CRS
 
 *Important!* Please read and repeat basic GIS-knowledge on coordinate reference 
 systems (CRS), map projections, and geographic and projected coordinates. This issue is also covered in the lecture prior to this course for TUB students.  
@@ -492,12 +493,12 @@ angular coordinates of latitude/ longitude of WGS84
 to a projected CRS with planar coordinates and meter distances, equal area of 
 Lambert Azimuthal),
 you need to *transform* it with the function  `project()`(raster-data) or
-`st_transform()`(vector-data) (see below chapter **Raster projection**).
+`st_transform()`(vector-data) (see chapters below).
 
 
 In the following, we assign the CRS only when no information is provided. This can be 
-the case when you upload a map based on a simple data frame or matrix, i.e. when
-it is not a spatial object. 
+the case when you upload a map based on a simple `data.frame` or `matrix`, i.e. when
+it is not yet a spatial object. 
   
 `crs(<raster>)` gives the information of the object (here: raster layer) `Bor_mat` or `ras_bio_asc_01`, and is also used to set the CRS of the object via assignment: `crs(<raster>) <- <projection>`.  
 Mind the spelling in small letters/ capitals for assigning a CRS to a spatial object! 
