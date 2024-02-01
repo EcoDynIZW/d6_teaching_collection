@@ -1807,8 +1807,11 @@ elev_usa <- get_elev_raster(locations = sf_bbox_usa, z = 5)
 plot(elev_usa)
 ```
 
-<details><summary> Composite plots: plotting several layers and data types </summary>
+<br>
 
+<details><summary> Optional - composite plots </summary>
+
+# Composite plots: plotting several layers and data types
 
 *Simple composite plot*
 
@@ -1916,6 +1919,8 @@ tm_shape(shp = hillsh) +
             title.size = 2)
 ```
 
+End optional.
+
 </details>
 
 # Recap: the most important functions for spatial data
@@ -1933,7 +1938,7 @@ myxydataframe  <- sf::st_as_sf()
 ## Assign CRS to or project spatial data into another CRS
 
 ```{r, eval=FALSE}
-## Set/ asign the CRS if missing
+## Set/ assign the CRS if missing
 crs(myraster)  <- "+init=epsg:4326" ##assign if raster comes without CRS
 st_crs(myshapefile, 'EPSG:3085')
 
