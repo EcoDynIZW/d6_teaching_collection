@@ -165,12 +165,13 @@ pkgs <- c("terra", "stars", "sf", "sp", "rasterVis",
 unavailable <- setdiff(pkgs, rownames(installed.packages()))
 install.packages(unavailable)
 
+## -------- Please run the following ---------------------
 ## install development version of rnaturalearth as currently the 
 ## download doesn't work in the CRAN package version
-devtools::install_github("ropensci/rnaturalearth")
+#devtools::install_github("ropensci/rnaturalearth")
 
 ## install rgeoboundaries from GitHub (not available on CRAN yet)
-devtools::install_github("wmgeolab/rgeoboundaries")
+#devtools::install_github("wmgeolab/rgeoboundaries", force = TRUE)
 ```
 
 ## ...and load packages
@@ -249,7 +250,7 @@ folder structure. Nothing more to do! Continue with chapter
 
 
 
-<details><summary> Optional - use own course folder setup </summary>
+<details><summary> Click for optional - use own course folder setup </summary>
 
 ### Optional - setting workspace by hand and learn about R-projects
 
@@ -302,6 +303,8 @@ Every time you want to work on your project, you open the Rstudio session by
 double-clicking that `.Rproj` file, which ensures that the root working directory 
 is correctly set.
 
+End of optional.
+
 </details>
 
 
@@ -318,8 +321,10 @@ The `here()` function from the `{here}` package searches for the `.Rproj` file a
 will allow you to construct relative paths easily within your project environment:
 
 ```{r here}
-here::here()    # tip: use the namespace here:: before calling to function here()
-                # because here() alone interferes with the package `purrr` if that is loaded
+
+# tip: use the namespace here:: before calling to function here()
+# because here() alone interferes with the package `purrr` if that is loaded
+here::here()    
 here::dr_here()
 
 # this is an example, ob how a long folder path can be assigned to a short name (root_wd)
@@ -341,7 +346,7 @@ we work with the Borneo data:
 ```
 
 ```{r dirs}
-## today, we start with Borneo
+## Now, create the linkages to the folders:
 
 # dbor_wd     <- paste0(root_wd, "/", "data/data_borneo") #- the old way
 dbor_wd     <- here("data","data_borneo") #- note the nested folder structure
@@ -1478,18 +1483,18 @@ This refers to the GIS functions of area calculations, distance calculations, sp
 
 
 ### Area calculation
-Returns the area in square meters:
+
+Returns the area in square meters for all features:
 
 ```{r sf-area}
 # st_area(x = Borneo_shp) ## returns long vector
 head(st_area(x = Borneo_shp))
 ```
 
-Hint: you can calculate the area for single features (e.g. one polygon) or across the whole dataset.
+Hint: you can also calculate the area for single features (e.g. one polygon).
 
 ```{r}
 st_area(x = Borneo_shp[3, ]) ## for a single polygon
-head(st_area(x = Borneo_shp, byid = TRUE)) ## for all polygons when byid = TRUE
 ```
 
 Example: Calculate area of Malaysia in km² 
@@ -1685,7 +1690,10 @@ The [`{rgeoboundaries}` package](https://github.com/wmgeolab/rgeoboundaries) use
 
 ```{r rgeoboundaries-world}
 library(rgeoboundaries)
+## you might be asked to create a cache folder -> click yes
 
+
+## the following takes a while to load. Be patient.
 gb_adm0() ## political boundary file
 
 ## plotting takes a long time!!!
@@ -1804,10 +1812,9 @@ hillshade. Use the possibility of selecting/ disregarding different layers
 ```{r points-sf}
 hillsh <- Bor_hs
 
-# make sf object from coordinates -> you will learn that also later
+# make sf object from coordinates of the raster
 ras_bio_asc_01_cr_sf <- st_as_sf(
   data.frame(crds(ras_bio_asc_01_cr)), 
-      ## create dataframe of coordinates; `coordingates()` in {raster}
   coords = c("x", "y"), ## define columns for the coordinates
   crs = 4326, ## define crs, 4326 is the EPSG code
   sf_column_name = "geometry" ## sf needs a geometry column and you have to name it
