@@ -581,6 +581,7 @@ There are many ways to retrieve internal data and access single bits of
 information:
 
 ```{r ras-data-structure-2}
+## spatial extent
 ext(ras_bio_asc_01_cr)
 
 xmin(ras_bio_asc_01_cr) ## or: xmin(ext(ras_bio_asc_01_cr))
@@ -592,7 +593,7 @@ crs(ras_bio_asc_01_cr) ## != CRS(ras_bio_asc_01_cr) ## mind the spelling
 ## CRS creates projection and takes args for crs!
 ## e.g. 
 wgs84_crs_args <- CRS("+proj=longlat +datum=WGS84")
-# wgs84_crs_args  ## please check! You will see the WKT representation of the parameters
+wgs84_crs_args  ## please check! You will see the WKT representation of the parameters
 ```
 
 ```{r ras-data-structure-3}
@@ -601,13 +602,12 @@ nrow(x = ras_bio_asc_01_cr) # ncell(ras_bio_asc_01_cr)
 dim(x = ras_bio_asc_01_cr)  ## 12 rows, 30 columns, 1 z-dimension
 res(x = ras_bio_asc_01_cr)  ## resolution = cell size
 ```
+Any idea what this kind of strange cell size could be? We will come to that later.
 
 
-An important function is `crds()`, which returns the centroids of
-each raster cell:
-
+An important function is `crds()`, which returns the centroids of each raster cell:
 ```{r centroid}
-head(x = crds(ras_bio_asc_01_cr), n = 10) ## `coordinates()` in `{raster}`
+head(x = crds(ras_bio_asc_01_cr), n = 10) 
 ```
 
 
@@ -619,9 +619,9 @@ a hillshade (3D look) based on topography using slope and aspect:
 - computes shaded relief values for a raster surface
 
 ```{r calculate-slope-aspect}
-slope <- terrain(x = ras_bio_asc_24, v = "slope", unit = "radians", neighbors = 8) ## arg `v` called `opt` in {raster}
-aspect <- terrain(x = ras_bio_asc_24, v = "aspect", unit = "radians", neighbors = 8) ## arg `v` called `opt` in {raster}
-Bor_hs <- shade(slope, aspect, angle = 45, direction = 270) ## `hillShade()` in {raster}
+slope <- terrain(x = ras_bio_asc_24, v = "slope", unit = "radians", neighbors = 8) 
+aspect <- terrain(x = ras_bio_asc_24, v = "aspect", unit = "radians", neighbors = 8) 
+Bor_hs <- shade(slope, aspect, angle = 45, direction = 270) 
 
 ```
 
@@ -640,6 +640,8 @@ another course.
 
 ## Visualising rasters 
 
+Above we used the basic `plot()` function, but there are pretty alternatives available.
+
 ### Easy to use: the `{tmap}` package 
 
 #### Static map
@@ -651,15 +653,18 @@ tm_shape(shp = ras_bio_asc_01) + tm_raster()
 
 
 If you want to use a static map as high quality plots for your publication, 
-save the output via `tmap_save()`. Make sure that the quality is sufficient by 
-setting the dpi ("dots per inch") to at least 600. We save this map in our output folder.
-
+save the output via `tmap_save()`. 
 ```{r tmap-save-static-map}
 tmap_mode("plot")
 
 (m <- tm_shape(ras_bio_asc_01) +
   tm_raster(palette = "viridis",  title = "Mean annual temp"))
+```
 
+Make sure that the quality is sufficient by 
+setting the dpi ("dots per inch") to at least 600. We save this map in our output folder.
+
+```{r tmap-save-static-map}
 tmap_save(m, paste0(output_wd, "/BorneoMap_4326_tmap.png"), 
           units = "mm", width = 90, height = 90, dpi = 600)
 ```
@@ -673,17 +678,20 @@ The saved map: check output folder
 
 #### Interactive map  
 
+Very good for checking the correct location of the data. Great for zooming in/ out or overlaying with open street map data:
 ```{r ras-tmap-interactive}
 tmap_mode(mode = "view")
 tm_shape(shp = ras_bio_asc_01) + tm_raster(alpha=0.5)
 ```
 
-Very good for checking the correct location of the data. Click on the + | - | layer 
-icons on the upper left and zoom in or out and change the background layers. The
+Click on the + | - | layer 
+icons on the upper left and zoom in or out and change the background layers by clicking on the layer icon. The
 'alpha' argument makes the layer transparent. 
 
 If you like, you can save the interactive map — check your output folder for the html 
-file. Tip of the day: always save the epsg code of your crs at the end of
+file. 
+
+Tip of the day: always save the epsg code of your crs at the end of
 a spatial file name.
 
 ```{r tmap-save-interactive-map}
@@ -698,6 +706,8 @@ tmap_save(i.m, paste0(output_wd,"/BorneoMAT_4326.html"))
 ```
 
 <details><summary> Optional - Visualising rasters with the `{ggplot2}` package </summary>
+
+### Visualising rasters with the `{ggplot2}` package
 
 For advanced R-users familiar with `ggplot()` coding style: Beautiful plots can also be made with `{ggplot2}`; 
 however, `SpatRaster` objects cannot directly be plotted. One can use the [`{stars}` package](https://r-spatial.github.io/stars/). 
@@ -752,6 +762,8 @@ The saved map: check output folder
 
 Further beautiful ideas with ggplot:
 https://eliocamp.github.io/metR/reference/geom_contour_tanaka.html
+
+End of optional plotting.
 
 </details>
 
@@ -845,8 +857,7 @@ predictors$bio_asc_01
 Plotting just one layer:
 
 ```{r plot-stack-one-layer}
-plot(predictors$bio_asc_42)
-#plot(predictors[[4]])
+plot(predictors$bio_asc_42) ## = plot(predictors[[4]])
 ```
 
 Plotting all layers:
@@ -918,7 +929,7 @@ boxplot(predictors, outline = FALSE)
 ```
 
 
-Find areas with mean annual temp above 25 degrees Celsius
+Example: Find areas with mean annual temp above 25 degrees Celsius
 
 ```{r change-raster-values-binary-query}
 ## first divide by 10 to get 'realistic' temperature ranges. Remember the values
@@ -930,9 +941,10 @@ range(values(mean.t.c), na.rm = TRUE)
 
 ## now ask which ones are above 25 degrees Celsius
 mean.t.c.25 <- mean.t.c >= 25
+mean.t.c.25 ## check the values -> binary! 
 ```
 
-Have a look at the result using a binary plot:
+Have a look at the result using a binary plot, i.e.all areas where the temperature is above 25 degrees (TRUE) are plotted:
 
 ```{r binary-plot}
 plot(x = mean.t.c.25)
@@ -1134,8 +1146,10 @@ head(pred_dat)
 
 ## combine in one table
 mastertable <- data.frame(stack_cells, pred_dat)
-mastertable
+head(mastertable)
 ```
+
+End optional.
 
 </details>
 
@@ -1229,6 +1243,7 @@ and if necessary, also for the sp-package. We start with loading an ESRI shapefi
 
 ```{r sf-versus-sp}
 ## Border of countries and provinces of Borneo
+## vecs_wd is the folder where vector data are stored
 ## - only loading columns 1:3, 5, 7, 17, 18 of its attribute table (a. t.):
 Borneo_shp <- st_read(dsn = vecs_wd, layer = "borneo_admin")[, c(1:3, 5, 7, 17, 18)] 
 
@@ -1251,6 +1266,7 @@ More here:
 
 #### Transformations between simple feature `{sf}` and SpatialPolygonsDataFrame `{sp}`
 
+Since some functions are still only available in the `{sp}` package, it can be helpful to remember how to back and forth-transform between the data types.
 ```{r sf-versus-sp2}
 ## transformations
 Admin_sp <- as(Admin_shp, "Spatial") ## from sf to sp object
@@ -1260,8 +1276,7 @@ Admin_sf <- as(Admin_sp, "sf")       ## from sp object to sf object
 
 ## Import spatial points
 
-Usually, shapefiles come with a `.proj` file defining the projection, but not
-always. Please always check whether the projection is set. In the following, we load two point datasets of different species locations.
+In the following, we load two point datasets of different species locations.
 
 ```{r check-projection}
 pt_shp <- st_read(dsn = paste0(anim_wd, "/FCsim.shp"))
@@ -1270,7 +1285,7 @@ st_crs(pt_shp) <- 4326 ## set it with command st_crs()
 pt_shp
 ```
 
-Spatial points are defined by two columns with x and y coordinates, can be 
+Spatial points are defined by two columns with x and y coordinates; they can be 
 imported as normal `data.frames` and then converted to spatial objects: 
 
 ```{r convert-df-to-spatial}
@@ -1280,7 +1295,7 @@ class(x = df_recs)
 head(x = df_recs)
 ```
 
-This is still a `data.frame`, not yet a spatial object. See below of how to convert a data.frame into a spatial `{sf}` object:
+This is still a `data.frame`, not yet a spatial object. See below of how to convert a data.frame into a spatial `{sf}` object. You need to give the columns of your file that contain the x and y coordinates, and you need to set the CRS.
 
 ```{r convert-df-to-sf}
 recs_sf <- st_as_sf(x = data.frame(df_recs),
@@ -1295,9 +1310,8 @@ recs_sf <- st_as_sf(x = data.frame(df_recs),
 Explore the objects and retrievable information:
 
 ```{r}
-str(object = PA_shp) ## explore the object
-PA_shp
-attributes(x = PA_shp)
+str(object = PA_shp) ## shows which slot can be addressed with $
+attributes(x = PA_shp) ## similar to above
 ```
 
 
@@ -1383,7 +1397,7 @@ plot(Admin_sp) ## ending _sp shows it as an `{sp}` object
 ```
 
 Points in `data.frames` can be plotted, as long as the coordinates are the same, 
-can also be plotted in space. We first plot the polygon, then add the points (note, one is a simple `data.frame`,the other is a shapefile):
+can also be plotted in space. We first plot the polygon, then add the points (note, one is a simple `data.frame`, the other is a shapefile):
 
 ```{r plot-sf-points, fig.height=9}
 plot(x = as(Borneo_shp, "Spatial"), col = 'grey', border = 'white') ## polygon
