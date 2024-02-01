@@ -501,7 +501,6 @@ the case when you upload a map based on a simple `data.frame` or `matrix`, i.e. 
 it is not yet a spatial object. 
   
 `crs(<raster>)` gives the information of the object (here: raster layer) `Bor_mat` or `ras_bio_asc_01`, and is also used to set the CRS of the object via assignment: `crs(<raster>) <- <projection>`.  
-Mind the spelling in small letters/ capitals for assigning a CRS to a spatial object! 
 
 * `crs(<raster>)` shows coordinate reference system of a spatial object
 * `crs(<raster>) <- <projection>` creates projection and sets arguments for CRS!
@@ -512,7 +511,6 @@ See http://spatialreference.org/. The EPSG code for WGS84 is 4326.
 
 
 In case the CRS was not yet assigned:
-
 ```{r change-crs}
 # many ways to assign the CRS, options listed below:
 crs(ras_bio_asc_01) <- "+proj=longlat +datum=WGS84" 
@@ -533,7 +531,7 @@ ras_bio_asc_24 <- rast(x = paste0(maps_wd, "/bio_asc_24.asc"))
 
 crs(ras_bio_asc_24)
 
-## if not assigned:
+## if not assigned, it could also be copied:
 # crs(ras_bio_asc_24) <- crs(ras_bio_asc_01) 
 ## same as: 
 # crs(ras_bio_asc_24) <- crs("+proj=longlat +datum=WGS84")
@@ -552,12 +550,12 @@ plot(x = ras_bio_asc_01)
 ## Clip areas
 
 We do this first to work with a small raster to save computation time. For this, 
-we create a clip_extent based on the spatial coordinates. The command 'crop' then 
+we create a clip_extent based on the spatial coordinates. The command/ function `crop()` then 
 clips the raster map.
 
 ```{r, fig.height=5}
 ext(x = ras_bio_asc_01) ## get the extent
-clip_extent <- ext(117.2, 117.45, 5.4, 5.5) ## create a subset
+clip_extent <- ext(117.2, 117.45, 5.4, 5.5) ## create a subset based on long/ lat coordinates
 ras_bio_asc_01_cr <- crop(x = ras_bio_asc_01, y = clip_extent)
 
 plot(ras_bio_asc_01_cr, col = viridis::inferno(10))
@@ -573,9 +571,9 @@ of the raster object:
 ras_bio_asc_01_cr
 
 ## get additional information:
-# str(ras_bio_asc_01_cr) 
-# attributes(ras_bio_asc_01_cr) 
-# class(ras_bio_asc_01_cr)
+# str(ras_bio_asc_01_cr) ## strucutre of object
+# attributes(ras_bio_asc_01_cr) ## available slots
+# class(ras_bio_asc_01_cr) ## object type in R
 ```
 
 
