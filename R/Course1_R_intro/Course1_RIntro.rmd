@@ -1024,10 +1024,11 @@ And find more inspiration here: https://www.r-graph-gallery.com/
 
 1. Please load and inspect the following data set on wild boar observations in Berlin: `data_wb_melden_en.csv`. 
 To load the data try both R functions, `read.csv()` and `read.table()`.
-You will find the data to download in the 'data' folder of the repository, i.e.:
+You will find the data to download in the 'data' folder of the repository here:
   
 data &rarr; data_berlin &rarr; animal_data
 
+The path to the file should look like: here("data", "data_berlin", "animal_data")
 
 
 2. Use the functions `head()`, `names()`, `levels()`, `str()`, `table()` (hint: choose a column), 
@@ -1035,7 +1036,7 @@ data &rarr; data_berlin &rarr; animal_data
 
 3. Plot the number of piglets (`n_piglets`) per year.<br><br>
 
-4. Now visualize only observations with more than four piglets and plot them over time (`date`).<br><br>
+4. Now visualize only observations with more than four piglets and plot them over time (column `year`).<br><br>
 
 5. Create a column for the ratio of piglets vs the group size.<br>Afterwards visualize 
 the number of piglets vs the year as a scatter plot and use a threshold of greater than 
