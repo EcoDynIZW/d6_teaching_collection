@@ -38,6 +38,10 @@ code {
 
 # <span class='exercise'> Course 2 Exercise 2</span>
 
+**Please hand in the R-Script and the plots. Please add your name or name of group to the file/script names.**
+
+For example: <myplotname>_course2_ex2_<yourlastname>_<yourfirstname>.pdf/png/html and Rscript_course2_ex2_<yourlastname>_<yourfirstname>.Rmd/R
+
 ## Exercise 2.1
 
 **Using data on green spaces in Berlin, estimate the number of wild boars observed inside green areas that are 1 ha or larger. What is the proportion of wild boars outside large green areas? Visualize the observations on a map showing the green spaces and the observations encoded by their location inside or outside the green spaces.**

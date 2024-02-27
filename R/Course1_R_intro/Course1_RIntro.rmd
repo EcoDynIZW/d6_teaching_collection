@@ -1022,6 +1022,10 @@ And find more inspiration here: https://www.r-graph-gallery.com/
 
 # <span class='exercise'>Exercise</span>
 
+**Please hand in the R-Script and the plot 1.6 as pdf. Please add your name or name of group to the file/script names.**
+
+For example: MyWBPdf_course1_<yourlastname>_<yourfirstname>.pdf and Rscript_course1_<yourlastname>_<yourfirstname>.Rmd/R
+
 1. Please load and inspect the following data set on wild boar observations in Berlin: `data_wb_melden_en.csv`. 
 To load the data try both R functions, `read.csv()` and `read.table()`.
 You will find the data to download in the 'data' folder of the repository here:

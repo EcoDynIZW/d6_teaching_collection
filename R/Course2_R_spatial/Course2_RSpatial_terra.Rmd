@@ -165,7 +165,7 @@ https://lkcnhm.nus.edu.sg/app/uploads/2017/06/S33rbz018-041-1.pdf
 ```{r package-install}
 pkgs <- c("terra", "stars", "sf", "sp", "rasterVis",
           "ggplot2", "tmap", "viridis", "patchwork", "here", "units",
-          "devtools", "osmdata", "elevatr","tanaka","jpeg")
+          "devtools", "osmdata", "elevatr","jpeg")
 
 ## install packages that are not installed yet
 ## (not important to understand the following code, just run it)
@@ -1958,7 +1958,11 @@ sf::st_write()       ## vector data
 ```
 
 
-# <span class='exercise'>Exercise</span>
+# <span class='exercise'>Course 2 Exercise 1</span>
+
+**Please hand in the R-Script and the plots. Please add your name or name of group to the file/script names.**
+
+For example: <myplotname>_course2_ex1_<yourlastname>_<yourfirstname>.pdf/png/html and Rscript_course2_ex1_<yourlastname>_<yourfirstname>.Rmd/R
 
 **Revisit the data set from course 1 on wild boar observations in Berlin: `data_wb_melden_en.csv`. 
 (it is here: `....\d6_teaching_collection\data\data_berlin\animal_data`).
@@ -1979,6 +1983,7 @@ Follow these steps to answer the questions:
 * f. Create a new variable that holds the weather category as either "sunny" or "other".
 * g. Visualize the temperature at each wild boar observation (y axis) for sunny and other weather (box and whisker plot + raw data). 
 * h. Save the wild boar observations with the local temperature information as an .Rds file.
+
 
 For the additional question: 
 
