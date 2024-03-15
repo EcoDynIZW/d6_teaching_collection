@@ -361,7 +361,7 @@ Load data
 ```{r}
 # Bird data
 bird_data <- read.csv(here("data","data_berlin","animal_data",
-                           "Birds_Berlin_exercise_planillo2021.csv") )
+                           "birds_berlin_exercise_planillo2021.csv") )
 head(bird_data)
 str(bird_data)
 summary(bird_data)
