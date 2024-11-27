@@ -378,7 +378,7 @@ NODATA_value  -9999   <br>
 (Please, without '<br>' if you use copy-paste from my .rmd course script.....)
 
 
-# Runing MaxEnt from the GUI
+# Running MaxEnt from the GUI
 
 +++++++++++++++++++++++++++++++++++++++++++++++++
 Exercise: Please run MaxEnt manually first by opening the maxent.jar 
@@ -441,7 +441,7 @@ https://github.com/shandongfx/workshop_maxent_R/blob/master/code/Appendix1_case_
 
 
 
-### predict without bias current
+#### predict without bias current
 
 ```{r}
 pred_no_bias_current <- terra::mean(raster::predict(xm_nobias_current, predictors_selected))
@@ -459,7 +459,7 @@ terra::plot(pred_no_bias_current, col=viridis(100))
 
 ```{r}
 xm_nobias_future <- dismo::maxent(
-                            x = raster::stack(predictors_selected), # convert to raster stack, does not work with terra
+                            x = predictors_selected, # need to rereun (fit) MAxEnt to current conditions
                             p = sp_recs[,2:3], # x and y coordinates
                             factors = 'bio_asc_42', # raster names which are factors
                             nbg = nrow(sp_recs) * 10, # number of background points, ten times
@@ -473,8 +473,32 @@ xm_nobias_future <- dismo::maxent(
 saveRDS(xm_nobias_future, file.path(output_wd, "/MaxEntRes", "nobias_future", "maxent_nobias_future.rds"))
 ```
 
+
+```{r}
+## sneak preview - ascii file should be in folder:
+## check for the average '_avg' file out of all single repetitions:
+fut_avg_nobias <- list.files(here::here("output","MaxEntRes","nobias_future"),pattern='_avg.asc$',
+                    full.names=TRUE )
+sneak <- terra::rast(x = fut_avg_nobias)
+terra::plot(sneak,col= viridis(100))
+
+## NB: the future plot might not look very different from the current one,
+## because not many changing predictor variables were used.
+
+## create a residual plot subtracting current from future
+## as the output of MaxEnt is a RasterLAyer, 
+## it needs to be transformed to a terra::SpatRaster 
+res_plot <- sneak - terra::rast(x = pred_no_bias_current)
+plot(res_plot, col= inferno(100))
+```
+
 ## MaxEnt with sampling bias correction
 ### Create background points
+
+The prob = T argument samples points given by the probability values of the map.
+I suggest to actually do this INSIDE the MAxEnt command to have varying
+random points in space for each run, but doing it once
+outside the MaxEnt command line makes the code faster.
 
 ```{r}
 random_pts <-  dismo::randomPoints(mask = raster(bias1),
@@ -488,7 +512,7 @@ random_pts <-  dismo::randomPoints(mask = raster(bias1),
 
 ```{r}
 xm_withbias_current <- dismo::maxent(
-                            x = raster::stack(predictors_selected), # convert to raster stack, does not work with terra
+                            x = predictors_selected, 
                             p = sp_recs[,2:3], # x and y coordinates
                             factors = 'bio_asc_42', # raster names which are factors
                             a = random_pts, # bias - background points
@@ -501,7 +525,7 @@ xm_withbias_current <- dismo::maxent(
 saveRDS(xm_withbias_current, file.path(output_wd, "/MaxEntRes", "withbias_current", "maxent_withbias_current.rds"))
 ```
 
-### predict with bias current
+#### predict with bias current
 
 ```{r}
 pred_with_bias_current <- terra::mean(raster::predict(xm_withbias_current, raster::stack(predictors_selected)))
@@ -509,6 +533,10 @@ pred_with_bias_current <- terra::mean(raster::predict(xm_withbias_current, raste
 writeRaster(pred_with_bias_current, 
             file.path(output_wd, "/MaxEntRes", "withbias_current", "species_selection_cur_avg.asc"),
             overwrite = TRUE)
+
+## a little sneak preview:
+terra::plot(pred_with_bias_current, col=viridis(100))
+
 ```
 
 ### MaxEnt with bias future
