@@ -377,6 +377,9 @@ NODATA_value  -9999   <br>
 
 (Please, without '<br>' if you use copy-paste from my .rmd course script.....)
 
+
+# Runing MaxEnt from the GUI
+
 +++++++++++++++++++++++++++++++++++++++++++++++++
 Exercise: Please run MaxEnt manually first by opening the maxent.jar 
 (double click -> then the grey GUI should open after some seconds) - see lecture.
@@ -407,7 +410,7 @@ predictors_selected <- raster::stack(predictors_tmp)
 ```
 
 
-## Maxent without bias correction
+## Maxent without sampling bias correction
 
 Here, the whole area that is given by the raster is sampled equally (background).
 Predictors are  used as stack in the following MaxEnt command. 
@@ -432,7 +435,7 @@ xm_nobias_current <- dismo::maxent(
 saveRDS(xm_nobias_current, file.path(output_wd, "/MaxEntRes", "nobias_current", "maxent_nobias_current.rds"))
 ```
 
-For the whole list of arguments that can be set in MaxEnt see: <br>
+Advanced: For the whole list of arguments that can be set in MaxEnt see: <br>
 https://github.com/shandongfx/workshop_maxent_R/blob/master/code/Appendix1_case_study.md
 </br>
 
@@ -441,11 +444,15 @@ https://github.com/shandongfx/workshop_maxent_R/blob/master/code/Appendix1_case_
 ### predict without bias current
 
 ```{r}
-pred_no_bias_current <- terra::mean(raster::predict(xm_nobias_current, raster::stack(predictors_selected)))
+pred_no_bias_current <- terra::mean(raster::predict(xm_nobias_current, predictors_selected))
 
 writeRaster(pred_no_bias_current, 
             file.path(output_wd, "/MaxEntRes", "nobias_current", "species_selection_cur_avg.asc"),
             overwrite = TRUE)
+
+## a little sneak preview:
+terra::plot(pred_no_bias_current, col=viridis(100))
+
 ```
 
 ### MaxEnt without bias future
