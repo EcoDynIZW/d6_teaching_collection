@@ -389,7 +389,12 @@ This helps you to understand the principles first before running the code in R.
 ## select predictors
 Mere you can select which predictors you want to use. Please remember from the
 above exercise that current and future maps need to carry the same name,
-but in different folders! 
+but in different folders, and that you must have the future
+maps for those variables that you included to fit the model to current conditions! 
+That means, if you have fitted the model to current temperatures, you need
+to have  maps of future temperatures as well (with the same name(s)) 
+if you want to project
+the model to future climates.
 
 ```{r}
 predictors_selected<- terra::rast(x = c(files)) 
@@ -398,7 +403,11 @@ predictors_selected<- terra::rast(x = c(files))
 
 Predictors are then stacked in the following MaxEnt command. 
 Also, don't forget to mark categorical variables and to not select
-variables which do not contain biological information, like the hillshade
+variables which do not contain biological information, like the hillshade.
+
+## Maxent without bias correction
+Here, the whole area that is given by the raster is sampled equally (background).
+
 
 ### MaxEnt without bias current
 
