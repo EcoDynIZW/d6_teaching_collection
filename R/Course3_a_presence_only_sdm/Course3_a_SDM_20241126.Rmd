@@ -543,7 +543,7 @@ terra::plot(pred_with_bias_current, col=viridis(100))
 
 ```{r}
 xm_withbias_future <- dismo::maxent(
-                            x = raster::stack(predictors_selected), # convert to raster stack, does not work with terra
+                            x = predictors_selected, 
                             p = sp_recs[,2:3], # x and y coordinates
                             factors = 'bio_asc_42', # raster names which are factors
                             a = random_pts, # bias - background points
@@ -557,6 +557,11 @@ xm_withbias_future <- dismo::maxent(
 saveRDS(xm_withbias_future, file.path(output_wd, "/MaxEntRes", "withbias_future", "maxent_withbias_future.rds"))
 ```
 
+ TODO - stopped here - need to run prior code
+ 
+# After results generated - CONTINUE HERE
+
+TODO - write that we can cnotinue irrespective of R or manual running Maxent
 
 # Accessing MaxEnt results
 
