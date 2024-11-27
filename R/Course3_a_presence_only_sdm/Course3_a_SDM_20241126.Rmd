@@ -1,6 +1,6 @@
 ---
 title: "Tutorial Part III a — SDM with MaxEnt"
-author: "Stephanie Kramer-Schadt & Juergen Niedballa"
+author: "Stephanie Kramer-Schadt, Juergen Niedballa, Moritz Wenzler"
 date: "`r Sys.setlocale('LC_TIME','C'); paste('Last Update', format(Sys.time(), '%B %e, %Y'))`"
 output:
   rmdformats::readthedown:
@@ -76,11 +76,16 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
 ### The workspace  (repetition) ###
 getwd() # you can also use the package 'here()'
 
-# my data are outside my course-folder, therefore I have to do it the old-fashioned way.
 root_wd <- here::here() 
 # relative to work-wd
-maps_wd <- paste(root_wd,"/","data/data_borneo/geo_raster_current_asc/selection_cur",sep='') # or:
-maps_wd_fut <- paste(root_wd,"/","data/data_borneo/geo_raster_future_asc/selection_fut",sep='')
+
+
+# TODO - Moritz' path adjust
+#maps_wd <- paste(root_wd,"/","data/data_borneo/geo_raster_current_asc/selection_cur",sep='') # or:
+#maps_wd_fut <- paste(root_wd,"/","data/data_borneo/geo_raster_future_asc/selection_fut",sep='')
+
+maps_wd <- paste(root_wd,"/","data/data_borneo/geo_raster_current_asc",sep='') # or:
+maps_wd_fut <- paste(root_wd,"/","data/data_borneo/geo_raster_future_asc",sep='')
 vecs_wd <- here::here("data","data_borneo","geo_vector") # shapefile
 recs_wd <- here::here("data","data_borneo","animal_data") # location data
 
@@ -168,7 +173,7 @@ spec_pt_filename <- list.files(path = recs_wd,
 spec_pt_filename
 
 # read the file
-sp_recs <- read.csv(file = spec_pt_filename[1], # decide which species you want to use
+sp_recs <- read.csv(file = spec_pt_filename[1], # decide which species you want to use, here 1st in list
                     header=TRUE, sep=',')
 
 #convert it to spatial object (sf here)
@@ -188,7 +193,7 @@ sp_recs_sf <- sf::st_as_sf(x = sp_recs,
 plot(ras42, col=grey.colors(20))
 plot(PA_shp_sf$geometry,border='green', lwd=1.8, add=T)
 plot(sp_recs_sf$geometry, pch= '*',cex=1,col='deeppink',add=T)
-text(112, 6, 'Starting with SDMs', cex=1.5, col= 'red')
+text(112.3, 6, 'Starting with SDMs', cex=1.2, col= 'red')
 
 ```
 
@@ -372,22 +377,28 @@ NODATA_value  -9999   <br>
 
 (Please, without '<br>' if you use copy-paste from my .rmd course script.....)
 
-## Running MaxEnt in R
++++++++++++++++++++++++++++++++++++++++++++++++++
+Exercise: Please run MaxEnt manually first by opening the maxent.jar 
+(double click -> then the grey GUI should open after some seconds) - see lecture.
+This helps you to understand the principles first before running the code in R.
++++++++++++++++++++++++++++++++++++++++++++++++++
 
-#### to do ####
+# Running MaxEnt in R
 
-four parts: -no bias current
-            -no bias future
-            -with bias current
-            -with bias future
-            
-            -connect to the following code
 
-# select predictors
+## select predictors
+Mere you can select which predictors you want to use. Please remember from the
+above exercise that current and future maps need to carry the same name,
+but in different folders! 
 
 ```{r}
-predictors_selected<- terra::rast(x = c(files)) # here you can select which predictors you want to use
+predictors_selected<- terra::rast(x = c(files)) 
 ```
+
+
+Predictors are then stacked in the following MaxEnt command. 
+Also, don't forget to mark categorical variables and to not select
+variables which do not contain biological information, like the hillshade
 
 ### MaxEnt without bias current
 
