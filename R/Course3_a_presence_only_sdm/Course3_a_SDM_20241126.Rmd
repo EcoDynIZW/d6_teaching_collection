@@ -400,23 +400,26 @@ the model to future climates.
 files # files <- list.files(path= maps_wd, pattern='.asc$',full.names=TRUE )
 
 ## Let's select the first 6 to eliminate the hillshade
-predictors_selected <- terra::rast(x = c(files[c(1:6)]) ) 
+predictors_tmp <- terra::rast(x = c(files[c(1:6)]) ) 
+
+## convert to raster stack, as MaxEnt does not work with terra yet
+predictors_selected <- raster::stack(predictors_tmp) 
 ```
 
 
-Predictors are then stacked in the following MaxEnt command. 
+## Maxent without bias correction
+
+Here, the whole area that is given by the raster is sampled equally (background).
+Predictors are  used as stack in the following MaxEnt command. 
 Also, don't forget to mark categorical variables and to not select
 variables which do not contain biological information, like the hillshade.
-
-## Maxent without bias correction
-Here, the whole area that is given by the raster is sampled equally (background).
 
 
 ### MaxEnt without bias current
 
 ```{r}
 xm_nobias_current <- dismo::maxent(
-                            x = raster::stack(predictors_selected), # convert to raster stack, does not work with terra
+                            x = predictors_selected, 
                             p = sp_recs[,2:3], # x and y coordinates
                             factors = 'bio_asc_42', # raster names which are factors
                             nbg = nrow(sp_recs) * 10, # number of background points, ten times
@@ -428,6 +431,12 @@ xm_nobias_current <- dismo::maxent(
 
 saveRDS(xm_nobias_current, file.path(output_wd, "/MaxEntRes", "nobias_current", "maxent_nobias_current.rds"))
 ```
+
+For the whole list of arguments that can be set in MaxEnt see: <br>
+https://github.com/shandongfx/workshop_maxent_R/blob/master/code/Appendix1_case_study.md
+</br>
+
+
 
 ### predict without bias current
 
