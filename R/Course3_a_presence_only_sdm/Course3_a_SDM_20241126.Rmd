@@ -387,7 +387,7 @@ This helps you to understand the principles first before running the code in R.
 
 
 ## select predictors
-Mere you can select which predictors you want to use. Please remember from the
+Here you can select which predictors you want to use. Please remember from the
 above exercise that current and future maps need to carry the same name,
 but in different folders, and that you must have the future
 maps for those variables that you included to fit the model to current conditions! 
@@ -397,7 +397,10 @@ if you want to project
 the model to future climates.
 
 ```{r}
-predictors_selected<- terra::rast(x = c(files)) 
+files # files <- list.files(path= maps_wd, pattern='.asc$',full.names=TRUE )
+
+## Let's select the first 6 to eliminate the hillshade
+predictors_selected <- terra::rast(x = c(files[c(1:6)]) ) 
 ```
 
 
@@ -420,7 +423,7 @@ xm_nobias_current <- dismo::maxent(
                             path = file.path(output_wd, "/MaxEntRes", "nobias_current"), # output path
                             args = c("replicates=3", 
                                      "outputformat=logistic", 
-                                     "responsecurves") # number of replicates and outputformat
+                                     "responsecurves") # number of replicates and output format
                             )
 
 saveRDS(xm_nobias_current, file.path(output_wd, "/MaxEntRes", "nobias_current", "maxent_nobias_current.rds"))
