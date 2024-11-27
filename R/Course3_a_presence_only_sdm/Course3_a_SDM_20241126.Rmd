@@ -51,23 +51,23 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
 
 ### The packages (repetition) ###
    library(here)
-   #library(sp)
    library(sf)
    library(tmap)
    library(dismo)
    library(terra)
- #  library(GISTools)
- #  library(rgdal)
- #  library(maptools)
    library(viridis)
- #  library(rgeos)
    library(rgl)
- # library(rasterVis) 
    library(unmarked)
    library(spatstat)
 
-## check that the package raster is detached!
+## check that the package raster is detached if you work with terra!
+## However, it is later needed for the stack
 # detach(package:raster)
+
+#install.packages('rJava') ## needed only if you run MAxEnt from R
+library(rJava)
+
+
 ```
 
 ## Set the workspace
@@ -457,6 +457,7 @@ xm_nobias_future <- dismo::maxent(
 saveRDS(xm_nobias_future, file.path(output_wd, "/MaxEntRes", "nobias_future", "maxent_nobias_future.rds"))
 ```
 
+## MaxEnt with sampling bias correction
 ### Create background points
 
 ```{r}
