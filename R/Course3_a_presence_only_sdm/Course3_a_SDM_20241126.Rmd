@@ -62,10 +62,11 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
 
 ## check that the package raster is detached if you work with terra!
 ## However, it is later needed for the stack
+  library(raster)
 # detach(package:raster)
 
 #install.packages('rJava') ## needed only if you run MAxEnt from R
-library(rJava)
+  library(rJava)
 
 
 ```
@@ -79,19 +80,16 @@ getwd() # you can also use the package 'here()'
 root_wd <- here::here() 
 # relative to work-wd
 
-
-# TODO - Moritz' path adjust
-#maps_wd <- paste(root_wd,"/","data/data_borneo/geo_raster_current_asc/selection_cur",sep='') # or:
-#maps_wd_fut <- paste(root_wd,"/","data/data_borneo/geo_raster_future_asc/selection_fut",sep='')
-
 maps_wd <- paste(root_wd,"/","data/data_borneo/geo_raster_current_asc",sep='') # or:
 maps_wd_fut <- paste(root_wd,"/","data/data_borneo/geo_raster_future_asc",sep='')
 vecs_wd <- here::here("data","data_borneo","geo_vector") # shapefile
 recs_wd <- here::here("data","data_borneo","animal_data") # location data
 
-# the output folder should have been created by you during Tutorial 2 'R goes spatial'.
-# It should contain the hillshade.asc
+## the output folder should have been created by you during Tutorial 2 'R goes spatial'. 
+## It should exist 
 output_wd <- here::here("output")
+
+# It should contain the hillshade.asc
 
 setwd(output_wd) ## set to the OUTPUT folder!
 getwd() # check
@@ -365,7 +363,7 @@ CELLSIZE 0.0083333337997189 <br>
 NODATA_value -9999 <br> 
 
 If this throws an error in MaxEnt, please change the <br>
-CELLSIZE from 0.0083333337997189 to **0.0083333338** by hand! That is, the header should read: <br>
+CELLSIZE from 0.0083333337997189 to **0.0083333338** by hand in any text editor! That is, the header should read: <br>
 
 
 ncols         1423   <br> 
@@ -396,8 +394,12 @@ but in different folders, and that you must have the future
 maps for those variables that you included to fit the model to current conditions! 
 That means, if you have fitted the model to current temperatures, you need
 to have  maps of future temperatures as well (with the same name(s)) 
-if you want to project
-the model to future climates.
+if you want to project the model to future climates.
+<br>
+The following example only builds on those files that are available in the repository,
+that is, the example runs on files bio_asc_01, bio_asc_21, bio_asc_22, bio_asc_24,
+bio_asc_27 and bio_asc_42. If you use the full dataset provided by the external link,
+please make sure that your predictor variables correspond. 
 
 ```{r}
 files # files <- list.files(path= maps_wd, pattern='.asc$',full.names=TRUE )
@@ -415,7 +417,7 @@ predictors_selected <- raster::stack(predictors_tmp)
 Here, the whole area that is given by the raster is sampled equally (background).
 Predictors are  used as stack in the following MaxEnt command. 
 Also, don't forget to mark categorical variables and to not select
-variables which do not contain biological information, like the hillshade.
+variables which do not contain biological information, like the hillshade, as we did above.
 
 
 ### MaxEnt without bias current
