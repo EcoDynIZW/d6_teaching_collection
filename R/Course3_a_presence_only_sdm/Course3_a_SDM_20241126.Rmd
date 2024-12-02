@@ -66,6 +66,10 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
 # detach(package:raster)
 
 #install.packages('rJava') ## needed only if you run MAxEnt from R
+
+## TODO - set rJava systemsteuerung -> umgebungsvaraiable.... R neu installieren
+Sys.setenv(JAVA_HOME='C:\\Program Files (x86)\\Java\\jre7')    #jre1.8.0_144') 
+
   library(rJava)
 
 
