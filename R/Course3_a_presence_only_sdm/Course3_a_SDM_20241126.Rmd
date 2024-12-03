@@ -69,10 +69,10 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
 
 ## TODO - set rJava systemsteuerung -> umgebungsvaraiable.... R neu installieren
 # http://www.r-bloggers.com/how-to-load-the-rjava-package-after-the-error-java_home-cannot-be-determined-from-the-registry/ #
-Sys.setenv(JAVA_HOME='C:\\Program Files (x86)\\Java\\jre7')    #jre1.8.0_144') 
+Sys.setenv(JAVA_HOME='C:\\Program Files (x86)\\Java\\jre1.8.0_1447')    #jre1.8.0_144') 
 
   library(rJava)
-
+## please check if you get an error message
 
 ```
 
