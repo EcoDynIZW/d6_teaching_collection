@@ -455,7 +455,7 @@ https://github.com/shandongfx/workshop_maxent_R/blob/master/code/Appendix1_case_
 pred_no_bias_current <- terra::mean(raster::predict(xm_nobias_current, predictors_selected))
 
 writeRaster(pred_no_bias_current, 
-            file.path(output_wd, "/MaxEntRes", "nobias_current", "species_selection_cur_avg.asc"),
+            file.path(output_wd, "/MaxEntRes", "nobias_current", "species_cur_avg.asc"),
             overwrite = TRUE)
 
 ## a little sneak preview:
@@ -487,6 +487,7 @@ saveRDS(xm_nobias_future, file.path(output_wd, "/MaxEntRes", "nobias_future", "m
 ## check for the average '_avg' file out of all single repetitions:
 fut_avg_nobias <- list.files(here::here("output","MaxEntRes","nobias_future"),pattern='_avg.asc$',
                     full.names=TRUE )
+fut_avg_nobias
 sneak <- terra::rast(x = fut_avg_nobias)
 terra::plot(sneak,col= viridis(100))
 
@@ -510,10 +511,8 @@ outside the MaxEnt command line makes the code faster.
 
 ```{r}
 random_pts <-  dismo::randomPoints(mask = raster(bias1),
-                                   n = nrow(sp_recs) * 10 ,
+                                   n = nrow(sp_recs) * 50 ,
                                    prob = T)
-
-
 ```
 
 ### MaxEnt with bias current
