@@ -48,7 +48,6 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
 ## Load libraries
 
 ```{r,message=FALSE}
-
 ### The packages (repetition) ###
    library(here)
    library(sf)
@@ -64,17 +63,38 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
 ## However, it is later needed for the stack
   library(raster)
 # detach(package:raster)
+```
 
-#install.packages('rJava') ## needed only if you run MAxEnt from R
 
-## TODO - set rJava systemsteuerung -> umgebungsvaraiable.... R neu installieren
-# http://www.r-bloggers.com/how-to-load-the-rjava-package-after-the-error-java_home-cannot-be-determined-from-the-registry/ #
-#Sys.setenv(JAVA_HOME='C:\\Program Files (x86)\\Java\\jre1.8.0_1447')    #jre1.8.0_144') 
-## JAVA_HOME='C:\\Program Files\\Java\\jdk-21.0.2
+```{r,message=FALSE}
+## only if you want to run MaxEnt from R ##
 
+#install.packages('rJava') 
   library(rJava)
 ## please check if you get an error message
+## If yes:
+## 1. check if Java is installed on your computer
+## if not: Download open jdk (https://jdk.java.net/23/),
+## download the zip file and unpack to folder 'Java' under
+## 'Programme' or 'program files'.
+## Note: don’t use 'program files (86x)' - this may be the cause of error
 
+## Then, set the system variable on your computer, -> Systemsteuerung, and on the search bar
+## search for 'Umgebungsvariable', and then add a JAVA_HOME path to the path
+## where Java is located on your Computer.
+
+
+## Or set the directory of your Java location BEFORE loading the library:
+## check with 
+
+Sys.getenv('JAVA_HOME') ## where the R-package is looking for the java.dll file
+
+## set it to the correct path:
+Sys.setenv(JAVA_HOME='C:\\Program Files (x86)\\Java\\jre1.8.0_1447\\bin') 
+## and recall the library
+library(rJava)
+
+## http://www.r-bloggers.com/how-to-load-the-rjava-package-after-the-error-java_home-cannot-be-determined-from-the-registry/ 
 ```
 
 ## Set the workspace
