@@ -399,7 +399,6 @@ NODATA_value  -9999   <br>
 
 (Please, without '<br>' if you use copy-paste from my .rmd course script.....)
 
-
 # Running MaxEnt from the GUI
 
 +++++++++++++++++++++++++++++++++++++++++++++++++
@@ -701,7 +700,7 @@ Now check which column number that is....
 
 ```{r}
 zecol <-which(colnames(store_res[[1]]) == zename) 
-zecol
+zecol ## column 51 in my case
 ```
 
 ... and extract the threshold value :
@@ -709,7 +708,9 @@ zecol
 ## a little head twister:
 ## access each element of your list, which is a whole dataset with store_res[[1]]
 ## and inside this list object = data.frame, access the element of
-## the last row (nrow), and the column zecol] containing the threshold value
+## the last row (nrow), and the column zecol containing the threshold value,
+## because the results are stored for each repetition, and the last column contains
+## the average value
 t_noBias   <- store_res[[1]][nrow(store_res[[1]]),zecol]
 t_withBias <- store_res[[2]][nrow(store_res[[2]]),zecol]
 
@@ -717,7 +718,8 @@ t_noBias #the thresholds
 t_withBias
 ```
 
-Now apply the thresholds to your MaxEnt output maps of relative probability. For that, store the thresholds in a vector, and double them for bias/ nobias, because the threshold stays the same:
+Now apply the thresholds to your MaxEnt output maps of relative probability. For that, store the thresholds in a vector, and double them for bias/ nobias, because the threshold stays the same
+for current and future maps (see above):
 
 ```{r}
 all_bias <- rep(c(t_noBias,t_withBias), each=2)
@@ -741,14 +743,15 @@ plot(test05)
 
 ## Analyses
 
-Now let's check how global change affects the protected areas. Does the suitability of these areas increase or decrease in the future?
+Now let's check how global change affects the protected areas. Does the suitability of these areas increase or decrease in the future? Extract relative probability values (habitat suitability) inside protected areas PAs and make a boxplot for comparison.
+
 ```{r}
-# Extract relative probability values inside protected areas PAs
-# check if overlay correct - only works when you have NOT aggregated the maps
+## check if overlay correct - only works when you have NOT aggregated the maps
 terra::compareGeom(PA_ras,me_stack[[1]]) 
 
+## extract
 ex <- which(values(PA_ras)==1) ##remember PA_ras == 1 where the PAs are
-# ex # gives Pointer to elements/ Index
+## ex # gives Pointer to elements/ Index
 ex_stack <- terra::extract(x=me_stack, y=ex)
 head(ex_stack)
 ```
@@ -758,7 +761,8 @@ Plot the difference of habitat suitability in scenarios and PAs
 boxplot(ex_stack,na.rm=T)
 ```
 
-Calculate no. of cells (=area) of suitable habitat in PAs
+Calculate no. of cells (=area) of suitable habitat in PAs, that we
+defined via the binary threshold maps.
 
 ```{r}
 ex_binary <- terra::extract(x=binary_thresh, y=ex)
@@ -767,37 +771,37 @@ head(ex_binary)
 colSums(ex_binary,na.rm=T) 
 ```
 
-Interestingly: when correcting for sampling bias, the future scenarios have the lowest number of suitable habitat inside PAs: <br>
+Interestingly: when correcting for sampling bias, the future scenarios 
+have the lowest number of suitable habitat inside PAs (in my species): <br>
 <br>
 curr_noBias    fut_noBias curr_withBias  fut_withBias   <br>
       43285         63905         43430         39989   <br>
       
       
 ```{r, echo=FALSE, eval=FALSE}
-################# just in case for Netlogo   ###################################
+################# just in case for importing maps into Netlogo   ###############
 ########## maps have to be smaller and instead of NA put -1 ####################
 ################################################################################
 
 infiles # remember, output folder content
 
-# chose one:
+## chose one map:
 my_MaxEnt_avg_Map <- terra::rast(infiles[1])
 # my_MaxEnt_avg_Map@crs <- CRS("+proj=longlat +datum=WGS84") #not needed with {terra}-package
 
-# plot
+## plot
 plot(my_MaxEnt_avg_Map,col=viridis(100))
 
-# save it with a lower resolution (similar to 'aggregate')
-+probab_agg <- terra::aggregate(x=my_MaxEnt_avg_Map,fact=2,fun=mean)
+## save it with a lower resolution (similar to 'aggregate')
+probab_agg <- terra::aggregate(x=my_MaxEnt_avg_Map,fact=2,fun=mean)
 
-#and make an integer out of the decimals
+## and make an integer out of the decimals
 probab_agg_int <- round(probab_agg*100, digits=0)
 plot(probab_agg_int, col=viridis(100))
 
-# save it to import into Netlogo
-getwd() # that's where it is saved now
+## save it to import into Netlogo
+getwd() ## that's where it is saved now -> should be output-folder
 terra::writeRaster(probab_agg_int, filename="probab_agg_int.asc",
-                   datatype="ascii",
                    overwrite=TRUE,NAflag = -9999)
 ```
 
@@ -895,9 +899,15 @@ sf::st_write(obj = cp_line, dsn = paste0(output_wd,'/costpath_line.shp'), delete
 ################  end #######################
 ```
 
-##### species data
 
-```{r}
+```{r,echo=FALSE, eval=FALSE}
+### For the making of the script only ####
+### Please ignore ########################
+
+# the following code extracts the original GPS locations
+# of each carnivore species; see Kramer-Schadt et al. 2016, Raff. Bull. Soc.
+
+###############################################################################
 # data_spec <- read.delim(here("data", "data_borneo", "animal_data", "old", "allSpecies20092011.txt"))
 # 
 # data_spec$Spec_lat |> table()
@@ -911,6 +921,7 @@ sf::st_write(obj = cp_line, dsn = paste0(output_wd,'/costpath_line.shp'), delete
 #   filter(!long %in% 0)
 # 
 # write.csv(data_sub, here("data", "data_borneo", "animal_data", "Pardofelis_marmorata.csv"), row.names = FALSE)
+###############################################################################
 ```````
 
 
