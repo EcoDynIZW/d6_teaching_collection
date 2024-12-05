@@ -47,7 +47,7 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
 ## Load libraries
 
 ```{r,message=FALSE}
-### The packages (repetition) ###
+### The packages (repetition) 
    library(here)
    library(sf)
    library(tmap)
@@ -98,7 +98,7 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
 ## Set the workspace
 
 ```{r}
-### The workspace  (repetition) ###
+### The workspace  (repetition) 
 getwd() # you can also use the package 'here()'
 
 root_wd <- here::here() 
@@ -124,7 +124,7 @@ getwd() # check
 ### Load rasters
 
 ```{r}
-### Data import - Load spatial data (repetition) ###
+### Data import - Load spatial data (repetition) 
 
 ras1 <- terra::rast(x = paste(maps_wd,'/bio_asc_01.asc',sep=''))
 # assign the projection (crs - coordinate reference system)
@@ -141,7 +141,7 @@ ras42 <- terra::rast(x = here("data", "data_borneo", "geo_raster_current_asc", "
 
 Loading many rasters can be done in one go.
 ```{r}
-### Raster stack of environmental predictors (repetition) ###
+### Raster stack of environmental predictors (repetition) 
 
 # the list.files command is very helpful to check what is in the folders
 # use 'pattern' for searching for special file types, here .asc-files:
@@ -157,15 +157,15 @@ predictors
 
 ### Plot rasters
 ```{r}
-terra::plot(predictors, col = viridis::viridis(100)) # might take some time depending on your computer
+terra::plot(predictors, col = viridis::viridis(100)) ## might take some time depending on your computer
 
-# what are the differences? Have a look also at the data description file in the data folder.
+## what are the differences? Have a look also at the data description file in the data folder.
 ```
 
 ### Load shapefiles
 
 ```{r,message=FALSE}
-### Read in some Shapefiles (repetition) ###
+### Read in some Shapefiles (repetition) 
 ## package sf (new and maintained)
 
 ## Borneo outline polygon
@@ -186,7 +186,7 @@ River_shp_sf <- sf::st_read(dsn = vecs_wd,
 
 These are our observations of the species.
 ```{r}
-### The spatial point data (species records) (repetition) ###
+### The spatial point data (species records) (repetition) 
 
 # filename
 spec_pt_filename <- list.files(path = recs_wd, 
@@ -210,7 +210,7 @@ sp_recs_sf <- sf::st_as_sf(x = sp_recs,
 ## Plot data overview
 
 ```{r}
-### Plot to get an impression ###
+### Plot to get an impression 
 
 plot(ras42, col=grey.colors(20))
 plot(PA_shp_sf$geometry,border='green', lwd=1.8, add=T)
@@ -224,7 +224,7 @@ text(112.3, 6, 'Starting with SDMs', cex=1.2, col= 'red')
 ## Checking for multicollinearity
 
 ```{r}
-# workaround for slow computers. First, aggregate the 1 km² resolution into 50*50 km  
+## workaround for slow computers. First, aggregate the 1 km² resolution into 50*50 km  
 agg_pred <- terra::aggregate(x=predictors,fact=50,FUN=mean)
 plot(agg_pred)
 ```
@@ -237,7 +237,7 @@ terra::pairs(agg_pred, method = 'spearman')
 
 
 ```{r}
-# Plot the differences (residuals) between the rasters:
+## Plot the differences (residuals) between the rasters:
 diff <- terra::focalPairs(x = agg_pred, w = 3, 'pearson', na.rm = TRUE)
 plot(diff)
 ```
@@ -402,15 +402,18 @@ NODATA_value  -9999   <br>
 # Running MaxEnt from the GUI
 
 +++++++++++++++++++++++++++++++++++++++++++++++++
+<br>
 Exercise: Please run MaxEnt manually first by opening the maxent.jar 
 (double click -> then the grey GUI should open after some seconds) - see lecture.
 This helps you to understand the principles first before running the code in R.
+<br>
 +++++++++++++++++++++++++++++++++++++++++++++++++
+<br>
 
 # Running MaxEnt in R
 
-
 ## select predictors
+
 Here you can select which predictors you want to use. Please remember from the
 above exercise that current and future maps need to carry the same name,
 but in different folders, and that you must have the future
@@ -527,7 +530,9 @@ random points in space for each run, but doing it once
 outside the MaxEnt command line makes the code faster.
 
 ```{r}
-## The no. of bg points was increased to 50 to avoid conversion issues
+## The no. of bg points was increased to * 50 to avoid conversion issues
+## should be done consistently also across nobias-runs, but not done
+## here to save computation time.
 random_pts <-  dismo::randomPoints(mask = raster(bias1),
                                    n = nrow(sp_recs) * 50 , 
                                    prob = T)
@@ -816,23 +821,23 @@ library(gdistance)
 
 #PA_shp_sp <- as(PA_shp_sf, "Spatial")
 
-# Set start and end points: centers of the first two PA polygons
+## Set start and end points: centers of the first two PA polygons
 start <- st_centroid(PA_shp_sf[1,1])
 end   <- st_centroid(PA_shp_sf[2,1])
 
-# Several commands in one line when separated by ';':
-plot(me_stack[[1]]); points(start, col = "red"); points(end, col = "orange")
+## Several commands in one line when separated by ';':
+plot(me_stack[[1]]); points(start, col = "red"); points(end, col = "black")
 
-# Clip raster to save computation time
+## Clip raster to save computation time
 cr_extent <- c(114,117,3,6.5)
 me_cr <- crop(x=me_stack[[1]],y=cr_extent)
-plot(me_cr); points(start,pch=15, col = "red"); points(end,pch=15, col = "orange")
+plot(me_cr); points(start,pch=15, col = "red"); points(end,pch=15, col = "black")
 
 ### Necessary calculations
-# Calculate the transition layer
+## Calculate the transition layer
 
-# but first, we need to backtransform the SpatRaster {terra}-Object
-# into a RasterLayer {raster}-Object:
+## but first, we need to backtransform the SpatRaster {terra}-Object
+## into a RasterLayer {raster}-Object:
 me_cr_raster <- raster::raster(me_cr)
 
 trans <- gdistance::transition(x = me_cr_raster,
@@ -841,31 +846,31 @@ trans <- gdistance::transition(x = me_cr_raster,
                     symm = F)
 class(trans)
 
-# Calculate the shortest weighted connection
+## Calculate the shortest weighted connection
 sPath_sp <- gdistance::shortestPath(trans, as(start, "Spatial"), as(end, "Spatial"),
                                     output="SpatialLines")
 
 terra::crs(sPath_sp) <- "+proj=longlat +datum=WGS84 +no_defs"
-# not needed any more
-# crs(sPath_sp) <- "+proj=longlat +datum=WGS84 +no_defs"
+## not needed any more
 
-
-# Calculate the length of the path
+## Calculate the length of the path
 gdistance::costDistance(trans, as(start, "Spatial"), as(end, "Spatial")) #units?
 
 
-# Make a plot
-plot(me_cr,col=viridis(100)); points(start,pch=17,col='white'); points(end,pch=15, col='white')
-lines(sPath_sp,lwd=1, col= 'red'); plot(PA_shp_sf, border='white', lwd=0.5,add=T)
+## Make a plot
+plot(me_cr,col=viridis(100))
+points(start,pch=17,col='white'); points(end,pch=15, col='white')
+plot(PA_shp_sf, border='white', col='transparent',lwd=0.5,add=T) 
+lines(sPath_sp,lwd=1, col= 'red')
 ```
 
 
-```{r, echo=FALSE, eval=FALSE}
-# where does the animal corridor intersect rivers?
-# in sf package
+```{r}
+## where does the animal corridor intersect rivers?
+## in sf package
 River_inter1 <- sf::st_intersection(x = River_shp_sf, y = as(sPath_sp, "sf")) 
-# in sp package
-# River_inter_sp <- gIntersection(River_shp, sPath) 
+## in sp package
+## River_inter_sp <- gIntersection(River_shp, sPath) 
 
 plot(sPath_sp,lwd=3); plot(PA_shp_sp,border='grey',lwd=1,add=T)
 plot(River_shp_sf,col='blue',lwd=2,add=T)
@@ -873,7 +878,7 @@ plot(River_inter1,col='red',lwd=4,add=T); box()
 ```
 
 
-```{r, echo=FALSE, eval=FALSE}
+```{r}
 ## Which connections intersect the PAs?
 
 ## as PA_shp_sf has an invalid topology, we need the workaround with the old 
@@ -881,22 +886,20 @@ plot(River_inter1,col='red',lwd=4,add=T); box()
 # PA_inter1 <- st_intersection(x = PA_shp_sf, y = as(sPath_sp, "sf")) 
 PA_inter1 <- sf::st_intersection(sf::st_make_valid(PA_shp_sf), as(sPath_sp, "sf")) # old way
 
-plot(sPath_sp,lwd=3); plot(PA_shp_sf,border='blue',lwd=2,add=T)
+plot(sPath_sp,lwd=3) 
+plot(PA_shp_sf,border='blue', col='transparent', lwd=2,add=T)
 lines(PA_inter1,col='red',lwd=4); box()
 ```
 
 
-```{r, echo=FALSE, eval=FALSE}
+```{r}
 ### Save new line as shapefile
 cp_line <- as(sPath_sp, "sf")
 cp_line$name <- c(1:length(sPath_sp@lines))
 
 sf::st_write(obj = cp_line, dsn = paste0(output_wd,'/costpath_line.shp'), delete_layer = TRUE)
 
-## TODO: check out this package:
-# https://cran.r-project.org/web/packages/leastcostpath/vignettes/leastcostpath-1.html
-
-################  end #######################
+################  end of the course #######################
 ```
 
 
