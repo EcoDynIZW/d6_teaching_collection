@@ -996,6 +996,26 @@ ggplot(mydata, aes(wingspan, wind_speed, fill = factor(insect))) +
   geom_point(shape = 21, size=5)
 ```
 
+For visualizing distributions, the R-package 
+[`{ggdist}`](https://mjskay.github.io/ggdist/) is great: <br>
+
+```{r}
+#install.packages('ggdist')
+library(ggdist)
+ggplot(mydata, aes(x = wingspan, y = factor(insect))) +
+   stat_halfeye()
+
+
+
+(fill = "gray90") +
+  labs(x = "Wing span [mm]", y = "Taxon") +
+  theme_light()
+
+
+```
+
+
+
 
 Happy with the plot? Then save it:
 
@@ -1014,6 +1034,8 @@ ggsave(myridgeplot, file = myfilename, width = 4, height = 4)
 #- because ggsave() always refers to last plot by default:
 # ggsave(file = myfilename, width = 4, height = 4) 
 ```
+
+
 
 And find more inspiration here: https://www.r-graph-gallery.com/
 
