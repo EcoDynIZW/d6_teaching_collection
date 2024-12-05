@@ -638,7 +638,7 @@ names(me_stack) <- c('curr_noBias','fut_noBias',
 plot(me_stack,col=viridis(100)) # note: I might use a different example than you did in MaxEnt
 ```
 
-Check the range of the values
+Check the range of the suitability values
 
 ```{r}
 boxplot(me_stack,layers = c(1,3,2,4),notch=T,outline=F)
@@ -648,7 +648,13 @@ How would you interpret the results?
 
 ## Threshold selection
 
-You should have results for the runs with a bias file and without:
+You should have results for the runs with a bias file and without in a .csv file.
+When you run MaxEnt via the GUI, you receive only two results files, because the
+model is fitted to the data of the current condition; in R you will receive four
+files, simply because running MaxEnt with R for future maps is a re-fit of the
+model to current conditions. The files should be identical, so it is enough to
+only save the current results file.
+
 ```{r}
 # Use maxentResults.csv to access threshold value
 # column: 10th percentile training presence logistic threshold
@@ -668,7 +674,10 @@ me_res
 Now we do some elegant trick: we store both files as two objects in a list! 
 Similar to stacking rasters, a bit....
 ```{r}
-store_res <- lapply(me_res,FUN=read.csv) #store as list obj.
+## Please choose here:
+store_res <- lapply(me_res,FUN=read.csv) ## store as list obj. when run from GUI
+store_res <- lapply(me_res[c(1,3)],FUN=read.csv) ## when run from R
+
 ## Check the following out:
 # head(store_res) # list object with 2 slots
 # str(store_res)
@@ -680,11 +689,11 @@ We are searching for the column with the threshold.
 ## Extract the values at column '10th percentile' at position nrep +1
 ## (= nrow command) to access avg value of all repetitions at the lowest row
 
-zename<-'X10.percentile.training.presence.Logistic.threshold' # check if the column name is the same !!!!!
-## Achtung! 
+zename<-'X10.percentile.training.presence.Logistic.threshold' 
+## Note! :
 ## In MaxEnt 3.4.1 the column name is:
 ## 'X10.percentile.training.presence.Logistic.threshold'
-## with capital L in logistic
+## with capital L in 'logistic', in older versions with 'l'.
 zename
 ```
 
