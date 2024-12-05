@@ -37,7 +37,6 @@ code {
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, 
                       fig.width = 9, fig.height = 6, dev = "ragg_png")
-#knitr::opts_knit$set(root.dir = 'C:/Users/kramer/PopDynIZW Dropbox/Steph Kramer/_GitHub')
 ```
 
 <span class='exercise'> Course 3 SDM with MaxEnt </span>
@@ -87,12 +86,11 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
 ## Or set the directory of your Java location BEFORE loading the library:
 ## check with 
 
-Sys.getenv('JAVA_HOME') ## where the R-package is looking for the java.dll file
-
-## set it to the correct path:
-Sys.setenv(JAVA_HOME='C:\\Program Files (x86)\\Java\\jre1.8.0_1447\\bin') 
-## and recall the library
-library(rJava)
+#Sys.getenv('JAVA_HOME') ## where the R-package is looking for the java.dll file
+     ## set it to the correct path:
+#Sys.setenv(JAVA_HOME='C:\\Program Files (x86)\\Java\\jre1.8.0_1447\\bin') 
+     ## and recall the library
+#library(rJava)
 
 ## http://www.r-bloggers.com/how-to-load-the-rjava-package-after-the-error-java_home-cannot-be-determined-from-the-registry/ 
 ```
@@ -453,7 +451,7 @@ xm_nobias_current <- dismo::maxent(
                             x = predictors_selected, 
                             p = sp_recs[,2:3], # x and y coordinates
                             factors = 'bio_asc_42', # raster names which are factors
-                            nbg = nrow(sp_recs) * 10, # number of background points, ten times
+                            nbg = nrow(sp_recs) * 10, # number of background points, here ten times
                             path = file.path(output_wd, "/MaxEntRes", "nobias_current"), # output path
                             args = c("replicates=3", 
                                      "outputformat=logistic", 
@@ -475,7 +473,7 @@ https://github.com/shandongfx/workshop_maxent_R/blob/master/code/Appendix1_case_
 pred_no_bias_current <- terra::mean(raster::predict(xm_nobias_current, predictors_selected))
 
 writeRaster(pred_no_bias_current, 
-            file.path(output_wd, "/MaxEntRes", "nobias_current", "species_cur_avg.asc"),
+            file.path(output_wd, "/MaxEntRes", "nobias_current", "species_nobias_cur_avg.asc"),
             overwrite = TRUE)
 
 ## a little sneak preview:
@@ -530,8 +528,9 @@ random points in space for each run, but doing it once
 outside the MaxEnt command line makes the code faster.
 
 ```{r}
+## The no. of bg points was increased to 50 to avoid conversion issues
 random_pts <-  dismo::randomPoints(mask = raster(bias1),
-                                   n = nrow(sp_recs) * 50 ,
+                                   n = nrow(sp_recs) * 50 , 
                                    prob = T)
 ```
 
@@ -558,7 +557,7 @@ saveRDS(xm_withbias_current, file.path(output_wd, "/MaxEntRes", "withbias_curren
 pred_with_bias_current <- terra::mean(raster::predict(xm_withbias_current, raster::stack(predictors_selected)))
 
 writeRaster(pred_with_bias_current, 
-            file.path(output_wd, "/MaxEntRes", "withbias_current", "species_selection_cur_avg.asc"),
+            file.path(output_wd, "/MaxEntRes", "withbias_current", "species_bias_cur_avg.asc"),
             overwrite = TRUE)
 
 ## a little sneak preview:
@@ -584,23 +583,22 @@ xm_withbias_future <- dismo::maxent(
 saveRDS(xm_withbias_future, file.path(output_wd, "/MaxEntRes", "withbias_future", "maxent_withbias_future.rds"))
 ```
 
- TODO - stopped here - need to run prior code
- 
-# After results generated - CONTINUE HERE
 
-TODO - write that we can cnotinue irrespective of R or manual running Maxent
+# CONTINUE HERE after results generated 
 
-# Accessing MaxEnt results
+Since we now have results produced irrespective of whether we used R or the GUI
+for MaxEnt, we can have a look at the results produced. Please listen to the lecture
+to understand the type of results we are exploring in the following.
 
-## List the results
+## Accessing MaxEnt results
+
+Have a look at the MaxEnt layers and results produced in the folder MaxEntRes.
+MaxEnt saves the average of x repetitions (remember, we ran 3 repetitions)
+in a file with '_avg.asc' at the end of the name.Please take care that you
+have results in each of the four folders under MaxEntRes, and that the folders
+are built in the way we did it above.
 
 ```{r}
-# Have a look at the MaxEnt layers produced
-# MaxEnt saves the mean of x repetitions in _avg.asc
-
-# The script now only works with the folder structure
-# MaxEntRes/nobias
-# MaxEntres/withbias
 
 # new argument 'recursive' means, that also subfolders are checked!
 infiles <- list.files(path=paste(output_wd,'/MaxEntRes',
