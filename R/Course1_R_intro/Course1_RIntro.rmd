@@ -1002,22 +1002,21 @@ For visualizing distributions, the R-package
 ```{r}
 #install.packages('ggdist')
 library(ggdist)
-ggplot(mydata, aes(x = wingspan, y = factor(insect))) +
-   stat_halfeye()
+theme_set(theme_ggdist())
 
-
-
-(fill = "gray90") +
-  labs(x = "Wing span [mm]", y = "Taxon") +
-  theme_light()
-
-
+ggplot(mydata, aes(x = wingspan, y = factor(insect), fill = factor(insect))) +
+   stat_halfeye() +
+   scale_fill_brewer(palette = "Set2") + 
+   stat_dotsinterval(side = "bottom", scale = 0.4, slab_linewidth = NA) +
+  
+   ggtitle("wing span distributions") +
+   xlab("wing span [mm]") +
+   ylab("insect species") +
+   guides(fill=guide_legend(title="species"))
 ```
 
 
-
-
-Happy with the plot? Then save it:
+Happy with the plot? Then save it, e.g. the ridge plot:
 
 ```{r, eval=-5}
 myridgeplot <- ggplot(mydata, aes(x = wingspan, y = factor(insect))) +
