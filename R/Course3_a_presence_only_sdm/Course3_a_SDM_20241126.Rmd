@@ -819,7 +819,7 @@ library(gdistance)
 # we need a workaround, because we need the PAs now as SpatialPolygonDataFrame, 
 # and not as sf-Object (gdistance works with old format)
 
-#PA_shp_sp <- as(PA_shp_sf, "Spatial")
+PA_shp_sp <- as(PA_shp_sf, "Spatial")
 
 ## Set start and end points: centers of the first two PA polygons
 start <- st_centroid(PA_shp_sf[1,1])
@@ -903,6 +903,7 @@ sf::st_write(obj = cp_line, dsn = paste0(output_wd,'/costpath_line.shp'), delete
 ```
 
 
+
 ```{r,echo=FALSE, eval=FALSE}
 ### For the making of the script only ####
 ### Please ignore ########################
@@ -925,6 +926,6 @@ sf::st_write(obj = cp_line, dsn = paste0(output_wd,'/costpath_line.shp'), delete
 # 
 # write.csv(data_sub, here("data", "data_borneo", "animal_data", "Pardofelis_marmorata.csv"), row.names = FALSE)
 ###############################################################################
-```````
+```
 
 
