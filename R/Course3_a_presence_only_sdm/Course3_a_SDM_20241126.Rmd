@@ -363,6 +363,7 @@ plot(bias1, col = viridis(7)) #or col = grey.colors(7)
 ## since I used setwd() to the output folder, it is automatically stored there,
 ## if not, paste the path to the filename, i.e. 
 ## filename=paste0(output_wd,"/bias_2023.asc") #or # here(output_wd,"bias_2023.asc")
+getwd()
 terra::writeRaster(bias1, filename="bias_2025.asc",
             overwrite=TRUE,NAflag=-9999)
 ```
