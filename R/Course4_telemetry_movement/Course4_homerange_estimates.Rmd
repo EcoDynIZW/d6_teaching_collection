@@ -1,0 +1,481 @@
+---
+title: "Tutorial Part VI — homerange estimates with amt"
+author: "Stephanie Kramer-Schadt & Moritz Wenzler-Meya"
+date: "`r Sys.setlocale('LC_TIME','C'); paste('Last Update', format(Sys.time(), '%B %e, %Y'))`"
+output:
+  rmdformats::readthedown:
+    highlight: kate
+    code_folding: show
+    toc_depth: 4
+    toc_float: true
+editor_options:
+  chunk_output_type: console
+params:
+  date: !r Sys.Date()
+---
+
+<style>
+h1, h2, h3 {
+  margin-top: 50px;
+}
+h1 {
+  color: Orange ;
+}
+h2, h3, h4, h5, h6, legend {
+  color: Indigo ;
+}
+p {
+  line-height:170%;
+}
+sidebar h2 {
+  background-color: Indigo;
+}
+code {
+  color: Indigo ;
+}
+.exercise {
+  color: #824b00;
+}
+</style>
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, 
+                      dev = "ragg_png", fig.width = 9, fig.height = 6, dpi = 600, retina = 1)
+Sys.setlocale("LC_TIME", "C")
+```
+
+<span class='exercise'> Course 4 homerange estimates with amt </span>
+
+
+# Preparations
+
+## Load libraries
+
+```{r load packages,message=FALSE}
+
+### The packages (repetition) ###
+   library(here)
+   library(sf)
+   library(tmap)
+   library(terra)
+   library(amt)
+   library(viridis)
+   #library(ctmm)
+   #library(adehabitatHR)
+```
+
+## Set the workspace
+
+```{r workspace}
+### The workspace  (repetition) ###
+getwd() # you can also use the package 'here()'
+
+# my data are outside my course-folder, therefore I have to do it the old-fashioned way.
+root_wd <- here::here() 
+# relative to work-wd
+maps_wd <- paste(root_wd,"/","data/data_move",sep='') # or:
+geo_wd <- paste(root_wd,"/","data/data_move/geo-raw",sep='')
+
+# the output folder should have been created by you during Tutorial 2 'R goes spatial'.
+# It should contain the hillshade.asc
+output_wd <- here::here("output")
+
+setwd(output_wd) ## set to the OUTPUT folder!
+getwd() # check
+```
+
+# Load spatial data and define the CRS
+
+## animal locations
+
+```{r animal locations}
+### Data import - Load spatial data (repetition) ###
+
+animal_relocations <- sf::st_read(paste(maps_wd, "animal_relocations_32633.shp", sep = "/"))
+
+head(animal_relocations)
+```
+
+## rivers
+
+```{r rivers}
+rivers <- sf::st_read(paste(geo_wd, "water_linear_32633.shp", sep = "/"))
+
+head(rivers)
+```
+
+
+```{r, eval=FALSE}
+sf::st_crs(rivers) # check the crs
+```
+
+```{r}
+sf::st_crs(rivers)$epsg # show the epsg code
+```
+
+
+## landuse 
+
+```{r landuse}
+landuse <- sf::st_read(paste(geo_wd, "landuse_3035.shp", sep = "/"))
+
+head(landuse)
+
+#sf::st_crs(landuse) # check crs
+sf::st_crs(rivers)$epsg # show the epsg code
+
+# transform to river crs
+landuse_trans <- sf::st_transform(landuse, sf::st_crs(rivers))
+```
+
+## kettle holes
+
+```{r kettle holes}
+kettleholes <- read.delim(paste(maps_wd, "KettleHoles2.txt", sep = "/"))
+
+head(kettleholes)
+
+# tranform to sf object
+kettleholes_sf <- sf::st_as_sf(x = kettleholes,
+                               coords = c("MyX", "MyY"),
+                               crs = 32633) # which crs should we use? Compare coordinates with coordinates from the other files
+```
+
+## plot the data with tmap
+
+```{r,out.height="700px",out.width="700px"}
+tmap::tmap_mode("view")
+tmap::tmap_options(check.and.fix = TRUE)
+tmap::tm_shape(landuse_trans) + tmap::tm_polygons(col = "NS1", palette = "Greens") +
+tmap::tm_shape(animal_relocations) + tmap::tm_dots(col = "red") + 
+  tmap::tm_shape(rivers) + tmap::tm_lines(col = "blue") + 
+  tmap::tm_shape(kettleholes_sf) + tmap::tm_dots(col = "orange")
+
+```
+
+# Biodiversity index
+
+## create buffers around kettleholes
+
+```{r}
+kettleholes_sf_buf <- sf::st_buffer(x = kettleholes_sf, dist = 1000)# test different buffers (e.g. 100m, 500m, 1000m....)
+
+head(kettleholes_sf_buf)
+```
+
+## intersect landuse with kettleholes
+
+```{r}
+landuse_ext_buf <- sf::st_intersection(landuse_trans, kettleholes_sf_buf)
+
+head(landuse_ext_buf)
+```
+
+## calculate area of each category of column NS1
+
+```{r}
+landuse_ext_buf$area_ns1 <- sf::st_area(landuse_ext_buf)
+
+# show the first 20 area calculations of the landuse category
+head(landuse_ext_buf$area_ns1, 20)
+
+# check first which categories are existing in the data
+
+table(landuse_ext_buf$NS1)
+
+landuse_df <- data.frame(landuse_ext_buf) # transform to a data frame
+landuse_df <- landuse_df[,c("No","NS1","area_ns1")] # select only necessary columns
+
+landuse_df_sub <- data.frame(
+  No = c(1,2,3), # add No column by Hand
+  NS1 = c(1,2,3), # add NS1 column category by Hand
+  # calculate the area per No and NS1 category
+  area_ns1_1 = c(sum(landuse_df[which(landuse_df$No == 1 & landuse_df$NS1 == 1 ),]$area_ns1), # No = 1 and NS1 = 1
+               sum(landuse_df[which(landuse_df$No == 2 & landuse_df$NS1 == 1 ),]$area_ns1), # No = 2 and NS1 = 1
+               sum(landuse_df[which(landuse_df$No == 3 & landuse_df$NS1 == 1 ),]$area_ns1) # No = 3 and NS1 = 1
+               ),
+  area_ns1_2 = c(sum(landuse_df[which(landuse_df$No == 1 & landuse_df$NS1 == 2 ),]$area_ns1), # No = 1 and NS1 = 2
+               sum(landuse_df[which(landuse_df$No == 2 & landuse_df$NS1 == 2 ),]$area_ns1), # No = 2 and NS1 = 2
+               sum(landuse_df[which(landuse_df$No == 3 & landuse_df$NS1 == 2 ),]$area_ns1) # No = 3 and NS1 = 2
+               ),
+  area_ns1_3 = c(sum(landuse_df[which(landuse_df$No == 1 & landuse_df$NS1 == 3 ),]$area_ns1), # No = 1 and NS1 = 3
+               sum(landuse_df[which(landuse_df$No == 2 & landuse_df$NS1 == 3 ),]$area_ns1), # No = 2 and NS1 = 3
+               sum(landuse_df[which(landuse_df$No == 3 & landuse_df$NS1 == 3 ),]$area_ns1) # No = 3 and NS1 = 3
+               )
+)
+
+
+# combine kettleholes sf data set with the extracted landuse data
+kettleholes_sub <- dplyr::left_join(kettleholes_sf, landuse_df_sub, by = "No")
+
+head(kettleholes_sub)
+```
+
+## intersect the animal relocations with the landuse
+
+```{r}
+animal_relocations_inter <- sf::st_intersection(animal_relocations, landuse_trans[,"NS1"])
+
+head(animal_relocations_inter)
+
+# compare landuse category per animal ID
+table(animal_relocations_inter$NS1, animal_relocations_inter$ID)
+```
+
+
+# mcp and kde with amt
+
+## data preperation for amt package
+
+```{r}
+## split by animal id
+
+animal_relocations_id1 <- animal_relocations[which(animal_relocations$ID == 1),] 
+animal_relocations_id2 <- animal_relocations[which(animal_relocations$ID == 2),]
+animal_relocations_id3 <- animal_relocations[which(animal_relocations$ID == 3),]
+
+# transform the sf data to a data frame for later use with the amt package.
+
+animal_relocations_df_id1 <- data.frame(id = animal_relocations_id1$ID,
+                                     x = sf::st_coordinates(animal_relocations_id1)[,1], # get the coordinates. First column for x
+                                     y = sf::st_coordinates(animal_relocations_id1)[,2], # get the coordinates. Second column for y
+                                     t = 1:nrow(animal_relocations_id1)) # add t column with the row id 
+
+animal_relocations_df_id2 <- data.frame(id = animal_relocations_id2$ID,
+                                     x = sf::st_coordinates(animal_relocations_id2)[,1], # get the coordinates. First column for x
+                                     y = sf::st_coordinates(animal_relocations_id2)[,2], # get the coordinates. Second column for y
+                                     t = 1:nrow(animal_relocations_id2))
+
+animal_relocations_df_id3 <- data.frame(id = animal_relocations_id3$ID,
+                                     x = sf::st_coordinates(animal_relocations_id3)[,1], # get the coordinates. First column for x
+                                     y = sf::st_coordinates(animal_relocations_id3)[,2], # get the coordinates. Second column for y
+                                     t = 1:nrow(animal_relocations_id3))
+```
+
+## calculate mcp kettlehole 1
+
+Create an MCP and an KDE for each kettlehole seperatly. Compare the MCP and KDE. What is the difference?
+
+```{r}
+# convert to track object. This is necessary to work with the amt package
+animal_relocations_hr_id1 <- amt::make_track(tbl = animal_relocations_df_id1,
+                                          .x = x,
+                                          .y = y,
+                                          .t = t,
+                                          crs = sf::st_crs(animal_relocations)) # we are using the same crs as in the original data
+
+mcps_id1 <- amt::hr_mcp(x = animal_relocations_hr_id1, # the track object
+                        levels = c(0.95)) # define the level of the mcp. How many data points are covered by the mcp
+
+mcps_sf_id1 <- sf::st_as_sf(mcps_id1$mcp) # convert to sf object to use it outside of the amt package
+
+mcps_sf_id1
+```
+
+## calculate kde for kettlehole 1
+
+```{r}
+kde_id1 <- amt::hr_kde(x = animal_relocations_hr_id1, # the track object
+                       levels = c(0.95)) # as in mcp
+
+kde_sf_id1 <- amt::hr_isopleths(kde_id1) # get the isopleths of the kde to have a polygon
+
+kde_sf_id1
+```
+
+## create random points within the mcp
+
+```{r}
+random_pts_id1 <- sf::st_sample(x = mcps_sf_id1, # as input we use the mcp polygon
+                                size = nrow(animal_relocations_id1)) # same number as locations
+
+random_pts_sf_id1 <- sf::st_as_sf(random_pts_id1) # transform to a proper sf object
+
+head(random_pts_sf_id1)
+```
+
+## intersect the random points with the landuse dataset
+
+```{r}
+random_pts_id1_inter <- sf::st_intersection(random_pts_sf_id1, # input random points
+                                            landuse_trans[,"NS1"]) # transformed landuse 
+
+random_pts_id1_inter$ID <- 1 # add ID
+
+head(random_pts_id1_inter)
+```
+
+## calculate mcp for kettlehole 2
+
+Create an MCP and an KDE for each kettlehole seperatly. Compare the MCP and KDE. What is the difference?
+
+```{r}
+# convert to track object. This is necessary to work with the amt package
+animal_relocations_hr_id2 <- amt::make_track(tbl = animal_relocations_df_id2,
+                                          .x = x,
+                                          .y = y,
+                                          .t = t,
+                                          crs = sf::st_crs(animal_relocations)) # we are using the same crs as in the original data
+
+mcps_id2 <- amt::hr_mcp(x = animal_relocations_hr_id2, # the track object
+                        levels = c(0.95)) # define the level of the mcp. How many data points are covered by the mcp
+
+mcps_sf_id2 <- sf::st_as_sf(mcps_id2$mcp) # convert to sf object to use it outside of the amt package
+```
+
+## calculate kde for kettlehole 2
+
+```{r}
+kde_id2 <- amt::hr_kde(x = animal_relocations_hr_id2, # the track object
+                       levels = c(0.95)) # as in mcp
+
+kde_sf_id2 <- amt::hr_isopleths(kde_id2) # get the isopleths of the kde to have a polygon
+
+kde_sf_id2
+```
+
+## create random points within the mcp
+
+```{r}
+random_pts_id2 <- sf::st_sample(x = mcps_sf_id2, # as input we use the mcp polygon
+                                size = nrow(animal_relocations_id2)) # same number as locations
+
+random_pts_sf_id2 <- sf::st_as_sf(random_pts_id2) # transform to a proper sf object
+
+head(random_pts_sf_id2)
+```
+
+## intersect the random points with the landuse dataset
+
+```{r}
+random_pts_id2_inter <- sf::st_intersection(random_pts_sf_id2, # input random points
+                                            landuse_trans[,"NS1"]) # transformed landuse 
+
+random_pts_id2_inter$ID <- 2 # add ID
+
+head(random_pts_id2_inter)
+```
+
+## calculate mcp for kettlehole 3
+
+Create an MCP and an KDE for each kettlehole seperatly. Compare the MCP and KDE. What is the difference?
+
+```{r}
+# convert to track object. This is necessary to work with the amt package
+animal_relocations_hr_id3 <- amt::make_track(tbl = animal_relocations_df_id3,
+                                          .x = x,
+                                          .y = y,
+                                          .t = t,
+                                          crs = sf::st_crs(animal_relocations)) # we are using the same crs as in the original data
+
+mcps_id3 <- amt::hr_mcp(x = animal_relocations_hr_id3, # the track object
+                        levels = c(0.95)) # define the level of the mcp. How many data points are covered by the mcp
+
+mcps_sf_id3 <- sf::st_as_sf(mcps_id3$mcp) # convert to sf object to use it outside of the amt package
+
+mcps_sf_id3
+```
+
+## calculate kde for kettlehole 3
+
+```{r}
+kde_id3 <- amt::hr_kde(x = animal_relocations_hr_id3, # the track object
+                       levels = c(0.95)) # as in mcp
+
+kde_sf_id3 <- amt::hr_isopleths(kde_id3) # get the isopleths of the kde to have a polygon
+
+head(kde_sf_id3)
+```
+
+## create random points within the mcp
+
+```{r}
+random_pts_id3 <- sf::st_sample(x = mcps_sf_id3, # as input we use the mcp polygon
+                                size = nrow(animal_relocations_id3)) # same number as locations
+
+random_pts_sf_id3 <- sf::st_as_sf(random_pts_id3) # transform to a proper sf object
+
+head(random_pts_sf_id3)
+```
+
+## intersect the random points with the landuse dataset
+
+```{r}
+random_pts_id3_inter <- sf::st_intersection(random_pts_sf_id3, # input random points
+                                            landuse_trans[,"NS1"]) # transformed landuse 
+
+random_pts_id3_inter$ID <- 3 # add ID
+
+head(random_pts_id3_inter)
+```
+
+## plot the data
+
+```{r,out.height="700px",out.width="700px"}
+tmap::tmap_mode("view")
+tmap::tm_shape(mcps_sf_id1) + tmap::tm_borders(col = "blue") + 
+  tmap::tm_shape(kde_sf_id1) + tmap::tm_borders(col = "orange") + 
+  tmap::tm_shape(animal_relocations_id1) + tmap::tm_dots(col = "green") + 
+  tmap::tm_shape(random_pts_id1_inter) + tmap::tm_dots(col = "red") +
+tmap::tm_shape(mcps_sf_id2) + tmap::tm_borders(col = "blue") + 
+  tmap::tm_shape(kde_sf_id2) + tmap::tm_borders(col = "orange") + 
+  tmap::tm_shape(animal_relocations_id2) + tmap::tm_dots(col = "green") + 
+  tmap::tm_shape(random_pts_id2_inter) + tmap::tm_dots(col = "red") +
+tmap::tm_shape(mcps_sf_id3) + tmap::tm_borders(col = "blue") + 
+  tmap::tm_shape(kde_sf_id3) + tmap::tm_borders(col = "orange") + 
+  tmap::tm_shape(animal_relocations_id3) + tmap::tm_dots(col = "green") + 
+  tmap::tm_shape(random_pts_id3_inter) + tmap::tm_dots(col = "red") 
+```
+
+## combine all random points
+
+```{r}
+random_pts_inter_all <- rbind(random_pts_id1_inter,
+                              random_pts_id2_inter,
+                              random_pts_id3_inter)
+```
+
+
+# calcualte xhi square test
+
+```{r}
+table(random_pts_inter_all$NS1) # random
+table(animal_relocations_inter$NS1) # observed
+
+#LANDNUTZUNGSTYP
+# TYP             #Feld(NS1=2)      #Wald(NS1=3)
+#Angebot(random)     278              110
+#Tier (observed)     168              220
+
+chi_matrix <- matrix(data=c(278,110,168,220),ncol=2)
+chisq.test(chi_matrix)
+
+# 'von Hand' ausrechnen:
+aa <- chi_matrix[1,1]
+bb <- chi_matrix[1,2]
+cc <- chi_matrix[2,1]
+dd <- chi_matrix[2,2]
+
+Na <- aa+bb
+Nb <- cc+dd
+Ns <- aa+cc
+Nf <- bb+dd
+N <- Na+Nb
+
+mychi <- (N*(abs((aa*dd) - (bb*cc)) - (N/2))^2) / (Ns*Nf*Na*Nb)
+mychi
+```
+
+
+<br><hr><br>
+
+<details><summary>Session Info</summary>
+
+```{r sessionInfo}
+Sys.time()
+#git2r::repository() ## uncomment if you are using GitHub
+sessionInfo()
+```
+
+</details>
