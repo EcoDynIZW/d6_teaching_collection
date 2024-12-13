@@ -1717,6 +1717,9 @@ ggplot() +
 The [`{rgeoboundaries}` package](https://github.com/wmgeolab/rgeoboundaries) uses the Global Database of Political Administrative Boundaries that provide generally accepted political borders. The data are licensed openly. 
 
 ```{r rgeoboundaries-world}
+#install.packages("remotes")
+remotes::install_github("wmgeolab/rgeoboundaries")
+## you might need to insttall 'hoardr' manually
 library(rgeoboundaries)
 ## you might be asked to create a cache folder -> click yes
 
