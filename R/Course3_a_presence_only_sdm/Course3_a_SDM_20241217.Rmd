@@ -54,13 +54,13 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
    library(predicts)
    library(terra)
    library(viridis)
-   library(rgl) # not needed?
-   library(unmarked) # not needed?
-   library(spatstat) # not needed?
+   #library(rgl) # not needed?
+   #library(unmarked) # not needed?
+   #library(spatstat) # not needed?
 
 ## check that the package raster is detached if you work with terra!
 ## However, it is later needed for the stack
-  library(raster) # not needed?
+  #library(raster) # not needed?
 # detach(package:raster)
 ```
 
@@ -857,7 +857,7 @@ lines(sPath_sf,lwd=1, col= 'red')
 
 # Least cost path for connectivity
 
-```{r}
+```{r, eval=FALSE}
 #install.packages('gdistance')
 library(gdistance)
 #?gdistance
@@ -916,7 +916,7 @@ lines(sPath_sp,lwd=1, col= 'red')
 ## in sf package
 River_inter1 <- sf::st_intersection(x = River_shp_sf, y = sPath_sf) 
 
-plot(sPath_sp,lwd=3); plot(PA_shp_sp,border='grey',lwd=1,add=T)
+plot(sPath_sf[,1],lwd=3); plot(PA_shp_sf,border='grey',lwd=1,add=T)
 plot(River_shp_sf,col='blue',lwd=2,add=T)
 plot(River_inter1,col='red',lwd=4,add=T); box()
 ```
@@ -929,7 +929,7 @@ plot(River_inter1,col='red',lwd=4,add=T); box()
 ## {rgeos}package; https://github.com/r-spatial/sf/issues/1902
 PA_inter1 <- sf::st_intersection(sf::st_make_valid(PA_shp_sf), sPath_sf) # old way
 
-plot(sPath_sp,lwd=3) 
+plot(sPath_sf[,1],lwd=3) 
 plot(PA_shp_sf,border='blue', col='transparent', lwd=2,add=T)
 lines(PA_inter1,col='red',lwd=4); box()
 ```
