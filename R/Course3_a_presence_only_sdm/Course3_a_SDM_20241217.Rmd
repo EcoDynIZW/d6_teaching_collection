@@ -831,8 +831,11 @@ me_cr <- terra::crop(x=me_stack[[1]],y=cr_extent)
 plot(me_cr); points(start,pch=15, col = "red"); points(end,pch=15, col = "orange")
 
 ### Necessary calculations
-## Calculate the transition layer
+## check out help first
 
+#?spaths::shortest_paths
+
+# calculate shortest path
 sPath_v <- spaths::shortest_paths(rst = me_cr,
                                    origins = start,
                                    destinations = end,
@@ -849,8 +852,8 @@ st_length(sPath_sf)
 ## Make a plot
 plot(me_cr,col=viridis(100))
 points(start,pch=17,col='white'); points(end,pch=15, col='white')
-plot(PA_shp_sf, border='white', col='transparent',lwd=0.5,add=T) 
-lines(sPath_sf,lwd=1, col= 'red')
+plot(PA_shp_sf[,1], border='white', col='transparent',lwd=0.5,add=T) 
+lines(sPath_sf[,1],lwd=1, col= 'red')
 ```
 
 ##### old not run #####
@@ -916,9 +919,11 @@ lines(sPath_sp,lwd=1, col= 'red')
 ## in sf package
 River_inter1 <- sf::st_intersection(x = River_shp_sf, y = sPath_sf) 
 
-plot(sPath_sf[,1],lwd=3); plot(PA_shp_sf,border='grey',lwd=1,add=T)
-plot(River_shp_sf,col='blue',lwd=2,add=T)
-plot(River_inter1,col='red',lwd=4,add=T); box()
+plot(sf::st_geometry(sPath_sf),lwd=3) # we need st_geometry to have a good plot
+plot(PA_shp_sf[,1],border='grey',lwd=1,add=T)
+plot(River_shp_sf[,1],col='blue',lwd=2,add=T)
+plot(River_inter1[,1],col='red',lwd=4,add=T)
+box()
 ```
 
 
@@ -929,7 +934,7 @@ plot(River_inter1,col='red',lwd=4,add=T); box()
 ## {rgeos}package; https://github.com/r-spatial/sf/issues/1902
 PA_inter1 <- sf::st_intersection(sf::st_make_valid(PA_shp_sf), sPath_sf) # old way
 
-plot(sPath_sf[,1],lwd=3) 
+plot(sf::st_geometry(sPath_sf),lwd=3)  # we need st_geometry to have a good plot
 plot(PA_shp_sf,border='blue', col='transparent', lwd=2,add=T)
 lines(PA_inter1,col='red',lwd=4); box()
 ```
