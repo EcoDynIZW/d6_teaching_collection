@@ -75,7 +75,7 @@ for (package in package.list) {
 
 
 ```{r, eval=FALSE, message=FALSE}
-remotes::install_github("EcoDynIZW/d6berlin")
+#remotes::install_github("EcoDynIZW/d6berlin")
 ```
 
 
@@ -265,7 +265,31 @@ predict(object = cjs_m1_2,
         se = TRUE)
 ```
 What does that mean?
-The survival probability between capture events was 0.52. The probability to capture an individual during a capture event was 0.90.
+The survival probability between capture events was 0.52. The probability to capture an individual during a capture event was 0.90. Let's visualize this in a plot:
+
+```{r plot_added_by_steph}
+# store prediction as object
+mypred_list <- predict(object = cjs_m1_2,
+            newdata = data.frame(sex = c("Female", "Male")),
+            se = TRUE)
+#mypred_list ## this is a list. Convert into data.frame:
+mypred_df <- do.call(rbind, mypred_list)
+## add the rownames phi and p as column
+mypred_df$prob <- rownames(mypred_df)
+
+
+ggplot(data=mypred_df, aes(x=prob, y=estimate, color = prob)) + 
+      geom_point(size = 5) +
+      geom_errorbar(aes(ymin = lcl, ymax = ucl, col = prob),width =  0.25) +
+      ggtitle("detection (p) and survival prob. (phi)") + 
+      xlab("result") + ylab("estimate") +
+      theme_bw(base_size = 20) 
+
+## I love this for great plots:  
+##https://github.com/CerrenRichards/ggplot2-for-publications
+```
+
+
 
 As mentioned before, we assume constant time intervals between capturing events. In reality, this is often not the case, e.g. capturing events have to be postponed due to weather conditions.
 Now we build a model where we take this into account.
