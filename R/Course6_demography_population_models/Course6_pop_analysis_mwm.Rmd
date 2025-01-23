@@ -67,7 +67,7 @@ package.list=c("here",
 
 for (package in package.list) {
   if (!require(package, character.only=T, quietly=T)) {
-    #install.packages(package)
+    install.packages(package) ##take out for knitting
     library(package, character.only=T)
   }
 }
@@ -75,7 +75,7 @@ for (package in package.list) {
 
 
 ```{r, eval=FALSE, message=FALSE}
-#remotes::install_github("EcoDynIZW/d6berlin")
+remotes::install_github("EcoDynIZW/d6berlin") ##take out for knitting
 ```
 
 
@@ -285,7 +285,7 @@ ggplot(data=mypred_df, aes(x=prob, y=estimate, color = prob)) +
       xlab("result") + ylab("estimate") +
       theme_bw(base_size = 20) 
 
-## I love this for great plots:  
+## Tip for great plots:  
 ##https://github.com/CerrenRichards/ggplot2-for-publications
 ```
 
