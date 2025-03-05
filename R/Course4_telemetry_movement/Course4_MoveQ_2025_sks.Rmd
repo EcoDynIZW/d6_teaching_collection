@@ -25,7 +25,7 @@ h2, h3, h4, h5, h6, legend {
 p {
   line-height:170%;
 }
-#sidebar h2 {
+sidebar h2 {
   background-color: Indigo;
 }
 code {
@@ -131,15 +131,15 @@ https://github.com/EcoDynIZW/d6
 In any case, the course folder has the following structure:  
 
 ```{text}
-.
-└── d6_teaching_collection         – (root folder)
-    ├─── data                      
-       ├─── data_move              – (contains the file with the GPS locations)
-    ├─── docs
-    ├─── output                    – (contains the cleaned files and processed data)
-    ├─── plots
-    ├─── R                         – (contains the R-script)
-    └ d6_teaching_collection.Rproj – (the RStudio-Project file location)
+#.
+#└── d6_teaching_collection         – (root folder)
+#    ├─── data                      
+#       ├─── data_move              – (contains the file with the GPS locations)
+#    ├─── docs
+#    ├─── output                    – (contains the cleaned files and processed data)
+#    ├─── plots
+#    ├─── R                         – (contains the R-script)
+#    └ d6_teaching_collection.Rproj – (the RStudio-Project file location)
 ```
 <br>
 
@@ -174,7 +174,6 @@ library(lubridate)     ## for date handling
 library(sf)            ## for handling simple feature objects
 library(sp)            ## for handling Spatial* objects
 library(raster)        ## for handling raster objects
-#library(rgeos)         ## retiring end of 2023 -> use sf
 library(ggplot2)       ## for nice static plots
 library(tmap)          ## for nice interactive maps
 library(circular)      ## for circular stats + plots
@@ -640,19 +639,36 @@ Because we are dealing with spatial measures (e.g. area, distance, perimeter,...
 I recommend to work with projected coordinates. To create a move-object,
 the coordinates of the projected CRS need to be appended to a data.frame:
 ```{r}
-## assign columns with coordinates to use later in data frame
+## assign columns with coordinates_epsg to use later in data frame for amt-object
 mydf_sf_trans$X_3035 <- st_coordinates(mydf_sf_trans)[,1]
 mydf_sf_trans$Y_3035 <- st_coordinates(mydf_sf_trans)[,2]
 
 ## new object as data frame
-anim_for_move <- st_drop_geometry(mydf_sf_trans) 
+anim_for_move <- st_drop_geometry(mydf_sf_trans)
+head(anim_for_move)
 
+
+#################### STEPH TODO - ab hier könnte man amt nehmen! SKS2025
 ## now turn into move object
-my_fox <- move(x = anim_for_move$X_3035, y = anim_for_move$Y_3035,
+# SKS2025 - I renamed my_fox to my_fox_move
+my_fox_move <- move(x = anim_for_move$X_3035, y = anim_for_move$Y_3035,
                time = as.POSIXct(anim_for_move$start.timestamp, format = "%Y-%m-%d %H:%M:%S"),
                proj = CRS("+init=epsg:3035"),
                data = anim_for_move,
                animal = "FoxQvonStralau")  
+
+
+### SKS2025
+## now turn into amt object
+all(complete.cases(anim_for_move))
+my_fox <- make_track(tbl = anim_for_move, 
+                     .x  = X_3035, 
+                     .y  = Y_3035, 
+                     .t  = start.timestamp, 
+                     id = tag.serial.number, 
+                     month = month, 
+                     crs = 3035)
+
 ```
 
 A hint (for the exercises later, so please read!): check the argument 'animal'. Here,
@@ -673,6 +689,11 @@ I put one name, however, if multiple individuals are used, you can provide a vec
 ### Time lags between the fixes:
 
 ```{r}
+
+# SKS2025 continue here
+# https://cran.r-project.org/web/packages/amt/vignettes/p1_getting_started.html
+
+
 timeLag(my_fox, unit = "mins")[1:5] ## varies a lot, but minimum here 20 min
 min(timeLag(my_fox, units = "mins"))
 mean(timeLag(my_fox, units = "mins"))
@@ -874,6 +895,8 @@ plot_ly(z = myz, type = "surface") # click into plot and on icon 'turntable rota
 -> go to
 
 ## Exercise 4.2
+
+https://cran.r-project.org/web/packages/amt/vignettes/p3_rsf.html
 
 
 ```{r, eval=FALSE, echo=FALSE, results='hide'}
