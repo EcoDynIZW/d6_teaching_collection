@@ -440,7 +440,8 @@ is about 3 times smaller than the '.csv' file.
 
 **This is a recap from Course2. Please plot the animal relocations in two different 
 colours based on the column `daytime`, using one of 
-the options to create maps with `{ggplot2}`, `{ggpmap}`, `{leaflet}` or `{tmap}`.
+the options to create maps with `{ggplot2}`, `{ggmap}`, `{leaflet}` , `{tmap}` or
+`{ggspatial}`.
 Use the processed file of fox Q (*tag5334_gps_proc*) and do it in a separate script. 
 Save your script as `Course4_Exercise1_*yourname*.R`.
 <br><br>
@@ -632,18 +633,7 @@ Or are these outliers? No: the lake was frozen - check the date! Note: you reall
 
 Check here for the possibilities of what to do with the `{amt}`-package: 
 <br>
-* https://cran.r-project.org/web/packages/move/vignettes/move.html <br>
-
-
-Note: For consistency, I will also show how to create a `{move}`-object for 
-compatibility with the packages `{move}` and `{move2}`, which have direct links 
-to the global movebank.org database:
-Check here for the possibilities of what to do with the packages: 
-<br>
-* https://cran.r-project.org/web/packages/move/vignettes/move.html <br>
-* https://rdrr.io/cran/move/f/vignettes/move.Rmd <br>
-* https://rdrr.io/cran/move2/#vignettes <br>
-
+* https://cran.r-project.org/web/packages/amt/vignettes/p1_getting_started.html <br>
 
 Because we are dealing with spatial measures (e.g. area, distance, perimeter,...),
 I recommend to work with projected coordinates. To create a move-object,
@@ -662,6 +652,14 @@ head(anim_for_move)
 ```{r, echo=FALSE, eval=FALSE}
 ## SKIP
 
+##Note: For consistency, I will also show how to create a `{move}`-object for 
+##compatibility with the packages `{move}` and `{move2}`, which have direct links 
+##to the global movebank.org database:
+##Check here for the possibilities of what to do with the packages:
+##* https://cran.r-project.org/web/packages/move/vignettes/move.html <br>
+##* https://rdrr.io/cran/move/f/vignettes/move.Rmd <br>
+##* https://rdrr.io/cran/move2/#vignettes <br>
+
 ## the commands in 'move'-package
 my_fox_move <- move(x = anim_for_move$X_3035, y = anim_for_move$Y_3035,
                time = as.POSIXct(anim_for_move$start.timestamp, format = "%Y-%m-%d %H:%M:%S"),
@@ -677,6 +675,23 @@ my_fox_move <- move(x = anim_for_move$X_3035, y = anim_for_move$Y_3035,
 #                animal="FoxQvonStralau")  
 # head(my_fox_move); nrow(my_fox_move)
 
+## time lag, step length and turning angles
+timeLag(my_fox_move, unit = "mins")[1:5] ## varies a lot, but minimum here 20 min
+min(timeLag(my_fox_move, units = "mins"))
+mean(timeLag(my_fox_move, units = "mins"))
+max(timeLag(my_fox_move, units = "mins"))
+
+turnang <- angle(my_fox_move)
+# turnang <- turnAngleGc(my_fox_move) # the same
+# using the absolute abs(), because -180 and 180 has similar meaning:
+# the animal keeps the direction
+hist(abs(turnang))
+
+steplength <- distance(my_fox_move) ## know your units!
+hist(steplength)
+max(steplength) ## max 1 km in 20 min = 3 km / h
+
+hist(move::speed(my_fox_move)) ## units? -> check ?speed
 
 ## END SKIP
 ```
@@ -684,209 +699,151 @@ my_fox_move <- move(x = anim_for_move$X_3035, y = anim_for_move$Y_3035,
 
 
 ```{r}
-#################### STEPH TODO - ab hier könnte man amt nehmen! SKS2025
-## now turn into move object
-# SKS2025 - I renamed my_fox to my_fox_move
-
-
-### SKS2025
 ## now turn into amt object
+
 all(complete.cases(anim_for_move))
 my_fox <- make_track(tbl = anim_for_move, 
                      .x  = X_3035, 
                      .y  = Y_3035, 
                      .t  = start.timestamp, 
-                     id = tag.serial.number, 
-                     month = month, 
-                     crs = 3035)
+                     id = tag.serial.number, ## has to be a column of data set
+                     crs = 3035,             ## has to be set as EPSG code
+                     all_cols = TRUE)        ## if all columns need to be kept
 
+head(my_fox)
+
+## check for duplicated time stamps
+any(duplicated(my_fox$t_))
+## FALSE - great, let's go!
 ```
 
-A hint (for the exercises later, so please read!): check the argument 'animal'. Here,
-I put one name, however, if multiple individuals are used, you can provide a vector with multiple IDs, e.g. via the column of the dataset <mydata$animalIDs>.
+A hint (for the exercises later, so please read!): check the argument 'id'. Here,
+I put one tag-id number, however, if multiple individuals are used, 
+you can provide a column with multiple IDs.
+
+
+## Movement metrics
+
 
 ```{r}
-## Alternative using data.frame with longitude-latitude columns
-# my_fox <- move(x = anim_proc$longitude, y = anim_proc$latitude,
-#                time=as.POSIXct(anim_proc$start.timestamp,format="%Y-%m-%d %H:%M:%S"),
-#                proj= CRS("+init=epsg:4326"),
-#                data=anim_proc,
-#                animal="FoxQvonStralau")  
-# head(my_fox); nrow(my_fox)
+## Time lags between the fixes:
+summarize_sampling_rate(my_fox) ## varies a lot, but median here 20 min, max 4 hrs
+
+## The distance ranges form 0.5 m to 1 km,
+## but we have here the 4 hrs time lags included
+range(step_lengths(my_fox), na.rm =TRUE)
+
+## speed
+max(speed(my_fox),na.rm=TRUE) ## 0.8, measured in m/s
+
+## Let's look only at 60 min intervals:
+my_fox_60 <- track_resample(my_fox, rate = minutes(60), tolerance = minutes(5))
+range(step_lengths(my_fox_60), na.rm =TRUE)
+## can you explain why the step length gets larger?
+## what happens with speed?
+max(speed(my_fox_60),na.rm=TRUE) 
 ```
 
-## Time lag, turning angle and speed
-
-### Time lags between the fixes:
-
-```{r}
-
-# SKS2025 continue here
-# https://cran.r-project.org/web/packages/amt/vignettes/p1_getting_started.html
-
-
-timeLag(my_fox, unit = "mins")[1:5] ## varies a lot, but minimum here 20 min
-min(timeLag(my_fox, units = "mins"))
-mean(timeLag(my_fox, units = "mins"))
-max(timeLag(my_fox, units = "mins"))
-```
-
-### Turning angles:
-
+Turning angles:<br>
+<br>
 The calculation of turning angles only makes sense with very high resolution data. 
 With 20 min intervals between fixes, turning angles do not make much sense any more,
 as the animals can have turned and moved a lot in between. I nevertheless show the code,
 because turning angles are often used to describe behavior.
+<br>
+Signer et al. 2018; DOI: 10.1002/ece3.4823 <br>
+We will also choose to keep only those bursts (subsets of the track with 
+constant sampling rate, within the specified tolerance) with at least three relocations,
+the minimum required to calculate a turn angle (amt::filter_min _ n _ burst). 
+The following code implements those choices
+and translates from a point representation to a step (step length, turn
+angle) representation of the data.
 
 ```{r}
-turnang <- angle(my_fox)
-# turnang <- turnAngleGc(my_fox) # the same
-# using the absolute abs(), because -180 and 180 has similar meaning:
-# the animal keeps the direction
-hist(abs(turnang))
+## first transform track into steps
+tmp1 <- amt::filter_min_n_burst(my_fox_60, min_n=3)
+
+## then derive turning angles - column 'ta_' will be appended
+fox_steps_60 <- steps_by_burst(tmp1) ## turn. ang. from -pi to pi = -180° to 180°
+range(as_degree(fox_steps_60$ta_), na.rm = TRUE) ## convert to degree
+hist(as_degree(fox_steps_60$ta_)) ## as said, with hourly interval, this is not exciting
 ```
 
-### Speed and step length:
 
-```{r}
-steplength <- distance(my_fox) ## know your units!
-hist(steplength)
-max(steplength) ## max 1 km in 20 min = 3 km / h
-
-hist(speed(my_fox)) ## units? -> check ?speed
-```
-
-# The homerange concept - MCP, kernel, aKDE
+# The homerange concept - MCP, kernelUD (aKDE)
 
 
 See lecture!
 
 
-### Minimum Convex Polygon
+## Minimum Convex Polygon
 
-Unfortunately, we have to use `SpatialDataFrame`-Objects for activity range 
-calculation, as the package `{adehabitatHR}` is based on the old `sp` format.
-
-```{r, echo=FALSE, results='hide', eval=FALSE}
-# TODO - something is wrong here with the units despite using projected CRS 
-# !!!! check the crs warning online
-hrBootstrap(my_fox, rep = 5, level = 99, unout= 'km2', plot = TRUE) # units still wrong
-```
-
-You can calculate the total area covered, or, if you specify a column, you
-can calculate the activity range per daytime, animalID or months... Use the 
-`SpatialDataFrame`-Object from the `{sp}` package we created above.
+Get the home range size
 
 ```{r}
-mcp_daytime <- mcp(mydf_sp_trans[,'daytime'], percent = 95, unout = "km2") # MCP (95%) 
-mcp_daytime ## area for both (daytime separated) polygons
-```
-The daytime activity (or better: hiding and resting) range is ten times smaller 
-than the nighttime activity. During the active nighttime, fox Q uses ~ 0.5 km2, 
-while during the day the range is restricted to 600 ha. 
-<br>
-The following plot shows the increase of the area for different MCP-levels:
+mcp_fox_95 <- amt::hr_mcp(x = my_fox, ## the track object
+                        levels = c(0.95)) # define the level of the mcp. 
+plot(mcp_fox_95) ## quick and uggly
 
-```{r}
-hrs <- mcp.area(mydf_sp_trans[,'daytime'], percent = seq(50, 100, by = 5), unout = "km2")
-hrs ## home range size in km2 for the different MCP-levels
-```
+## if you are not sure about how to get the info of the object, use str()
+mcp_fox_95$mcp$area/ 1e6 ## area converted to km2
+## same as 
+hr_area(mcp_fox_95)
 
-And that's how it looks:
-```{r}
-plot(mcp_daytime)
-plot(mydf_sp_trans, add=TRUE, col= as.numeric(mydf_sp_trans$daytime)+1)
+## calculated MCP at different levels
+mcp_fox <- hr_mcp(my_fox, levels = seq(0.2, 1, 0.1))
+hr_area(mcp_fox)
+plot(hr_area(mcp_fox)$area ~ hr_area(mcp_fox)$level, type = 'l')
 ```
 
 
-
+Convert to sf object to store as shapefile, for example,
+and make a  plot <br>
 ```{r}
-mcp_month <- mcp(mydf_sp_trans[,'month'], percent = 95, unout = "km2") ## MCP (95%) 
-mcp_month
-```
+mcp_fox_95_sf <- sf::st_as_sf(mcp_fox_95$mcp)
 
-Note that there is an activity range calculated for October (month 10), but the animal was only collared  30.10.! This definitely does not make sense.
-<br>
-Now save the MCPs as ESRI shapefiles. Mind: the object is a *SpatialPolygonsDataFrame*
-object from the '{sp}'-package; hence use writeOGR():
-
-```{r}
-writeOGR(mcp_daytime, dsn = here("output"), 
-         "mcp95_daytime_foxQ", "ESRI Shapefile", overwrite = TRUE)
-```
-
-Or convert the '{sp}'-object into an '{sf}'-object and save then:
-```{r}
-st_write(as(mcp_daytime, "sf"), 
-         dsn = here("output", "mcp95_daytime_foxQ.shp"),
+st_write(mcp_fox_95_sf,  
+         dsn = here("output", "mcp_fox_95_sf.shp"),
          delete_layer = TRUE)
+
+ggplot() + 
+  geom_sf(data = mcp_fox_95_sf) + 
+  geom_sf(data = mydf_sf_trans, size=0.1, col = 'red') + ## df converted to sf above
+  coord_sf()
 ```
 
 
-
-### Kernel utility density
+## Kernel utility density
 
 Calculate the density kernel:
 
 ```{r}
-## calculate kernel with h = "href", i.e. default smoothing
-kud <- kernelUD(mydf_sp_trans[,'daytime'], h = "href") 
-# the output is an object with lists, accessed via: str(kud)
-kernel.area(kud, unout = "km2") ## across all levels 5-95%
-```
-The area sizes are similar to the MCP95 values, however the daytime activity range
-is twice as large.
+kde_fox_95 <- amt::hr_kde(x = my_fox, levels = c(0.95))
+plot(kde_fox_95)
+hr_area(kde_fox_95)
+hr_area(mcp_fox_95) ## for comparison
 
-Now, we create a contour line of the 90% KUD to export as shapefile:
-```{r}
-kud90 <- getverticeshr(kud, percent = 90) ## this creates the spatial object, units m2 
-gArea(kud90, byid = TRUE)/ 1e6            ## units km2 ## old sp-package
-st_area(as(kud90, "sf"))                  ##  sf-package
+# plot(kde_fox_95$ud,col =viridis(100, direction = -1)) ## density distribution
 ```
 
-Make a plot and save it as spatial polygon:
-
-```{r, eval=FALSE, echo=FALSE,results='hide'}
-## This plot is too ugly
-# plot only the nighttime
-image(kud[[1]], col = viridis(100, direction = -1))
-xyz <- as.image.SpatialGridDataFrame(kud[[1]])
-contour(xyz, add = TRUE)
-points(mydf_sp_trans, cex = 0.01, col = "red")
-```
-
+Also here, convert to sf object to store as shapefile, for example,
+and make a  plot <br>
 
 ```{r}
-# save it as shapefile - mind - here we can only save one contour line, 
-# in this case the 90% kernel:
-writeOGR(kud90, dsn = here("output"), 
-         layer = "kernel_ud90", "ESRI Shapefile", overwrite = TRUE)
+kde_fox_95_sf <- hr_isopleths(kde_fox_95) ## nicely, this is already an sf object
 
-st_write(as(kud90, "sf"), dsn = here("output", "kernel_ud90.shp"), delete_layer = TRUE)
+st_write(kde_fox_95_sf, 
+         dsn = here("output", "kde_fox_95_sf.shp"),
+         delete_layer = TRUE)
 
+ggplot() + 
+  geom_sf(data = mcp_fox_95_sf, alpha=0.5) + 
+  geom_sf(data = kde_fox_95_sf, alpha=0.1) + 
+  geom_sf(data = mydf_sf_trans, size=0.1, col = 'red') + ## df converted to sf above
+  coord_sf()
 ```
 
-
-```{r}
-# make the crosscheck: load and plot
-kernel_ud90_sf <- st_read(dsn = here("output"), layer = "kernel_ud90")
-mcp95_sf       <- st_read(dsn = here("output"), layer = "mcp95_daytime_foxQ")
-
-mcp95_sf
-# note: the CRS is lost and not defined! So assign it again:
-st_crs(kernel_ud90_sf) <- 3035
-st_crs(mcp95_sf)       <- 3035
-```
-
-
-```{r, fig.height=8}
-ggplot() +
-  geom_sf(data = kernel_ud90_sf, aes(fill = id)) +
-  geom_sf(data = mydf_sf_trans, size = 1.5, alpha = .1, color = "red3") +
-  scale_fill_manual(values = c("grey90", "grey70"), guide = "none") +
-  theme_bw(base_size = 16)
-```
-
+################# SKS2024 TODO
 
 Do the following only on a fast computer:
 
