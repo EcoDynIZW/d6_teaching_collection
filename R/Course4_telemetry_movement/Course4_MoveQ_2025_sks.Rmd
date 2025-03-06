@@ -628,34 +628,65 @@ Or are these outliers? No: the lake was frozen - check the date! Note: you reall
 
 # Basic movement metrics
 
-## Transform your data into a `{move}` object
+## Transform your data into an `{amt}` object
 
-Check here for the possibilities of what to do with the package: 
+Check here for the possibilities of what to do with the `{amt}`-package: 
+<br>
+* https://cran.r-project.org/web/packages/move/vignettes/move.html <br>
+
+
+Note: For consistency, I will also show how to create a `{move}`-object for 
+compatibility with the packages `{move}` and `{move2}`, which have direct links 
+to the global movebank.org database:
+Check here for the possibilities of what to do with the packages: 
 <br>
 * https://cran.r-project.org/web/packages/move/vignettes/move.html <br>
 * https://rdrr.io/cran/move/f/vignettes/move.Rmd <br>
+* https://rdrr.io/cran/move2/#vignettes <br>
+
 
 Because we are dealing with spatial measures (e.g. area, distance, perimeter,...),
 I recommend to work with projected coordinates. To create a move-object,
 the coordinates of the projected CRS need to be appended to a data.frame:
 ```{r}
-## assign columns with coordinates_epsg to use later in data frame for amt-object
+## assign columns with coordinates_epsg to add later into the data frame for amt-object
 mydf_sf_trans$X_3035 <- st_coordinates(mydf_sf_trans)[,1]
 mydf_sf_trans$Y_3035 <- st_coordinates(mydf_sf_trans)[,2]
 
 ## new object as data frame
 anim_for_move <- st_drop_geometry(mydf_sf_trans)
 head(anim_for_move)
+```
 
 
-#################### STEPH TODO - ab hier könnte man amt nehmen! SKS2025
-## now turn into move object
-# SKS2025 - I renamed my_fox to my_fox_move
+```{r, echo=FALSE, eval=FALSE}
+## SKIP
+
+## the commands in 'move'-package
 my_fox_move <- move(x = anim_for_move$X_3035, y = anim_for_move$Y_3035,
                time = as.POSIXct(anim_for_move$start.timestamp, format = "%Y-%m-%d %H:%M:%S"),
                proj = CRS("+init=epsg:3035"),
                data = anim_for_move,
                animal = "FoxQvonStralau")  
+
+## Alternative using data.frame with longitude-latitude columns
+# my_fox_move <- move(x = anim_proc$longitude, y = anim_proc$latitude,
+#                time=as.POSIXct(anim_proc$start.timestamp,format="%Y-%m-%d %H:%M:%S"),
+#                proj= CRS("+init=epsg:4326"),
+#                data=anim_proc,
+#                animal="FoxQvonStralau")  
+# head(my_fox_move); nrow(my_fox_move)
+
+
+## END SKIP
+```
+
+
+
+```{r}
+#################### STEPH TODO - ab hier könnte man amt nehmen! SKS2025
+## now turn into move object
+# SKS2025 - I renamed my_fox to my_fox_move
 
 
 ### SKS2025
