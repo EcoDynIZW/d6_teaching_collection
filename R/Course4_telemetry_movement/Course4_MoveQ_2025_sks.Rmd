@@ -152,7 +152,7 @@ functions we need.
 
 ```{r}
 ## package names:
-pkgs = c("here", "lubridate", "sf", "sp", "raster", "ggplot2", "tmap", "circular", "move", "adehabitatHR", "viridis", "devtools", "plotly","move2", "amt", "terra") 
+pkgs = c("here", "lubridate", "sf", "sp", "raster", "ggplot2", "tmap", "circular", "move", "adehabitatHR", "viridis", "devtools", "plotly","move2", "amt", "terra","ggeffects","tidyterra") 
 
 # install.packages(pkgs) # only run this line once! for installing the packages!
 # update.packages()
@@ -174,15 +174,16 @@ Now load the packages:
 library(here)          ## for easy directory management
 library(lubridate)     ## for date handling
 library(sf)            ## for handling simple feature objects
-library(sp)            ## for handling Spatial* objects
+#library(sp)            ## for handling Spatial* objects
 library(terra)         ## for handling raster objects
+library(tidyterra)     ## for visualizing raster objects in ggplot
 library(ggplot2)       ## for nice static plots
 library(tmap)          ## for nice interactive maps
 library(circular)      ## for circular stats + plots
 library(move)          ## for `move` objects
-library(move2)          ## for `move` objects
-library(amt)          ## for `move` objects
-library(adehabitatHR)  ## adehabitatLT  #adehabitatMA                           
+library(amt)           ## for `move` objects
+library(ggeffects)     ## for visualizing model results
+#library(adehabitatHR)  ## adehabitatLT  #adehabitatMA                           
 library(viridis)       ## for perceptually uniform color palettes
 ```
 
@@ -709,8 +710,8 @@ my_fox <- make_track(tbl = anim_for_move,
                      .y  = Y_3035, 
                      .t  = start.timestamp, 
                      id = tag.serial.number, ## has to be a column of data set
-                     crs = 3035,             ## has to be set as EPSG code
-                     all_cols = TRUE)        ## if all columns need to be kept
+                     crs = 3035)             ## has to be set as EPSG code
+                    # all_cols = TRUE)        ## if all columns need to be kept
 
 head(my_fox)
 
@@ -990,50 +991,123 @@ Nothing makes sense but in the light of environmental information...<br>
 https://cran.r-project.org/web/packages/amt/vignettes/p3_rsf.html
 <br>
 
+Let's first thin and filter the dataset to one location per day
+```{r}
+## Let's look only at 60 min intervals:
+my_fox_24 <- track_resample(my_fox, rate = hours(24), tolerance = minutes(25))
+dim(my_fox_24)
+```
+
+
 First, load some environmental data. Check what is available in your 
 data_berlin-course folder, check for the CRS and assign if missing:
 
 ```{r}
-maps_wd   <- here("data","data_berlin","geo_raster_current_asc")  
-lf <- list.files(maps_wd, pattern = '.asc', full.names = TRUE); lf
-b_sutemp <- terra::rast(lf[1]) 
-b_forest <- terra::rast(lf[2])
-b_sutemp ## coord. ref. is empty
-crs(b_sutemp) <-  "epsg:3035"
-crs(b_forest) <-  "epsg:3035"
-b_sutemp ## crosscheck
+maps_wd   <- here("data","data_berlin","geo_raster_current_gtif")  
+lf <- list.files(maps_wd, full.names = TRUE); lf
+b_imperv <- terra::rast(lf[1]) 
+b_sutemp <- terra::rast(lf[3]) 
+b_forest <- terra::rast(lf[4])
+b_noise  <- terra::rast(lf[2])
+## chech CRS:
+b_sutemp ## coord. ref. is assigned because it is a geoTiff, not ascii-file.
 
-## make quick plot
-plot(b_sutemp) 
-points(my_fox_60)
+## combine to raster stack
+b_env_var_stack <- rast(list(b_imperv,b_sutemp, b_forest,b_noise))
+
+## make quick plot of stack
+plot(b_env_var_stack) 
+
+## single plot with points
+plot(b_env_var_stack[[4]])
+points(my_fox_24, col = 'red')
 ```
 
 Now create random points in MCP home range of the fox. Default is 10 times more
-random points than points
+random points than points. It automatically sets a column'case_' = FALSE, because
+it is a random point, not a true animal location.
 ```{r}
-rp_fox_60 <- random_points(my_fox_60)
-plot(rp_fox_60)
+rp_fox_24 <- random_points(my_fox_24, n=dim(my_fox_24)[1])
+plot(rp_fox_24)
 ```
 
 Now we extract the covariates (several ways to do so, see Course 2 Spatial R and
-function 'st_intersection()', but
+function 'st_intersection()' or 'extract', but
 we use the function 'extract_covariates()' of the amt-package here)
 
 ```{r}
-env_rp_fox_60 <- extract_covariates()
-env_my_fox_60 <-
+env_rp_fox_24 <- amt::extract_covariates(x=rp_fox_24, covariates=b_env_var_stack)
+head(env_rp_fox_24)
+
 ```
+
+We do the same with the fox locations. Note that we have a different structure
+of the data.frame with more columns. And we have to add the column 'case_'
+```{r}
+env_my_fox_24 <- extract_covariates(x=my_fox_24, covariates=b_env_var_stack)
+head(env_my_fox_24)
+env_my_fox_24$case_ <- 'TRUE'
+names(env_my_fox_24) ## select same columns as random point df
+env_my_fox_24 <- env_my_fox_24[,c(10,1,2,6:9)]
+head(env_my_fox_24)  
+```
+
+Combine datasets for analysis
+
+```{r}
+df_rsf_fox_24 <- rbind(env_rp_fox_24,env_my_fox_24)
+
+## change names:
+colnames(df_rsf_fox_24) <- c("case_" , "x_" , "y_", "imp", "stmp", "tree", "noise")
+df_rsf_fox_24$case_num <- ifelse(df_rsf_fox_24$case_ == 'FALSE',0,1)
+```
+
+Run the RSF
+
+```{r}
+rsf_fox <- glm(data    = df_rsf_fox_24, 
+               formula = case_num ~ scale(noise) + scale(imp) + scale(stmp) + scale(tree), 
+               family  = binomial(link = "logit"))
+summary(rsf_fox)
+```
+
+Plot the odds ratio. An odds ratio of 1 indicates that the condition or event 
+under study is equally likely to occur in both groups. 
+An odds ratio greater than 1 indicates that the condition or event 
+is more likely to occur in the first group.
+```{r}
+sjPlot::plot_model(rsf_fox, transform = "plogis")
+sjPlot::plot_model(rsf_fox, vline.color = "red")
+```
+
+## Effects plots
+
+```{r}
+
+mydf1 <- ggeffects::ggpredict(rsf_fox) #, terms = c("imp", "stmp","tree", "noise"))
+plot(mydf1$imp) ## analoguously for the rest
+ 
+ 
+## forest plot
+ggplot(rsf_fox, aes(x=reorder(term, estimate), y=estimate)) +
+         geom_errorbar(aes(ymin=conf.low, ymax=conf.high), 
+                       width = 0.2,size  = 1,
+                       position = "dodge", color="turquoise4") +
+  geom_hline(yintercept = 0, color = "red", size = 1) +
+  geom_point() + coord_flip() 
+```
+
+
 
 
 
 -> go to Exercise 4.2; <br>
 check argument 'nest: -id' in amt-package to work with several animals
 
-# Recurse analysis
+# Coming soon: Recurse analysis, HMM, ...
 
 ```{r, echo=FALSE, eval=FALSE, results='hide'}
 ## TODO later
-## work with d6berlin - load imperviousness and create random points and check the difference
 ## recurse analysis - find favourite places of Q
 ```
 
