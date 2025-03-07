@@ -64,7 +64,7 @@ you might remember that such data sets can be imported
 as simple .txt or .csv files. Once you know in which coordinate reference system (CRS)
 your coordinates are stemming from, you can **assign** it to the *data.frame*, thereby
 you are creating a geo-referenced data set: a *SpatialPointsDataframe*-Object (if
-you work with the R-package `{sp}`) or an *sf*-Object (with package `{sf}`). 
+you work with the old R-package `{sp}`) or an *sf*-Object (with package `{sf}`). 
 Looking at these x- and y-coordinates, you might remember that they look like 
 angular units, e.g. decimal degrees, and the x-coordinate refers to longitude and 
 the y-coordinate to latitude. Hence, we are dealing with EPSG-code 4326. 
@@ -76,7 +76,8 @@ With your movement data, you might have outliers in space
 (e.g. when you test your collars in location A which might be hundreds of kilometers from your actual trapping site), your data might not have been regularly sampled because the animal was hiding and
 there was no access to the satellite (weak GPS-signal) etc etc. This uneven 
 sampling can affect calculations of speed, for example, and therefore a series of packages
-have been developed to deal with those issues in movement data, like `{move}`. 
+have been developed to deal with those issues in movement data, like `{move}` or
+`{amt}`. 
 
 The most prominent movement analyses comprise **home range estimation**, calculations of
 **habitat preference**, **behavioral analyses** (e.g. [Hertel et al. 2021](https://doi.org/10.1111/1365-2656.13406)) and
@@ -90,14 +91,15 @@ as shown by 4 (20) min relocation intervals. Her location data are stored
 in the file with the tag number `tag5334_gps.txt`. For any details on the data please refer to [Kimmig (2021)](https://refubium.fu-berlin.de/handle/fub188/32478) and [Scholz (2020)](https://refubium.fu-berlin.de/handle/fub188/29984).
 
 We will, however, only use the data of one month in this exercise, 
-as data sets quickly get too big. Please note: the courses
-[Course1_IntroR](https://github.com/stephkramer/Course1_IntroR) and [Course2_SpatialR](https://github.com/stephkramer/Course2_SpatialR) are 
-obligatory for this tutorial.
+as data sets quickly get too big. Please note: the courses Course1_IntroR and
+Course2_SpatialR of our 
+[course script collection](https://github.com/EcoDynIZW/d6_teaching_collection)  
+are obligatory for this tutorial.
 
  
 ## Useful (web)sites and reading
 
-*  For analysis of telemetry data: packages **adehabitatHR, adehabitatLT, move,move2, recurse, momentuHMM, moveHMM, ctmm, amt**
+*  For analysis of telemetry data: packages **adehabitatHR, adehabitatLT, move, move2, recurse, momentuHMM, moveHMM, ctmm, amt**
 <br>
 
 **Methods papers** <br>
@@ -150,7 +152,7 @@ functions we need.
 
 ```{r}
 ## package names:
-pkgs = c("here", "lubridate", "sf", "sp", "raster", "ggplot2", "tmap", "circular", "move", "adehabitatHR", "viridis", "devtools", "plotly","move2", "amt") 
+pkgs = c("here", "lubridate", "sf", "sp", "raster", "ggplot2", "tmap", "circular", "move", "adehabitatHR", "viridis", "devtools", "plotly","move2", "amt", "terra") 
 
 # install.packages(pkgs) # only run this line once! for installing the packages!
 # update.packages()
@@ -173,7 +175,7 @@ library(here)          ## for easy directory management
 library(lubridate)     ## for date handling
 library(sf)            ## for handling simple feature objects
 library(sp)            ## for handling Spatial* objects
-library(raster)        ## for handling raster objects
+library(terra)         ## for handling raster objects
 library(ggplot2)       ## for nice static plots
 library(tmap)          ## for nice interactive maps
 library(circular)      ## for circular stats + plots
@@ -649,7 +651,7 @@ head(anim_for_move)
 ```
 
 
-```{r, echo=FALSE, eval=FALSE}
+```{r, echo=FALSE, eval=FALSE, results='hide'}
 ## SKIP
 
 ##Note: For consistency, I will also show how to create a `{move}`-object for 
@@ -778,8 +780,9 @@ See lecture!
 
 ## Minimum Convex Polygon
 
-Get the home range size
-
+Get the home range size.
+<br>
+https://cran.r-project.org/web/packages/amt/vignettes/p2_hr.html
 ```{r}
 mcp_fox_95 <- amt::hr_mcp(x = my_fox, ## the track object
                         levels = c(0.95)) # define the level of the mcp. 
@@ -823,7 +826,9 @@ plot(kde_fox_95)
 hr_area(kde_fox_95)
 hr_area(mcp_fox_95) ## for comparison
 
+## spatial density distribution
 # plot(kde_fox_95$ud,col =viridis(100, direction = -1)) ## density distribution
+# contour(kde_fox_95$ud)
 ```
 
 Also here, convert to sf object to store as shapefile, for example,
@@ -843,58 +848,37 @@ ggplot() +
   coord_sf()
 ```
 
-################# SKS2024 TODO
 
-Do the following only on a fast computer:
-
-```{r, echo=TRUE}
-##### der krass coole 3D plot ####
-## code adapted from
-
-# install.packages("devtools")
+```{r, echo=FALSE, eval=FALSE, results='hide'}
+# https://plotly.com/r/3d-surface-plots/
 # devtools::install_github("ropensci/plotly")
 library(plotly)
 
-my_kud <- kud[[1]] ## or choose kud[[2]]
+kde_mat <- as.matrix(kde_fox_95$ud, wide=TRUE)
 
-xy <- coordinates(my_kud)
-z <- my_kud@data$ud
-df_kud <- data.frame(x = xy[,1], y = xy[,2], z = z)
-#persp(x=df_kud$x, y=df_kud$y, z= df_kud$z)
-#plot3d(x=xy[,1],y=xy[,2],z=z)
-
-my_kud@grid@cells.dim
-r <- raster(ncols = 60, nrows = 58)
-coordinates(df_kud) <- ~x + y
-r_kud <- rasterize(df_kud, r, "z", fun = max)
-
-myz <- matrix(z, nrow = my_kud@grid@cells.dim[[2]],
-              ncol = my_kud@grid@cells.dim[[1]], byrow = FALSE)
-# image(myz)
-kd.list <- list(x = xy[,1], y = xy[,2], z = myz)
-# with(kd.list, plot_ly(x = x, y = y, z = z, type = "surface"))
-plot_ly(z = myz, type = "surface") # click into plot and on icon 'turntable rotation' in plot upper right
-#########  ende krass cooler plot ########
+fig <- plot_ly(z = ~kde_mat)
+fig <- fig %>% add_surface()
+fig
 ```
-
-
-# Nothing makes sense but in the light of environmental information
-
--> go to
-
-## Exercise 4.2
-
-https://cran.r-project.org/web/packages/amt/vignettes/p3_rsf.html
 
 
 ```{r, eval=FALSE, echo=FALSE, results='hide'}
 
-# students ignore this for now - needs fast computer - not possible during lecture
+##  SKIP - needs fast computer - not possible during lecture
 
+# aKDE
 #############################################################################
 ######## advanced home range analyses - variogram and  aKDE  ################
 #############################################################################
 
+#### with amt-package
+ud1 <- hr_akde(my_fox_60)
+plot(ud1)
+ud2 <- hr_akde(my_fox_60, model = fit_ctmm(my_fox, "ou")) # uses an OU ctmm
+plot(ud2)
+
+
+##### use ctmm to fit movement models
 library(ctmm)
 # please read the vignettes of ctmm package to understand what is done in the following
 # https://cran.r-project.org/web/packages/ctmm/vignettes/variogram.html
@@ -909,7 +893,7 @@ library(ctmm)
  # anim_proc$location.lat                <- anim_proc$latitude
  # ctmm_anim <- as.telemetry(anim_proc)
 
-## if we already hav a move-object, transformation is easy:
+## if we already have a move-object, transformation is easy:
 # ctmm_anim <- as.telemetry(my_fox)
 
 
@@ -992,36 +976,60 @@ plot(ctmm_anim,UD=UD2,xlim=EXT$x,ylim=EXT$y)
 title(expression("OUF AKDE"["C"]))
 plot(ctmm_anim,UD=UD2w,xlim=EXT$x,ylim=EXT$y)
 title(expression("weighted OUF AKDE"["C"]))
+################################################################################
 
-
-
-############################################################################################
-library(amt)
-#continue with SSFs for selection analysis
-#https://cran.r-project.org/web/packages/amt/vignettes/p4_SSF.html
-
-# or discuss our paper Schlaegel et al. in prep.
-
-############################################################################################
-########## animate movement path with moveVis - take care, takes a lot of computation time !
-############################################################################################
-
-### not run!
-### aprox 30 min for 300 frames (in my computer)
-# http://movevis.org/index.html#get-started
-#move_data <- align_move(my_fox, res = 20, unit = "mins")
-#frames <- frames_spatial(move_data[1:100,], # restricted to only 100 data points!
-#                         path_colours = c("blue"),
-#                         map_service = "osm",
-#                         map_type = "topographic",
-#                         alpha = 0.5)
-## alternative with satellite data as background
-##frames <- frames_spatial(move_data[1:100,], map_service = "mapbox", map_type = "satellite",
-##                         map_token = "YOUR_MAPBOX_TOKEN")
-#length(frames)
-#animate_frames(frames, out_file = "example_1.gif",overwrite=TRUE)
 
 ```
+
+
+
+# Resource selection
+
+Nothing makes sense but in the light of environmental information...<br>
+<br>
+https://cran.r-project.org/web/packages/amt/vignettes/p3_rsf.html
+<br>
+
+First, load some environmental data. Check what is available in your 
+data_berlin-course folder, check for the CRS and assign if missing:
+
+```{r}
+maps_wd   <- here("data","data_berlin","geo_raster_current_asc")  
+lf <- list.files(maps_wd, pattern = '.asc', full.names = TRUE); lf
+b_sutemp <- terra::rast(lf[1]) 
+b_forest <- terra::rast(lf[2])
+b_sutemp ## coord. ref. is empty
+crs(b_sutemp) <-  "epsg:3035"
+crs(b_forest) <-  "epsg:3035"
+b_sutemp ## crosscheck
+
+## make quick plot
+plot(b_sutemp) 
+points(my_fox_60)
+```
+
+Now create random points in MCP home range of the fox. Default is 10 times more
+random points than points
+```{r}
+rp_fox_60 <- random_points(my_fox_60)
+plot(rp_fox_60)
+```
+
+Now we extract the covariates (several ways to do so, see Course 2 Spatial R and
+function 'st_intersection()', but
+we use the function 'extract_covariates()' of the amt-package here)
+
+```{r}
+env_rp_fox_60 <- extract_covariates()
+env_my_fox_60 <-
+```
+
+
+
+-> go to Exercise 4.2; <br>
+check argument 'nest: -id' in amt-package to work with several animals
+
+# Recurse analysis
 
 ```{r, echo=FALSE, eval=FALSE, results='hide'}
 ## TODO later
