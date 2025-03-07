@@ -154,7 +154,7 @@ functions we need.
 ## package names:
 pkgs = c("here", "lubridate", "sf", "sp", "ggplot2", "tmap", "circular", "move", 
          "viridis", "devtools", "plotly","amt", "terra","effects","tidyterra",
-         "corrplot","ctmm") 
+         "corrplot","ctmm","sjPlot","jtools") 
 
 # install.packages(pkgs) # only run this line once! for installing the packages!
 # update.packages()
@@ -186,6 +186,8 @@ library(move)          ## for `move` objects
 library(amt)           ## for `move` objects
 library(ctmm)          ## for fitting continuous-time movement models
 library(effects)       ## for visualizing model results
+library(sjPlot)        ## easy plotting of model results
+library(jtools)        ## easy plotting of model results
 #library(adehabitatHR)  ## adehabitatLT  #adehabitatMA                           
 library(viridis)       ## for perceptually uniform color palettes
 library(corrplot)      ## for correlation plot
@@ -731,24 +733,27 @@ you can provide a column with multiple IDs.
 
 ## Movement metrics
 
-
-```{r}
+```{r }
 ## Time lags between the fixes:
 summarize_sampling_rate(my_fox) ## varies a lot, but median here 20 min, max 4 hrs
 
 ## The distance ranges form 0.5 m to 1 km,
 ## but we have here the 4 hrs time lags included
 range(step_lengths(my_fox), na.rm =TRUE)
+```
 
+
+```{r speed}
 ## speed
-max(speed(my_fox),na.rm=TRUE) ## 0.8, measured in m/s
+class(my_fox)
+#max(amt::speed(my_fox),na.rm=TRUE) ## 0.8, measured in m/s
 
 ## Let's look only at 60 min intervals:
 my_fox_60 <- track_resample(my_fox, rate = minutes(60), tolerance = minutes(5))
 range(step_lengths(my_fox_60), na.rm =TRUE)
 ## can you explain why the step length gets larger?
 ## what happens with speed?
-max(speed(my_fox_60),na.rm=TRUE) 
+#max(speed(my_fox_60),na.rm=TRUE) 
 ```
 
 Turning angles:<br>
@@ -1078,68 +1083,42 @@ df_rsf_fox_24$case_num <- ifelse(df_rsf_fox_24$case_ == 'FALSE',0,1)
 
 ## RSF model fit 
 
-First, scale variables so that they all have the same range of values
+Scaling variables, so that they all have the same range of values, can be helpful
+when plotting - only few plot functions below have inbuilt functions to
+standardize while plotting.
 
 ```{r}
 rsf_fox <- glm(data    = df_rsf_fox_24, 
-               #formula = case_num ~ scale(noise) + scale(imp) + scale(stmp) + scale(tree), 
-               formula = case_num ~ noise + imp + stmp + tree, 
+               formula = case_num ~ scale(noise) + scale(imp) + scale(stmp) + scale(tree), 
+               #formula = case_num ~ noise + imp + stmp + tree, 
                family  = binomial(link = "logit"))
 summary(rsf_fox)
 ```
 
-Plot the effects and odds ratio. An odds ratio of 1 indicates that the condition or event 
-under study is equally likely to occur in both groups. 
-An odds ratio greater than 1 indicates that the condition or event 
-is more likely to occur in the first group.
-```{r}
-
-plot(allEffects(rsf_fox),lty=1)
-
-
-#sjPlot::plot_model(rsf_fox, transform = "plogis", type="std")
-sjPlot::plot_model(rsf_fox,  
-                   vline.color = "blue",line.size = 1.5,dot.size = 3,
-                   show.values = TRUE, value.offset = .3,
-                   title = "",type="std")
-```
 
 ## Effects plots
 
+Plot the effects and odds ratio. 
 ```{r}
-
-mydf1 <- ggeffects::ggpredict(rsf_fox) #, terms = c("imp", "stmp","tree", "noise"))
-plot(mydf1$imp) ## analoguously for the rest
- 
- 
-## forest plot
-ggplot(rsf_fox, aes(x=reorder(term, estimate), y=estimate)) +
-         geom_errorbar(aes(ymin=conf.low, ymax=conf.high), 
-                       width = 0.2,size  = 1,
-                       position = "dodge", color="turquoise4") +
-  geom_hline(yintercept = 0, color = "red", size = 1) +
-  geom_point() + coord_flip() 
-
-
-
-
-
-
-model_p <- predict(rsf_fox)
-
-model_p |>
-  ggplot(aes(juldate, fit, fill = species)) +
-  geom_smooth_ci(species, linewidth = 1.2) +
-  geom_line(aes(group = species), lwd = 2.5, color = "white") + 
-  geom_smooth_ci(species, linewidth = 1.2) +
-  labs(title = NULL, x = "Day since June 1st", y = "Smoothing function") +
-  scale_color_manual(values = my_spec_colours, name = "Species:") +
-  scale_fill_manual(values = my_spec_colours, name = "Species:") +
-  scale_linetype_discrete(name = "Species:") +
-  guides(color = guide_legend(nrow = 1))
-
+plot(effects::allEffects(rsf_fox),lty=1)
 ```
 
+## Forest plot
+
+https://www.jtools.jacob-long.com/articles/summ.html
+```{r}
+plot_summs(rsf_fox, inner_ci_level = .75) #, plot.distributions = TRUE 
+```
+
+The r-package `{flextable}´ provides an easy way to export the model summary
+from R into an excel or word file format.
+<br>
+To sum up: The results - that a fox prefers houses and noise - do not really
+make sense. What could be the reason be?
+<br>
+You could repeat the analysis with day and nighttime locations of the fox....
+
+<br>
 
 
 
