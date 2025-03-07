@@ -152,7 +152,9 @@ functions we need.
 
 ```{r}
 ## package names:
-pkgs = c("here", "lubridate", "sf", "sp", "raster", "ggplot2", "tmap", "circular", "move", "adehabitatHR", "viridis", "devtools", "plotly","move2", "amt", "terra","effects","tidyterra") 
+pkgs = c("here", "lubridate", "sf", "sp", "ggplot2", "tmap", "circular", "move", 
+         "viridis", "devtools", "plotly","amt", "terra","effects","tidyterra",
+         "corrplot","ctmm") 
 
 # install.packages(pkgs) # only run this line once! for installing the packages!
 # update.packages()
@@ -182,9 +184,11 @@ library(tmap)          ## for nice interactive maps
 library(circular)      ## for circular stats + plots
 library(move)          ## for `move` objects
 library(amt)           ## for `move` objects
+library(ctmm)          ## for fitting continuous-time movement models
 library(effects)       ## for visualizing model results
 #library(adehabitatHR)  ## adehabitatLT  #adehabitatMA                           
 library(viridis)       ## for perceptually uniform color palettes
+library(corrplot)      ## for correlation plot
 ```
 
 ## Set the working environment
@@ -880,7 +884,7 @@ plot(ud2)
 
 
 ##### use ctmm to fit movement models
-library(ctmm)
+# library(ctmm)
 # please read the vignettes of ctmm package to understand what is done in the following
 # https://cran.r-project.org/web/packages/ctmm/vignettes/variogram.html
 # https://cran.r-project.org/web/packages/ctmm/vignettes/akde.html
@@ -1014,6 +1018,7 @@ b_sutemp ## coord. ref. is assigned because it is a geoTiff, not ascii-file.
 
 ## combine to raster stack
 b_env_var_stack <- rast(list(b_imperv,b_sutemp, b_forest,b_noise))
+names(b_env_var_stack) <- c("imp","stmp","tree","noise")
 
 ## make quick plot of stack
 plot(b_env_var_stack) 
@@ -1022,6 +1027,15 @@ plot(b_env_var_stack)
 plot(b_env_var_stack[[4]])
 points(my_fox_24, col = 'red')
 ```
+
+Compute a correlation matrix before you enter all variables into the model to
+check for multicollinearity
+```{r}
+M <- terra::layerCor(b_env_var_stack, fun = "pearson")
+corrplot(M$correlation, type="upper",tl.col="black", tl.srt=45)
+```
+
+
 
 Now create random points in MCP home range of the fox. Default is 10 times more
 random points than points. It automatically sets a column'case_' = FALSE, because
@@ -1052,17 +1066,19 @@ env_my_fox_24 <- env_my_fox_24[,c(10,1,2,6:9)]
 head(env_my_fox_24)  
 ```
 
-Combine datasets for analysis
+Combine datasets for analysis and convert binary TRUE/FALSE (column 'case_')
+into numeric.
 
 ```{r}
 df_rsf_fox_24 <- rbind(env_rp_fox_24,env_my_fox_24)
+head(df_rsf_fox_24)
 
-## change names:
-colnames(df_rsf_fox_24) <- c("case_" , "x_" , "y_", "imp", "stmp", "tree", "noise")
 df_rsf_fox_24$case_num <- ifelse(df_rsf_fox_24$case_ == 'FALSE',0,1)
 ```
 
-Run the RSF. scale variables before so that they all have the same range of values
+## RSF model fit 
+
+First, scale variables so that they all have the same range of values
 
 ```{r}
 rsf_fox <- glm(data    = df_rsf_fox_24, 
@@ -1078,7 +1094,6 @@ An odds ratio greater than 1 indicates that the condition or event
 is more likely to occur in the first group.
 ```{r}
 
-library(effects)
 plot(allEffects(rsf_fox),lty=1)
 
 
