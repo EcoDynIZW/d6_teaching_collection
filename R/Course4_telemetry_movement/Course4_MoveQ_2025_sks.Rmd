@@ -1011,7 +1011,7 @@ dim(my_fox_24)
 First, load some environmental data. Check what is available in your 
 data_berlin-course folder, check for the CRS and assign if missing:
 
-```{r}
+```{r stack}
 maps_wd   <- here("data","data_berlin","geo_raster_current_gtif")  
 lf <- list.files(maps_wd, full.names = TRUE); lf
 b_imperv <- terra::rast(lf[1]) 
