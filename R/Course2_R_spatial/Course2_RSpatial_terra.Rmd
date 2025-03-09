@@ -482,7 +482,7 @@ crs(Bor_mat)   ## crs = coordinate reference system. If empty, assign it!
 
 In this case, it was automatically assigned, so nothing to do for now.
 
-## Set the CRS
+## Assign the CRS
 
 *Important!* Please read and repeat basic GIS-knowledge on coordinate reference 
 systems (CRS), map projections, and geographic and projected coordinates. This issue is also covered in the lecture prior to this course for TUB students.  
