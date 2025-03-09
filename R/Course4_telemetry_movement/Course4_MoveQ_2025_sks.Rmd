@@ -1126,7 +1126,7 @@ You could repeat the analysis with day and nighttime locations of the fox....
 fox_pred <- terra::predict(object = b_env_var_stack, 
                                 model = rsf_fox)
 fox_pred
-## TODO - still in logit scale?
+## TODO - still in logit scale? oder liegts am scale?
 
 # plot map
 terra::plot(fox_pred, col = viridis(100) )
