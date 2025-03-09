@@ -176,9 +176,7 @@ Now load the packages:
 library(here)          ## for easy directory management
 library(lubridate)     ## for date handling
 library(sf)            ## for handling simple feature objects
-#library(sp)            ## for handling Spatial* objects
 library(terra)         ## for handling raster objects
-#library(tidyterra)     ## for visualizing raster objects in ggplot
 library(ggplot2)       ## for nice static plots
 library(tmap)          ## for nice interactive maps
 library(circular)      ## for circular stats + plots
@@ -186,9 +184,8 @@ library(move)          ## for `move` objects
 library(amt)           ## for `move` objects
 library(ctmm)          ## for fitting continuous-time movement models
 library(effects)       ## for visualizing model results
-library(sjPlot)        ## easy plotting of model results
+#library(sjPlot)        ## easy plotting of model results
 library(jtools)        ## easy plotting of model results
-#library(adehabitatHR)  ## adehabitatLT  #adehabitatMA                           
 library(viridis)       ## for perceptually uniform color palettes
 library(corrplot)      ## for correlation plot
 ```
@@ -1043,7 +1040,7 @@ corrplot(M$correlation, type="upper",tl.col="black", tl.srt=45)
 
 
 Now create random points in MCP home range of the fox. Default is 10 times more
-random points than points. It automatically sets a column'case_' = FALSE, because
+random points than points. It automatically sets a column 'case_' = FALSE, because
 it is a random point, not a true animal location.
 ```{r}
 rp_fox_24 <- random_points(my_fox_24, n=dim(my_fox_24)[1])
@@ -1098,7 +1095,7 @@ summary(rsf_fox)
 
 ## Effects plots
 
-Plot the effects and odds ratio. 
+Plot the estimates as effects plots and forest plots. 
 ```{r}
 plot(effects::allEffects(rsf_fox),lty=1)
 ```
