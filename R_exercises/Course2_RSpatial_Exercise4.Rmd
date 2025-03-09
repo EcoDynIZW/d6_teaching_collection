@@ -39,7 +39,7 @@ code {
 ## Exercise 4 
 
 **The data set `kettleholes.txt` contains the location of three small lakes/ ponds
-north of Berlin.
+north of Berlin. 
 How high is the percentage of each land use class within a buffer of 1km around 
 these kettle holes?**
 
