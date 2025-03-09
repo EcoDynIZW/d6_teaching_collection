@@ -1,0 +1,68 @@
+---
+title: "Tutorial Part II — R goes spatial: Exercise 4"
+author: "Stephanie Kramer-Schadt & Cédric Scherer"
+date: "`r Sys.setlocale('LC_TIME','C'); paste('Last Update', format(Sys.time(), '%B %e, %Y'))`"
+output:
+  rmdformats::readthedown:
+    highlight: kate
+    toc_depth: 2
+    toc_float: true
+editor_options:
+  chunk_output_type: console
+params:
+  date: !r Sys.Date()
+---
+
+<style>
+h1 {
+  color: Orange ;
+}
+h2, h3, h4, h5, h6, legend {
+  color: Indigo ;
+}
+p {
+  line-height:170%;
+}
+#sidebar h2 {
+  background-color: Indigo;
+}
+code {
+  color: Indigo ;
+}
+.exercise {
+  color: #824b00;
+}
+</style>
+
+# <span class='exercise'> Course 2 Exercise 3</span>
+
+## Exercise 4 
+
+**The data set `kettleholes.txt` contains the location of three small lakes/ ponds
+north of Berlin.
+How high is the percentage of each land use class within a buffer of 1km around 
+these kettle holes?**
+
+Individual Steps:
+
+* a. Load the locations of the kettle holes (`KettleHole.txt`) and the land use data (`landuse_3035.shp`). You will find them in folder `data_move/geo-raw`.
+
+* b. Check the coord. ref. systems and harmonize, if needed.
+* c. Create a buffer around the kettle holes and clip the land use.
+* d. Calculate the area of land use and then the percentage within the buffer.
+
+---
+
+
+# END
+
+---
+
+<details><summary>Session Info</summary>
+
+```{r sessionInfo}
+Sys.time()
+sessionInfo()
+```
+
+</details>
