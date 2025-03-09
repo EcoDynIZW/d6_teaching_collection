@@ -1004,6 +1004,7 @@ my_fox_24 <- track_resample(my_fox, rate = hours(24), tolerance = minutes(25))
 dim(my_fox_24)
 ```
 
+## Environmental covariates
 
 First, load some environmental data. Check what is available in your 
 data_berlin-course folder, check for the CRS and assign if missing:
@@ -1015,18 +1016,21 @@ b_imperv <- terra::rast(lf[1])
 b_sutemp <- terra::rast(lf[3]) 
 b_forest <- terra::rast(lf[4])
 b_noise  <- terra::rast(lf[2])
+
+water_raster  <- rast(here::here("data","data_berlin","geo_raster_current_gtif","water_bodies_2010_100m_3035.tif"))
+
 ## chech CRS:
 b_sutemp ## coord. ref. is assigned because it is a geoTiff, not ascii-file.
+terra::plot(b_sutemp)
 
 ## combine to raster stack
-b_env_var_stack <- rast(list(b_imperv,b_sutemp, b_forest,b_noise))
+b_env_var_stack <- terra::rast(list(b_imperv,b_sutemp, b_forest,b_noise))
 names(b_env_var_stack) <- c("imp","stmp","tree","noise")
 
-## make quick plot of stack
-plot(b_env_var_stack) 
+ terra::plot(b_env_var_stack) ## somehow does not work any more - TODO
 
 ## single plot with points
-plot(b_env_var_stack[[4]])
+terra::plot(b_env_var_stack[[4]])
 points(my_fox_24, col = 'red')
 ```
 
@@ -1117,6 +1121,19 @@ You could repeat the analysis with day and nighttime locations of the fox....
 
 <br>
 
+## Predict the model
+```{r}
+fox_pred <- terra::predict(object = b_env_var_stack, 
+                                model = rsf_fox)
+fox_pred
+## TODO - still in logit scale?
+
+# plot map
+terra::plot(fox_pred, col = viridis(100) )
+terra::plot(water_raster, col = "darkslategray1",  legend=FALSE, add = TRUE)
+
+# writeRaster(fox_pred, here("outpu"))
+```
 
 
 
