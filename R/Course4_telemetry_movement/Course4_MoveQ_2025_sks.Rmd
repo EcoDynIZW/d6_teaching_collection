@@ -1024,14 +1024,18 @@ b_sutemp ## coord. ref. is assigned because it is a geoTiff, not ascii-file.
 terra::plot(b_sutemp)
 
 ## combine to raster stack
-b_env_var_stack <- terra::rast(list(b_imperv,b_sutemp, b_forest,b_noise))
+## the variables are on very different scales - we will scale them to have standardized values
+b_env_var_stack <- terra::rast(list(scale(b_imperv),
+                                    scale(b_sutemp), 
+                                    scale(b_forest),
+                                    scale(b_noise)))
 names(b_env_var_stack) <- c("imp","stmp","tree","noise")
 
- terra::plot(b_env_var_stack) ## somehow does not work any more - TODO
+terra::plot(b_env_var_stack) 
 
 ## single plot with points
-terra::plot(b_env_var_stack[[4]])
-points(my_fox_24, col = 'red')
+#terra::plot(b_env_var_stack[[4]])
+#points(my_fox_24, col = 'red')
 ```
 
 Compute a correlation matrix before you enter all variables into the model to
@@ -1094,6 +1098,10 @@ rsf_fox <- glm(data    = df_rsf_fox_24,
                #formula = case_num ~ noise + imp + stmp + tree, 
                family  = binomial(link = "logit"))
 summary(rsf_fox)
+
+## model frame - if you need to check 
+#model.frame(rsf_fox)
+#nrow(model.frame(rsf_fox)) == nrow(rsf_fox)
 ```
 
 
