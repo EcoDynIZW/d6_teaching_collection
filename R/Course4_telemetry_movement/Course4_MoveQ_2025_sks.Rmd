@@ -603,7 +603,7 @@ coordinate reference system in meters:
 ```{r}
 # transform CRS to projected one in meter distance units
 mydf_sf_trans <-  st_transform(mydf_sf, 3035 )  # EPSG-code  
-mydf_sp_trans <-  spTransform(mydf_sp, CRS("+init=epsg:3035")) ## TODO warning ##skip sp
+mydf_sp_trans <-  spTransform(mydf_sp, CRS("+init=epsg:3035")) ## warning here, as 'sp' gets outdated
 ```
 
 Recently, there are issues with the missing datum in the CRS-specifications. We
@@ -1094,8 +1094,8 @@ standardize while plotting.
 
 ```{r}
 rsf_fox <- glm(data    = df_rsf_fox_24, 
-               formula = case_num ~ scale(noise) + scale(imp) + scale(stmp) + scale(tree), 
-               #formula = case_num ~ noise + imp + stmp + tree, 
+               #formula = case_num ~ scale(noise) + scale(imp) + scale(stmp) + scale(tree), 
+               formula = case_num ~ noise + imp + stmp + tree, 
                family  = binomial(link = "logit"))
 summary(rsf_fox)
 
@@ -1130,14 +1130,25 @@ You could repeat the analysis with day and nighttime locations of the fox....
 <br>
 
 ## Predict the model
-```{r}
-fox_pred <- terra::predict(object = b_env_var_stack, 
-                                model = rsf_fox)
-fox_pred
-## TODO - still in logit scale? oder liegts am scale?
 
+The predict function will calculate the response on the logit scale, therefore we have
+to back-transform the values with the inverse logit to a probability.
+
+```{r}
+f_prob  <- function(var2) {1/ (1 + exp(x = -var2))}  # inverse logit
+
+## the prediction is made on logit scale
+fox_pred_logit <- terra::predict(object = b_env_var_stack, 
+                                model = rsf_fox)
+
+## transform logit to probability (use inverse logit function above)
+fox_pred_prob <- f_prob(fox_pred_logit)
+```
+
+
+```{r}
 # plot map
-terra::plot(fox_pred, col = viridis(100) )
+terra::plot(fox_pred_prob, col = viridis(100) )
 terra::plot(water_raster, col = "darkslategray1",  legend=FALSE, add = TRUE)
 
 # writeRaster(fox_pred, here("outpu"))
@@ -1146,7 +1157,7 @@ terra::plot(water_raster, col = "darkslategray1",  legend=FALSE, add = TRUE)
 
 
 -> go to Exercise 4.2; <br>
-check argument 'nest: -id' in amt-package to work with several animals
+check argument 'nest: -id' in amt-package to work with several animals or make a subset for ach animal
 
 # Coming soon: Recurse analysis, HMM, ...
 
