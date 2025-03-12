@@ -115,7 +115,7 @@ starlings <- readr::read_csv(here("data", "data_berlin", "animal_data", "starlin
 starlings$sex <- as.factor(starlings$sex) # convert to factor
 starlings$habitat <- as.factor(starlings$habitat) # convert to factor
 starlings$infected <- as.factor(starlings$infected) # convert to factor
-names(starlings)[names(starlings) =="X"] <- "ID" # rename to ID column
+names(starlings)[1] <- "ID" # rename first column to ID column
 
 # Short overview
 skim(starlings)
@@ -154,7 +154,7 @@ d6berlin::base_map_imp(globe = TRUE, resolution = 500)+
 
 # or interactive plot:
 
-# tmap_mode("View")
+# tmap_mode("view")
 # tm_shape(loc_sf) + tm_dots(col = "Habitat", size = 2)
 
 
@@ -209,7 +209,8 @@ locations_long <- pivot_longer(
 
 ggplot(locations_long, aes(x = year, y = temp, group = Habitat)) +
   geom_line(aes(col = Habitat), linewidth = 2) +
-  scale_colour_manual(values = c(urban = "darkgoldenrod", rural = "darkblue"))
+  scale_colour_manual(values = c(urban = "darkgoldenrod", rural = "darkblue"))+
+  theme(axis.text.x = element_text(angle = 45,hjust=0.5,vjust=0.5))
 ```
 
 
