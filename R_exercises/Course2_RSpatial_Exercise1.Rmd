@@ -38,7 +38,7 @@ code {
 
 # <span class='exercise'>Course 2 Exercise 1</span>
 
-**Please hand in the R-Script and the plots. Answer the questions after each step in the script. Please add your name or name of group to the file/script names.**
+**Please hand in the only R-Script and the plots. Answer the questions after each step in the script. Please add your name or name of group to the file/script names.**
 
 For example: myplotname_course2_ex1_yourlastname_yourfirstname.pdf/ or: .png/ or: .html and Rscript_course2_ex1_yourlastname_yourfirstname.Rmd/ or: .R
 
