@@ -2426,19 +2426,8 @@ margin-left: 0 !important;
 2</a></h2>
     <div id="toc">
       <ul>
-      <li><a href="#course-2-exercise-2" id="toc-course-2-exercise-2"><span class="exercise"> Course 2
-      Exercise 2</span></a>
-      <ul>
-      <li><a href="#exercise-2.1" id="toc-exercise-2.1">Exercise
-      2.1</a></li>
-      <li><a href="#exercise-2.2" id="toc-exercise-2.2">Exercise
-      2.2</a></li>
-      <li><a href="#exercise-2.3" id="toc-exercise-2.3">Exercise
-      2.3</a></li>
-      <li><a href="#exercise-2.4" id="toc-exercise-2.4">Exercise
-      2.4</a></li>
-      </ul></li>
-      <li><a href="#end" id="toc-end">END</a></li>
+      <li><a href="#course-2-exercise-1" id="toc-course-2-exercise-1"><span class="exercise">Course 2
+      Exercise 1</span></a></li>
       </ul>
     </div>
     <div id="postamble" data-toggle="wy-nav-shift" class="status">
@@ -2475,110 +2464,103 @@ color: Indigo ;
 color: #824b00;
 }
 </style>
-<div id="course-2-exercise-2" class="section level1">
-<h1><span class="exercise"> Course 2 Exercise 2</span></h1>
+<div id="course-2-exercise-1" class="section level1">
+<h1><span class="exercise">Course 2 Exercise 1</span></h1>
 <p><strong>Please hand in the R-Script and the plots. Answer the
 questions after each step in the script. Please add your name or name of
 group to the file/script names.</strong></p>
-<p>For example:
-<myplotname><em>course2_ex2</em><yourlastname><em><yourfirstname>.pdf/png/html
-and Rscript_course2_ex2</em><yourlastname>_<yourfirstname>.Rmd/R</p>
-<div id="exercise-2.1" class="section level2">
-<h2>Exercise 2.1</h2>
-<p><strong>Using data on green spaces in Berlin, estimate the number of
-wild boars observed inside green areas that are 1 ha or larger. What is
-the proportion of wild boars outside large green areas? Visualize the
-observations on a map showing the green spaces and the observations
-encoded by their location inside or outside the green
-spaces.</strong></p>
-<p>Individual Steps:</p>
+<p>For example: myplotname_course2_ex1_yourlastname_yourfirstname.pdf/
+or: .png/ or: .html and
+Rscript_course2_ex1_yourlastname_yourfirstname.Rmd/ or: .R</p>
+<p>**Revisit the data set from course 1 on wild boar observations in
+Berlin: <code>data_wb_melden_en.csv</code>. (it is here:
+<code>....\d6_teaching_collection\data\data_berlin\animal_data</code>).</p>
+<p>Now, we want to study the spatial patterns of the wild boar
+observations. We may hypothesize that wild boar observations are also
+related to local differences in weather. Answer the following question
+using spatial data sets and visualizations:**</p>
+<p><strong>Question 1.1) Were wild boar with many piglets seen more
+often in warm parts of the city?</strong></p>
+<p>Follow these steps to answer the questions:</p>
 <ul>
 <li><ol style="list-style-type: lower-alpha">
-<li>Store the simple feature data <code>sf_green</code> which is
-provided by the <code>{d6berlin}</code> package in a local object. (load
-the package first)</li>
+<li>Load the wild boar data (<code>data_wb_melden_en.csv</code>) and
+spatial data on temperature in Berlin
+(<code>summer_temp_100m_3035.asc</code> in <code>data_berlin</code>).
+Remember to set the correct CRS to the raster! (Hint: we need the
+Lambert Azimuthal Equal Area (LAEA) projection for Europe. Tip: always
+save the CRS as EPSG code to the filename ;-) )</li>
 </ol></li>
 <li><ol start="2" style="list-style-type: lower-alpha">
-<li>Calculate the area for each green space polygon and filter for green
-spaces that are equal or greater than 1 ha.</li>
+<li>Turn the wild boar data into a simple features object. Remember to
+set the correct CRS (the wild boar locations were collected in WGS 84)
+and to transform it to the same CRS as the raster afterwards!</li>
 </ol></li>
 <li><ol start="3" style="list-style-type: lower-alpha">
-<li>Load the wild boar data (<code>data_wb_melden_en.csv</code>) and
-turn it into a simple feature object. Remember to set the correct
-CRS!</li>
+<li>Inspect both spatial data sets by plotting the temperature raster
+with the wild boar locations on top using the R basic plot function. The
+locations should match the map (if not something went wrong when setting
+the CRS; check if they are the same).</li>
 </ol></li>
 <li><ol start="4" style="list-style-type: lower-alpha">
-<li>Intersect the wild boar data with the filtered green spaces and
-extract the number of unique observations.</li>
+<li>Select one of the temperature layers and extract the values for each
+wild boar location.</li>
 </ol></li>
 <li><ol start="5" style="list-style-type: lower-alpha">
-<li>Use the new data to visualize observations inside and outside the
-green spaces that are 1 ha or larger as a map.</li>
+<li>Create a plot that visualizes the temperature at each wild boar
+observation with 3 or more piglets (y axis) for each number of piglets
+(e.g. make a boxplot and plot the raw data on top).</li>
 </ol></li>
 </ul>
-<hr />
-</div>
-<div id="exercise-2.2" class="section level2">
-<h2>Exercise 2.2</h2>
-<p><strong>Calculate the average distance (in km) from each wild boar
-observation to water.</strong></p>
-<p>Individual Steps:</p>
+<p><strong>Question 1.2) Were wild boars more often observed at colder
+spots of the city during sunny weather?</strong></p>
 <ul>
-<li><ol style="list-style-type: lower-alpha">
-<li>Store the simple feature data <code>sf_water</code> in a local
-object. The data set is also provided by the <code>{d6berlin}</code>
-package.</li>
+<li><ol start="6" style="list-style-type: lower-alpha">
+<li>Create a new variable that holds the weather category as either
+“sunny” or “other”.</li>
 </ol></li>
-<li><ol start="2" style="list-style-type: lower-alpha">
-<li>To ease the handling of the data set, filter for large water bodies
-only (area &gt;= 100000 m^2).</li>
+<li><ol start="7" style="list-style-type: lower-alpha">
+<li>Visualize the temperature at each wild boar observation (y axis) for
+sunny and other weather (box and whisker plot + raw data).</li>
 </ol></li>
-<li><ol start="3" style="list-style-type: lower-alpha">
-<li>Calculate the distance between the wild boar data and the water
-bodies and add the information as a new column to your wild boar data
-set. Afterwards, convert the unit to km.</li>
-</ol></li>
-<li><ol start="4" style="list-style-type: lower-alpha">
-<li>Calculate the mean of all estimated distances.</li>
+<li><ol start="8" style="list-style-type: lower-alpha">
+<li>Save the wild boar observations with the local temperature
+information as an .Rds file.</li>
 </ol></li>
 </ul>
-<p>Hint: To calculate the minimum distance per wild boar observation,
-you need to “union” all polygon features into a single multipolygon
-first! (otherwise you get all distances from all observations to every
-single polygon feature!)</p>
-<hr />
-</div>
-<div id="exercise-2.3" class="section level2">
-<h2>Exercise 2.3</h2>
-<p><em>for the fast ones</em></p>
-<p><strong>What is the average and median distance (in km) to natural
-reserves…</strong></p>
+<p><strong>Question 1.3) <em>Additional question for the fast ones:</em>
+Were large groups of wild boar more frequently seen in areas providing a
+dense tree cover?</strong></p>
 <ul>
-<li><strong>a) for all wild boar observations?</strong><br />
-</li>
-<li><strong>b) for wild boars seen outside of nature
-reserves?</strong></li>
+<li><ol style="list-style-type: lower-roman">
+<li>Load the tree cover data set
+(<code>tree_cover_density_2012_100m_3035.asc</code> in
+<code>data_berlin</code>).</li>
+</ol></li>
+<li><ol start="10" style="list-style-type: lower-alpha">
+<li>Inspect the data set by plotting the raster using the R basic plot
+function.</li>
+</ol></li>
+<li><ol start="11" style="list-style-type: lower-alpha">
+<li>Extract the tree cover within a buffer of 100m around each wild boar
+location (hint: use the help to inspect the arguments of
+<code>extract()</code>).</li>
+</ol></li>
+<li><ol start="12" style="list-style-type: lower-alpha">
+<li>Create a boxplot that shows the tree cover (y axis) based on the
+group size.</li>
+</ol></li>
 </ul>
-<p>Hint: The information on nature reserves is contained in the green
-space data set. Check the help if you do not know what to look for.</p>
-<hr />
-</div>
-<div id="exercise-2.4" class="section level2">
-<h2>Exercise 2.4</h2>
-<p><em>for the fast ones</em></p>
-<p><strong>What is the average distance (in km) to natural reserves that
-contain water bodies for all wild boar observations?</strong></p>
-</div>
-</div>
-<div id="end" class="section level1">
-<h1>END</h1>
+<br>
+<hr>
+<p><br> # END</p>
 <hr />
 <details>
 <summary>
 Session Info
 </summary>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">Sys.time</span>()</span></code></pre></div>
-<pre><code>## [1] &quot;2025-03-13 11:15:43 CET&quot;</code></pre>
+<pre><code>## [1] &quot;2025-03-13 11:15:11 CET&quot;</code></pre>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span></code></pre></div>
 <pre><code>## R version 4.4.3 (2025-02-28 ucrt)
 ## Platform: x86_64-w64-mingw32/x64
