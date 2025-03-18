@@ -184,7 +184,6 @@ library(move)          ## for `move` objects
 library(amt)           ## for `move` objects
 library(ctmm)          ## for fitting continuous-time movement models
 library(effects)       ## for visualizing model results
-#library(sjPlot)        ## easy plotting of model results
 library(jtools)        ## easy plotting of model results
 library(viridis)       ## for perceptually uniform color palettes
 library(corrplot)      ## for correlation plot
@@ -811,6 +810,7 @@ Convert to sf object to store as shapefile, for example,
 and make a  plot <br>
 ```{r}
 mcp_fox_95_sf <- sf::st_as_sf(mcp_fox_95$mcp)
+#mcp_fox_95_sf <- hr_isopleths(mcp_fox_95)
 
 st_write(mcp_fox_95_sf,  
          dsn = here("output", "mcp_fox_95_sf.shp"),
@@ -1000,7 +1000,7 @@ https://cran.r-project.org/web/packages/amt/vignettes/p3_rsf.html
 Let's first thin and filter the dataset to one location per day
 ```{r}
 ## Let's look only at 60 min intervals:
-my_fox_24 <- track_resample(my_fox, rate = hours(24), tolerance = minutes(25))
+my_fox_24 <- track_resample(my_fox, rate = hours(24), tolerance = minutes(5))
 dim(my_fox_24)
 ```
 
@@ -1052,7 +1052,7 @@ random points than points. It automatically sets a column 'case_' = FALSE, becau
 it is a random point, not a true animal location.
 ```{r}
 rp_fox_24 <- random_points(my_fox_24, n=dim(my_fox_24)[1])
-plot(rp_fox_24)
+plot(rp_fox_24) ## contains true locations AND random points
 ```
 
 Now we extract the covariates (several ways to do so, see Course 2 Spatial R and
@@ -1061,29 +1061,15 @@ we use the function 'extract_covariates()' of the amt-package here)
 
 ```{r}
 env_rp_fox_24 <- amt::extract_covariates(x=rp_fox_24, covariates=b_env_var_stack)
-head(env_rp_fox_24)
+head(env_rp_fox_24) ##contains true and random points
 
 ```
 
-We do the same with the fox locations. Note that we have a different structure
-of the data.frame with more columns. And we have to add the column 'case_'
-```{r}
-env_my_fox_24 <- extract_covariates(x=my_fox_24, covariates=b_env_var_stack)
-head(env_my_fox_24)
-env_my_fox_24$case_ <- 'TRUE'
-names(env_my_fox_24) ## select same columns as random point df
-env_my_fox_24 <- env_my_fox_24[,c(10,1,2,6:9)]
-head(env_my_fox_24)  
-```
-
-Combine datasets for analysis and convert binary TRUE/FALSE (column 'case_')
+Convert binary TRUE/FALSE (column 'case_')
 into numeric.
 
 ```{r}
-df_rsf_fox_24 <- rbind(env_rp_fox_24,env_my_fox_24)
-head(df_rsf_fox_24)
-
-df_rsf_fox_24$case_num <- ifelse(df_rsf_fox_24$case_ == 'FALSE',0,1)
+env_rp_fox_24$case_num <- ifelse(env_rp_fox_24$case_ == 'FALSE',0,1)
 ```
 
 ## RSF model fit 
@@ -1093,7 +1079,7 @@ when plotting - only few plot functions below have inbuilt functions to
 standardize while plotting.
 
 ```{r}
-rsf_fox <- glm(data    = df_rsf_fox_24, 
+rsf_fox <- glm(data    = env_rp_fox_24, 
                #formula = case_num ~ scale(noise) + scale(imp) + scale(stmp) + scale(tree), 
                formula = case_num ~ noise + imp + stmp + tree, 
                family  = binomial(link = "logit"))
@@ -1151,7 +1137,7 @@ fox_pred_prob <- f_prob(fox_pred_logit)
 terra::plot(fox_pred_prob, col = viridis(100) )
 terra::plot(water_raster, col = "darkslategray1",  legend=FALSE, add = TRUE)
 
-# writeRaster(fox_pred, here("outpu"))
+# writeRaster(fox_pred, here("output"))
 ```
 
 
