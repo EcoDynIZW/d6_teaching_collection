@@ -1045,7 +1045,7 @@ M <- terra::layerCor(b_env_var_stack, fun = "pearson")
 corrplot(M$correlation, type="upper",tl.col="black", tl.srt=45)
 ```
 
-
+## Add random points to the telemetry data
 
 Now create random points in MCP home range of the fox. Default is 10 times more
 random points than points. It automatically sets a column 'case_' = FALSE, because
