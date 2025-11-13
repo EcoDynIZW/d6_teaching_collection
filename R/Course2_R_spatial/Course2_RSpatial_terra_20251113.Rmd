@@ -103,37 +103,37 @@ https://lkcnhm.nus.edu.sg/app/uploads/2017/06/S33rbz018-041-1.pdf
 
 **2. Quick introduction to spatial R**
 
-* https://rspatial.org/    
-* http://pakillo.github.io/R-GIS-tutorial/   
-* http://rstudio-pubs-static.s3.amazonaws.com/7993_6b081819ba184047802a508a7f3187cb.html  
+* https://rspatial.org/   
+* https://r-spatial.org/ 
 
 **3. Spatial visualisation**
 
 * check out the packages `{tmap}`, `{ggmap}`, `{leaflet}` and `{cartography}`  
-* https://cran.r-project.org/web/packages/tmap/vignettes/tmap-getstarted.html    
+* https://r-tmap.github.io/tmap/    
 * A whole book: https://clauswilke.com/dataviz/ with spatial data here: 
   https://clauswilke.com/dataviz/geospatial-data.html 
+* and my all-time favourite: https://www.cedricscherer.com/
   
 **4. Overview of spatial packages** 
 
 * http://cran.r-project.org/web/views/Spatial.html =  <br>   http://cran.r-project.org/view=Spatial  
-* https://www.r-spatial.org/
+
 
 **5. R-cheatsheets — great for learning 'vocabulary'**  
-* e.g. here: https://www.rstudio.com/resources/cheatsheets/    
+* e.g. here: https://www.rstudio.com/resources/cheatsheets/  and click on 'contributed cheatsheets'  
 
 **6. Infos about simple features in R (`{sf}` package)**  
 
 *  https://r-spatial.github.io/sf/index.html  
-*  and nice intro: https://oliviergimenez.github.io/introspatialR/#1    
+*  and nice intro: https://oliviergimenez.github.io/intro_spatialR/#1    
 *  geocomputation: https://geocompr.robinlovelace.net/spatial-operations.html 
 
 **7. Lots of EPSG Codes for map projections**  
 * Use EPSG codes as unique and specific identifies of your coordinate reference systems instead of writing projection details.  
-* for EPSG codes see http://spatialreference.org/ or https://www.nceas.ucsb.edu/~frazier/RSpatialGuides/OverviewCoordinateReferenceSystems.pd  
+* for EPSG codes see http://spatialreference.org/ or https://www.nceas.ucsb.edu/~frazier/RSpatialGuides/OverviewCoordinateReferenceSystems.pdf  
  
 
-**8. BioMove Graduate School specials:** 
+**8. Data analysis specials:** 
 
 *  For analysis of  plot-based biodiversity data: package `{vegan}`  
 *  For analysis of telemetry data: packages `{adehabitatHR}`, `{adehabitatLT}`, `{move}`, `{recurse}`, `{momentuHMM}`, `{moveHMM}`, `{ctmm}`
@@ -142,13 +142,11 @@ https://lkcnhm.nus.edu.sg/app/uploads/2017/06/S33rbz018-041-1.pdf
 
 **1. Check Roger Bivand's publications:**   
 * http://cran.r-project.org/web/views/Spatial.html   
-* http://www.csiss.org/learning_resources/index.html  
-* Roger Bivand et al. 2008, Applied Spatial Data Analysis in R, Springer  
+* *THE* https://r-spatial.org/book/
 
 **2. Check Edzer Pebesma's course materials and publications:**   
 * http://ifgi.uni-muenster.de/~epebe_01/  
 * https://edzer.github.io/UseR2017/   
-* https://www.rstudio.com/resources/videos/tidy-spatial-data-analysis/    
 
 **3. Geocomputation with R: a open-access book of Robin Lovelace, Jakub Nowosad & Jannes Muenchow**  
 * https://geocompr.robinlovelace.net  
