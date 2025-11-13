@@ -225,7 +225,6 @@ vignette(package = "sf") # vignette(package="sp")
 ## load the instruction of a package (embedded pdf):
 vignette("sf1") 
 
-
 ## For a better version of the sf vignettes see 
 # https://r-spatial.github.io/sf/articles/
 ```
@@ -239,8 +238,8 @@ use the function with 'package::function'.
 
 
 ```{r methods, eval=FALSE}
-terra::plot() # the :: provides the namespace, 
-            # i.e. that the function 'plot' is from the terra-package
+terra::plot() ## the :: provides the namespace, 
+              ## i.e. that the function 'plot' is from the terra-package
 ```
 
 
@@ -411,7 +410,7 @@ filenames <- list.files(path = maps_wd)
 head(x = filenames)
 
 ## if you want to see all stored files, use
-#filenames
+# filenames
 ```
 Should this directory be empty, then you have wrongly set the root directory and the data directory. Please check again how your folder structure looks like. By default, this folder should contain six ascii-files. The description what info these maps contain is provided in the *DataDescription_Borneo.doc* in the 
 *data_borneo* folder that you downloaded with the repository.
@@ -449,10 +448,10 @@ not floating type (i.e. with digits), which saves a lot of storage and memory.
 
 ```{r read-raster, eval=-1}
 ## read the ascii file as raster format
-ras_bio_asc_01 <- rast(x = paste0(maps_wd, "/bio_asc_01.asc")) 
+ras_bio_asc_01 <- terra::rast(x = paste0(maps_wd, "/bio_asc_01.asc")) 
 
 ## or use function 'here' (which in this case is much longer.....)
-# ras_bio_asc_01 <- rast(x = here("data", "data_borneo","geo_raster_current_asc", "bio_asc_01.asc"))
+# ras_bio_asc_01 <- terra::rast(x = here("data", "data_borneo","geo_raster_current_asc", "bio_asc_01.asc"))
 
 ## copy the raster map and give it a sensible name
 Bor_mat <- ras_bio_asc_01  ## easy copying of whole maps; mat stands for mean annual temp
@@ -466,7 +465,7 @@ Bor_mat
 
 What does the slot with *extent* tells you? Looks like coordinates in decimal degrees, i.e.  latitude and longitude. 
 
-  Now have a look at the slot `coord. ref.` (or `crs`. CRS stands for **c**oordinate **r**eference **s**ystem): Nicely in the new `{terra}`-package, the CRS (map projection) is automatically set in the following way: If the `crs` argument is missing when loading data with `rast(x= ..., crs= ...)`, and the x coordinate values are within -360 .. 360 and the y coordinate values are within -90 .. 90, automatically "+proj=longlat +datum=WGS84" is assigned. WGS84 is the global reference system for geospatial information and is the reference system for the Global Positioning System (GPS). In this case, (OGC:CRS84) stands for 'Open Geospatial Consortium' OGC standards to represent the coordinate reference system WGS84. The parameters for this CRS are now stored in so-called 'well-known text' (WKT) files. We will come back to that later. 
+  Now have a look at the slot `coord. ref.` (or `crs`. CRS stands for **c**oordinate **r**eference **s**ystem): Nicely in the new `{terra}`-package, the CRS (map projection) is automatically set in the following way: If the `crs` argument is missing when loading data with `rast(x= ..., crs= ...)`, and the x coordinate values are within -360 .. 360 and the y coordinate values are within -90 .. 90, **automatically** "+proj=longlat +datum=WGS84" is assigned. WGS84 is the global reference system for geospatial information and is the reference system for the Global Positioning System (GPS). In this case, (OGC:CRS84) stands for 'Open Geospatial Consortium' OGC standards to represent the coordinate reference system WGS84. The parameters for this CRS are now stored in so-called 'well-known text' (WKT) files. We will come back to that later. 
 
 However, sometimes the slot `coord. ref.` is empty, i.e. if other coordinates than decimal degrees are used, e.g. UTM. That means, without knowing the reference system, the map cannot be plotted at the exact location on the globe. Thus, when you get a map, always
 make sure you also get the information of the coordinate reference system! If it 
