@@ -630,6 +630,12 @@ aspect <- terrain(x = ras_bio_asc_24, v = "aspect", unit = "radians", neighbors 
 Bor_hs <- shade(slope, aspect, angle = 45, direction = 270) 
 ```
 
+Let's plot the hillshade:
+
+```{r plot-hillshade}
+plot(Bor_hs, col = grey(0:100/100), legend = FALSE)
+```
+
 
 Based on elevational maps, also a viewshed-analysis can be performed. <br>
 https://rdrr.io/cran/terra/man/viewshed.html <br>
@@ -657,15 +663,6 @@ plot(vs_raster)
 points(observer_location[2] ~ observer_location[1], col='red', cex = 2)
 ```
 
-
-
-
-
-Let's plot the hillshade:
-
-```{r plot-hillshade}
-plot(Bor_hs, col = grey(0:100/100), legend = FALSE)
-```
 
 
 Other very useful terrain calculations are cost surfaces, cost distances
