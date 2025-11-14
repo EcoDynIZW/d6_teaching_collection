@@ -617,7 +617,8 @@ Aspect = compass direction that a slope faces, measured in degrees clockwise fro
 
 Both are fundamental topographical characteristics used together to describe terrain and are widely applied in fields like geography, land development, and environmental science. 
 
-Further reading: https://gisnavigator.co.uk/slope-and-aspect-terrain-analysis/
+Further reading: https://gisnavigator.co.uk/slope-and-aspect-terrain-analysis/ or 
+https://zia207.quarto.pub/digital-terrain-analysis.html 
 
 for visualisation, we will create a hillshade (3D look) based on topography using slope and aspect:
 - simulates a 3D surface
@@ -627,8 +628,37 @@ for visualisation, we will create a hillshade (3D look) based on topography usin
 slope <- terrain(x = ras_bio_asc_24, v = "slope", unit = "radians", neighbors = 8) 
 aspect <- terrain(x = ras_bio_asc_24, v = "aspect", unit = "radians", neighbors = 8) 
 Bor_hs <- shade(slope, aspect, angle = 45, direction = 270) 
-
 ```
+
+
+Based on elevational maps, also a viewshed-analysis can be performed. <br>
+https://rdrr.io/cran/terra/man/viewshed.html <br>
+
+
+```{r}
+
+bor_dem_proj      <- project(ras_bio_asc_24, "+proj=moll +lat_0=65 +lon_0=10") 
+## see chapter below for explanation
+plot(bor_dem_proj) ## check dimension of x and y coordinates and choose center
+
+observer_location <- cbind(10500000 , 0) ## 0 is equator
+
+observer_height   <- 500 ## height above the elevation data of the observer 
+target_height     <- 1000 ## height above the elevation data of the targets
+
+
+vs_raster <- terra::viewshed(x = bor_dem_proj, 
+               loc = observer_location,
+               observer = observer_height, 
+               target= target_height,
+               curvcoef = 0.85714)
+
+plot(vs_raster)
+points(observer_location[2] ~ observer_location[1], col='red', cex = 2)
+```
+
+
+
 
 
 Let's plot the hillshade:
@@ -672,8 +702,8 @@ m
 
 
 ## old V3 style
-(m <- tm_shape(ras_bio_asc_01) +
-  tm_raster(palette = "viridis",  title = "Mean annual temp"))
+#(m <- tm_shape(ras_bio_asc_01) +
+#  tm_raster(palette = "viridis",  title = "Mean annual temp"))
 ```
 
 Make sure that the quality is sufficient by 
@@ -1356,6 +1386,7 @@ Spatial points are defined by two columns with x and y coordinates; they can be
 imported as normal `data.frames` and then converted to spatial objects: 
 
 ```{r convert-df-to-spatial}
+## read the data.frame
 pt_file <- paste0(anim_wd, "/MyNewSpecies.csv")
 df_recs <- read.table(file = pt_file, header = TRUE, sep = ',') # animal records
 class(x = df_recs)
@@ -1366,7 +1397,7 @@ This is still a `data.frame`, not yet a spatial object. See below of how to conv
 
 ```{r convert-df-to-sf}
 recs_sf <- st_as_sf(x = data.frame(df_recs),
-                    coords = c("long", "lat"),
+                    coords = c(x="long", y="lat"),
                     crs = 4326,
                     sf_column_name = "geometry")
 ```
@@ -1444,11 +1475,12 @@ which(x = PA_shp$COUNTRY == 'Malaysia')
 It is ok to use a simple `plot()` function for `{sf}` objects. However, 
 mind that this object has 7 columns, so each column holds information that will 
 be plotted, i.e. you will plot 7 single plots. So do a little transformation:
-either plot just one column, or define it as `{sp}` object:
+either plot just one column with the geometry or define it as `{sp}` object:
 
 ```{r base-plot-sf-1, fig.height=7}
 # plot(Borneo_shp) ## not run!
-plot(Borneo_shp[,1]) ## select column
+plot(Borneo_shp[,1]) ## select column 1 or 
+plot(st_geometry(Borneo_shp))
 ```
 
 
@@ -1494,12 +1526,24 @@ Note that it does NOT work for `{sp}` objects (`SpatialPolygonsDataFrame`).
 
 *Static map*
 
-The site ID is colour-coded here in a gradient
+The site ID is colour-coded here in a gradient. For further reading:
+https://tmap.geocompx.org/
+
 
 ```{r tmap-sf, fig.height=7.5}
 tmap_mode(mode = "plot")
+
 tm_shape(shp = PA_shp[, 1]) + 
-  tm_polygons(col = "SITE_ID", palette = grDevices::terrain.colors(5))
+  tm_polygons(
+      fill = "SITE_ID",
+      fill.scale  = tm_scale_continuous_log10(),
+    )
+
+## old V3 syle
+#tm_shape(shp = PA_shp[, 1]) + 
+#  tm_polygons(col = "SITE_ID", palette = grDevices::terrain.colors(5))
+
+
 ```
 
 
@@ -1510,11 +1554,20 @@ For example, we can plot a single selected protected area. Administrative area b
 tmap_mode(mode = "plot")
 
 tm_shape(shp = Borneo_shp) + 
-    tm_polygons(border.col = "black") +
+    tm_polygons(col = "black") +
   tm_shape(PA_shp[,1]) + 
-    tm_polygons(border.col = "deepskyblue4") +
+    tm_polygons(col = "deepskyblue4") +
   tm_shape(PA_shp[1, ]) + 
-    tm_polygons(border.col = "red")
+    tm_polygons(col = "red")
+
+
+## old V3 style
+#tm_shape(shp = Borneo_shp) + 
+#    tm_polygons(border.col = "black") +
+#  tm_shape(PA_shp[,1]) + 
+#    tm_polygons(border.col = "deepskyblue4") +
+#  tm_shape(PA_shp[1, ]) + 
+#    tm_polygons(border.col = "red")
 ```
 
 
@@ -1524,11 +1577,11 @@ Add spatial points (note: it does not work with `data.frames`) to the plot.
 tmap_mode(mode = "plot")
 
 tm_shape(shp = Borneo_shp) + 
-    tm_polygons(col = "grey", border.col = "white") +
+    tm_polygons(fill = "grey", col = "white") +
   tm_shape(shp = recs_sf) + 
     tm_dots(shape = 3, size = 0.25) +
   tm_shape(shp = pt_shp) + 
-    tm_dots(col = "blue") 
+    tm_dots(fill = "blue") 
 ```
 
 
@@ -1539,7 +1592,7 @@ tm_shape(shp = Borneo_shp) +
 ```{r tmap-sf-interactive}
 tmap_mode(mode = "view")
 tm_shape(shp = PA_shp[, 1]) + 
-  tm_polygons(col = "SITE_ID", palette = grDevices::terrain.colors(5))
+  tm_polygons(fill = "SITE_ID", fill.scale  = tm_scale_continuous_log10())
 ```
 
 
@@ -1614,7 +1667,7 @@ Plot it and have a look at the changes:
 ```{r mollweide-tmap, fig.height=10}
 tmap_mode(mode = "plot")
 tm_shape(shp = Borneo_shp_moll) + 
-  tm_polygons(border.col = "blue") ## do you see the difference?
+  tm_polygons(col = "blue") ## do you see the difference?
 ```
 
 We can also use pretty `{ggplot2}` with `{sf}` objects:
@@ -1652,7 +1705,7 @@ Now we want to know which of our species observations (recs_sf) were taken in pr
 ## retrieve the geometry (location) indices of PA_shp at
 ## the locations of sp_recs: which points are in PA_shp
 nrow(recs_sf) ## 500
-insidePA <- st_intersection(x = recs_sf, y = PA_shp) ## takes some seconds
+insidePA <- st_intersection(x = recs_sf, y = PA_shp) ## takes some seconds ##what does the warning mean?
 nrow(insidePA) ## 11
 ```
 
@@ -1662,8 +1715,8 @@ nrow(insidePA) ## 11
 Then we want to know in which climatic zone we have observed the species 'recs_sf'. For this, we extract the information from the raster of mean annual temperature (ras_bio_asc_01) to the point locations of species observations:
 
 ```{r spatial-overlay-2}
-# for a RASTER: extract mean ann. temp. from ras_bio_asc_01
-# and add it to a.t.of the locations/ points
+## for a RASTER: extract mean ann. temp. from ras_bio_asc_01
+## and add it to a.t.of the locations/ points
 mean_t <- extract(x = ras_bio_asc_01, y = vect(recs_sf)) ## for {terra} we need to wrap the sf object into spatial vector with`vect()` 
 recs_sf$mean_t <- mean_t$bio_asc_01
 mean(x = recs_sf$mean_t) # hist(sp_recs_sf$mean_t)
@@ -1692,14 +1745,15 @@ PA_elev <- tapply(X=tmp$bio_asc_24, INDEX = tmp$ID, FUN = mean)
 PA_elev
 ## you can either transform this info to a data.frame....
 PA_elev <- data.frame(PA_elev)
-
+PA_elev
 ```
 
 Append mean elevation to the shapefile:
 ```{r appenad-mean-elevation}
 ## ...or use function 'aggregate()'. this returns a `data.frame`. 
 ## The elevation info is in column 'x'
-mean_tmp <- terra::aggregate(tmp$bio_asc_24, by = list(Category = tmp$ID), FUN = mean) 
+mean_tmp <- terra::aggregate(tmp$bio_asc_24, by = list(Category = tmp$ID), FUN = mean)
+
 
 ## Since both objects, the shapefile 'fewPA' and the data.frame 'mean_tmp' (or 'PA_elev') 
 ## are ordered by ID,
@@ -1926,13 +1980,16 @@ ras_bio_asc_01_cr_sf <- st_as_sf(
 tmap_mode(mode = "view")
 
 tm_shape(shp = hillsh, raster.downsample = TRUE)  +  
-    tm_raster(palette = "Greys") +
-  tm_shape(shp = ras_bio_asc_24, raster.downsample = TRUE) + 
-    tm_raster(palette = grDevices::topo.colors(20),alpha = 0.3) +
-  tm_shape(shp = ras_bio_asc_01, raster.downsample = TRUE) + 
-    tm_raster(palette = grDevices::rainbow(10), alpha = 0.3) +
-  tm_shape(shp = ras_bio_asc_01_cr_sf) + 
+    tm_raster(col.scale  = tm_scale_continuous(values = "brewer.greys")) +
+tm_shape(shp = ras_bio_asc_24, raster.downsample = TRUE) + 
+    tm_raster(col.scale  = tm_scale_continuous(values = "viridis"),
+              col_alpha = 0.1) +
+#tm_shape(shp = ras_bio_asc_01, raster.downsample = TRUE) + 
+#    tm_raster(col.scale = tm_scale_continuous(values ="turbo"), 
+#              col_alpha = 0.3) +
+tm_shape(shp = ras_bio_asc_01_cr_sf) + 
   tm_dots(shape = 20, size = 0.01) 
+
 ```
 
 What do the shape-arguments mean, e.g. `shape = 20`? Have a look here at the symbols:
@@ -1949,9 +2006,9 @@ only circles are plotted.
 tmap_mode(mode = "plot")
 
 tm_shape(shp = hillsh, raster.downsample = TRUE) + 
-    tm_raster(palette = "Greys") +
+    tm_raster(col.scale  = tm_scale_continuous(values = "brewer.greys")) +
   tm_shape(shp = ras_bio_asc_24, raster.downsample = TRUE) +
-    tm_raster(palette = grDevices::terrain.colors(10), alpha = 0.3) +
+    tm_raster(col.scale  = tm_scale_continuous(values = "viridis"), col_alpha = 0.3) +
   tm_shape(shp = ras_bio_asc_01_cr_sf) + 
   tm_dots(shape = 1, size = 0.05) 
 ```
@@ -2018,9 +2075,9 @@ myxydataframe  <- sf::st_as_sf()
 ## Assign CRS to or project spatial data into another CRS
 
 ```{r, eval=FALSE}
-## Set/ assign the CRS if missing
-crs(myraster)  <- "+init=epsg:4326" ##assign if raster comes without CRS
-st_crs(myshapefile, 'EPSG:3085')
+## Set/ assign the CRS if missing -> here with EPSG-code
+crs(myraster)  <- "4326" ##assign if raster comes without CRS
+st_crs(myshapefile, '3085')
 
 ## project it
 myraster_proj  <- terra::project(myraster, 'EPSG:3085') ##example
