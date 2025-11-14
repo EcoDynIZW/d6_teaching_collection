@@ -1279,7 +1279,7 @@ ascii type files can be opened easily in any text editor. Try this with the smal
 
 ```{r save-raster}
 
-## save the small cropped file
+## save the small cropped and aggregated rasters
 terra::writeRaster(x = ras_bio_asc_01_cr, 
             filename = paste0(output_wd,"/bor_crop.asc"), 
             # or use here(): here("output", "bor_crop.asc")
@@ -1331,7 +1331,7 @@ Admin_shp <- st_read(dsn = vecs_wd, layer = "borneo_admin")[,c(1:3,5,7,17,18)]
 More here:
 - https://cran.r-project.org/web/packages/sf/vignettes/sf1.html
 
-#### Transformations between simple feature `{sf}` and SpatialPolygonsDataFrame `{sp}`
+### Transformations between simple feature `{sf}` and SpatialPolygonsDataFrame `{sp}`
 
 Since some functions are still only available in the `{sp}` package, it can be helpful to remember how to back and forth-transform between the data types.
 ```{r sf-versus-sp2}
@@ -1343,11 +1343,11 @@ Admin_sf <- as(Admin_sp, "sf")       ## from sp object to sf object
 
 ## Import spatial points
 
-In the following, we load two point datasets of different species locations.
+In the following, we load two point data-sets of different species locations.
 
 ```{r check-projection}
-pt_shp <- st_read(dsn = paste0(anim_wd, "/FCsim.shp"))
-pt_shp  ## CRS is missing!
+pt_shp <- st_read(dsn = paste0(anim_wd, "/FCsim.shp")) ## CRS is missing!
+head(pt_shp)  ## attribute table with geometry column
 st_crs(pt_shp) <- 4326 ## set it with command st_crs()
 pt_shp
 ```
