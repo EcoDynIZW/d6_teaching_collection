@@ -352,14 +352,14 @@ we work with the Borneo data:
 ```{r dirs}
 ## Now, create the linkages to the folders:
 
-# dbor_wd     <- paste0(root_wd, "/", "data/data_borneo") #- the old way
+# dbor_wd     <- paste0(root_wd, "/", "data/data_borneo") ## the old way to define the path from the root
 dbor_wd     <- here("data","data_borneo") #- note the nested folder structure
 
 # maps_wd   <- here("data","data_borneo","geo_raster_current_asc")  ##  same as:
 maps_wd   <- paste0(dbor_wd, "/geo_raster_current_asc") 
              
-# mind difference paste0() and paste() :
-# paste() needs a separator sign, in this case no space ''
+## mind difference paste0() and paste() :
+## paste() needs a separator sign, in this case no space ''
 vecs_wd   <- paste0(dbor_wd, "/geo_vector")
 anim_wd   <- paste(dbor_wd, "/animal_data", sep = '')   
 ```
@@ -477,7 +477,7 @@ a file), this is the first thing you should do!
 crs(Bor_mat)   ## crs = coordinate reference system. If empty, assign it!
 ```
 
-In this case, it was automatically assigned, so nothing to do for now.
+In this case, it was automatically assigned, so nothing to do for now.But see later, when we do not have a geographic CRS underlying the map....
 
 ## Assign the CRS
 
@@ -509,7 +509,7 @@ See http://spatialreference.org/. The EPSG code for WGS84 is 4326.
 
 In case the CRS was not yet assigned:
 ```{r change-crs}
-# many ways to assign the CRS, options listed below:
+## many ways to assign the CRS, options listed below:
 crs(ras_bio_asc_01) <- "+proj=longlat +datum=WGS84" 
 crs(ras_bio_asc_01) <- "+init=epsg:4326"
 ```
@@ -584,7 +584,7 @@ ext(ras_bio_asc_01_cr)
 xmin(ras_bio_asc_01_cr) ## or: xmin(ext(ras_bio_asc_01_cr))
 ncol(ras_bio_asc_01_cr)
 head(ras_bio_asc_01_cr)
-crs(ras_bio_asc_01_cr) ## != CRS(ras_bio_asc_01_cr) ## mind the spelling
+crs(ras_bio_asc_01_cr) ## != CRS(ras_bio_asc_01_cr) ## mind the spelling in capital letters
 
 ## crs = coordinate reference system defined
 ## CRS creates projection and takes args for crs!
@@ -610,8 +610,16 @@ head(x = crds(ras_bio_asc_01_cr), n = 10)
 
 ## Terrain computation
 
-We will now work with the digital elevation model (DEM) `ras_bio_asc_24` and create
-a hillshade (3D look) based on topography using slope and aspect:
+We will now work with the digital elevation model (DEM) `ras_bio_asc_24`, where each raster cell is the height above sea level. <br>.
+
+Slope = steepness or degree of incline of a surface,influences water flow and erosion.
+Aspect = compass direction that a slope faces, measured in degrees clockwise from north (e.g., 0° is north, 90° is east, 180° is south, 270° is west). E.g. important for sunlight exposure. 
+
+Both are fundamental topographical characteristics used together to describe terrain and are widely applied in fields like geography, land development, and environmental science. 
+
+Further reading: https://gisnavigator.co.uk/slope-and-aspect-terrain-analysis/
+
+for visualisation, we will create a hillshade (3D look) based on topography using slope and aspect:
 - simulates a 3D surface
 - computes shaded relief values for a raster surface
 
@@ -654,6 +662,16 @@ save the output via `tmap_save()`.
 ```{r tmap-save-static-map}
 tmap_mode("plot")
 
+m <- tm_shape(ras_bio_asc_01) +
+  tm_raster(
+    col.scale  = tm_scale_continuous(values = "viridis"),
+    col.legend = tm_legend(title = "Mean annual temp")
+  )
+
+m
+
+
+## old V3 style
 (m <- tm_shape(ras_bio_asc_01) +
   tm_raster(palette = "viridis",  title = "Mean annual temp"))
 ```
@@ -678,7 +696,7 @@ The saved map: check output folder
 Very good for checking the correct location of the data. Great for zooming in/ out or overlaying with open street map data:
 ```{r ras-tmap-interactive}
 tmap_mode(mode = "view")
-tm_shape(shp = ras_bio_asc_01) + tm_raster(alpha=0.5)
+tm_shape(shp = ras_bio_asc_01) + tm_raster(col_alpha=0.5)
 ```
 
 Click on the + | - | layer 
@@ -694,6 +712,7 @@ a spatial file name.
 ```{r tmap-save-interactive-map}
 tmap_mode("view")
 
+## store it as object i.m and then save it
 (i.m <- tm_shape(ras_bio_asc_01) +
   tm_raster(palette = "viridis",  title = "Mean annual temp"))
 
@@ -722,7 +741,7 @@ class(stars_bio_asc_01)
 g <- ggplot() +
   geom_stars(data = stars_bio_asc_01) +
   scale_fill_viridis_c(name = "°C * 10", na.value = "transparent") + 
-  coord_sf(crs = "+init=epsg:4326") + ## set correct projection 
+  coord_sf(crs = "EPSG:4326") + ## set correct projection 
   labs(x = "Longitude", y = "Latitude",
        title = "Mean annual temperature") +
   theme_minimal() ## set custom plot style
@@ -739,17 +758,18 @@ setting the dpi ("dots per inch") to at least 600.
 ```{r ggplot-save}
 g2 <- g + theme(plot.title = element_text(size = 18, face = "bold"),
                 plot.title.position = "plot",
-                legend.position = c(0.2, 0.95),
+                legend.position.inside = c(0.2, 0.95),
                 legend.direction = "horizontal",
                 legend.key.width = unit(2.2, "lines"),
                 legend.key.height = unit(0.7, "lines"))
 g2
 
+## `ggsave()` automatically saves the last plot if not specified otherwise. 
+## (You can also specify a ggplot object via `plot = `).
 ggsave(filename = paste0(output_wd, "/BorneoMap_4326_ggplot.png"),
        width = 8, height = 7, dpi = 600, bg = "white")
 ```
 
-(`ggsave()` saves automatically the last ggplot. You can also specify a ggplot object via `plot = `).
 
 The saved map: check output folder
 
@@ -757,7 +777,10 @@ The saved map: check output folder
 #knitr::include_graphics("./output/BorneoMap_4326_ggplot.png")
 ```
 
-Further beautiful ideas with ggplot:
+There is a new package called `tidyterra`, where *SpatRaster*-objects of `terra` can be plotted directly without the detour via `stars`. for an example see here: https://dieghernan.github.io/tidyterra/
+
+
+Further beautiful ideas with ggplot for contour plots:
 https://eliocamp.github.io/metR/reference/geom_contour_tanaka.html
 
 End of optional plotting.
@@ -864,10 +887,7 @@ plot(x = predictors)
 ```
 
 
-Hint: With `{tmap}`, plotting all stack layers at once is not recommended: 
-`{tmap}` is standardizing the legend to the min and max of all layers, which is 
-problematic if maps are not in the same units. That's why you cannot see the
-information in the maps:
+Same for tmap:
 
 ```{r plot-full-stack-tmap}
 tmap_mode(mode = "plot")
@@ -889,7 +909,8 @@ For changing cell size use aggregate() or resample():
 
 ```{r manipulate-raster-aggrgeate}
 ## collapse 20*20 cells into 1 using function (fun) 'mean':
-ras_bio_asc_01_agg <- aggregate(x = ras_bio_asc_01, fact = 20, fun = mean) 
+ras_bio_asc_01_agg <- aggregate(x = ras_bio_asc_01, fact = 50, fun = mean) 
+
 ```
 
 
@@ -941,10 +962,12 @@ mean.t.c.25 <- mean.t.c >= 25
 mean.t.c.25 ## check the values -> binary! 
 ```
 
+
 Have a look at the result using a binary plot, i.e.all areas where the temperature is above 25 degrees (TRUE) are plotted:
 
 ```{r binary-plot}
 plot(x = mean.t.c.25)
+range(values(mean.t.c.25), na.rm =TRUE)
 ```
 
 
@@ -1039,13 +1062,13 @@ p2
 
 
 check here for how `{ggplot2}` works if you want to make really nice plots:
-* https://github.com/rstudio/cheatsheets/blob/master/data-visualization-2.1.pdf
+* https://ggplot2.tidyverse.org/
 
 
 or get inspiration here:
 
 * https://www.cedricscherer.com/2019/08/05/a-ggplot2-tutorial-for-beautiful-plotting-in-r/
-*https://www.r-graph-gallery.com/
+* https://www.r-graph-gallery.com/
 
 Back to spatial R!
 
@@ -1055,8 +1078,8 @@ Back to spatial R!
 
 ### Accessing and changing single raster cell values
 
-Remember the function **`extract()`**. In the following, we extract from the
-small raster the first three values (= cols 1-3; longitude or x-axis) 
+Remember the function **`extract()`** from the lecture. In the following, we extract from the
+small (cropped) raster the first three values (= cols 1-3; longitude or x-axis) 
 at line 5 (= row 5; latitude or y-axis).
 
 ```{r accessing-raster-values}
@@ -1079,7 +1102,8 @@ Change raster values in an existing raster:
 ```{r change-raster-values-again}
 ## get the coordinates; cells was the object containing the index (i.e. the cell numbering)
 ## the function returns a matrix (it could have been easy...)
-xy <- xyFromCell(object = ras_bio_asc_01_cr, cell = cells) 
+xy <- terra::xyFromCell(object = ras_bio_asc_01_cr, cell = cells) ## same as: 
+#xy <- terra::crds(ras_bio_asc_01_cr)[cells,]
 xy
 class(xy)
 
@@ -1115,7 +1139,7 @@ center_y = floor(ncol(predictors) / 2) ##                 ceiling(), floor()
 center_x; center_y ## center coordinates of the Borneo maps
 
 ## start from center cell and go 5 cells in x and y direction
-## This should yeald 25 cells
+## This should yield 25 cells
 stack_cells <- terra::cellFromRowColCombine(
   object = ras_bio_asc_01, 
   row = c(center_x:(center_x + 4)), 
@@ -1141,7 +1165,7 @@ Now, extract them with the useful function `èxtract()` into an object called 'm
 pred_dat <- extract(predictors, stack_cells) 
 head(pred_dat)
 
-## combine in one table
+## combine in one table that can be used for further statistical analysis
 mastertable <- data.frame(stack_cells, pred_dat)
 head(mastertable)
 ```
@@ -1149,6 +1173,8 @@ head(mastertable)
 End optional.
 
 </details>
+
+
 
 
 ### Compute distance to points
@@ -1160,7 +1186,7 @@ calculate the distance to each other cell in the raster.
 ## remember from above: the object 'xy' was a matrix ## check #class(xy)
 ## turn first into SpatVector - this is the format needed for the distance() function below
 ## we do this just for 1 cell (point),
-sv_xy <- vect(xy)[1] 
+sv_xy <- terra::vect(xy)[1] 
 sv_xy
 ```
 
@@ -1182,7 +1208,7 @@ Now the CRS is set/ assigned and we can continue with distance calculations:
 ## calculate distance
 my_dist <- distance(x = ras_bio_asc_01_cr, y = sv_xy)
 plot(x = my_dist) ## units?
-points(sv_xy)
+points(sv_xy, col= 'white', pch= 19, cex = 2)
 ```
 
 
@@ -1196,8 +1222,52 @@ my_dist <- distance(x = ras_bio_asc_01_cr, y = sv_xy_2)
 
 # viz
 plot(my_dist) #units?
-points(sv_xy_2) #
+points(sv_xy_2, col= 'white', pch= 19, cex = 2) 
 ```
+
+## Categorical rasters
+
+Let's go back to our raster with the temperature below or above 25° C. It is a binary map with categories (above or below 25°C), although hard-coded via the numbers 0 and 1. This can be transformed into a factors:
+
+```{r}
+mean_f_ras <- as.factor(mean.t.c.25)
+levels(mean_f_ras)
+
+## create a level look-up table
+cls <- data.frame(ID=0:1, mean_t = c("below","above"))
+levels(mean_f_ras) <- cls
+is.factor(mean_f_ras)
+
+plot(x=mean_f_ras)
+```
+
+In the same way, a legend e.g. for several land use categories could be defined.
+
+### Quantifying landscape heterogeneity 
+
+See separate course. Possible with package `landscapemetrics`: https://r-spatialecology.github.io/landscapemetrics/
+based on FRAGSTATS: https://www.fragstats.org/
+
+For example, calculate the Shannon diversity index:
+```{r}
+#install.packages('landscapemetrics')
+#library(landscapemetrics)
+#check_landscape(mean_f_ras) ## by now, you understand what the error message means....
+#mean_f_ras_proj <- terra::project(mean_f_ras, 'EPSG:3085') 
+
+#check_landscape(mean_f_ras_proj) ## check again
+#lsm_l_shdi(mean_f_ras_proj) ## 0.6 
+
+## simply do it by hand
+#terra::summary(mean_f_ras_proj) ## take out the values
+#n <- c(7017,21712)
+#p <- n / sum(n)
+
+## Shannon
+#H <- -sum(p * log(p))
+#H ## 0.6
+```
+
 
 
 ## Data export - saving raster data
