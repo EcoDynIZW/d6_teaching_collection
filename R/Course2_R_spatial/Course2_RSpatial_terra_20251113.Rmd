@@ -741,7 +741,11 @@ tmap_mode("view")
 
 ## store it as object i.m and then save it
 (i.m <- tm_shape(ras_bio_asc_01) +
-  tm_raster(palette = "viridis",  title = "Mean annual temp"))
+  tm_raster(
+    col.scale  = tm_scale_continuous(values = "viridis"),
+    col.legend = tm_legend(title = "Mean annual temp")
+  )
+)
 
 tmap_save(i.m, paste0(output_wd,"/BorneoMAT_4326.html"))
 ## or use here: 
@@ -1175,7 +1179,7 @@ stack_cells <- terra::cellFromRowColCombine(
 
 ## check 
 #?cellFromRowColCombine
-## to get an overview over all possible functions to get acces to the raster
+## to get an overview over all possible functions to get access to the raster
 
 head(stack_cells) ## mind: these are index numbers! Not cell values!
 ```
@@ -1940,7 +1944,7 @@ plot(elev_usa)
 
 <details><summary> Optional - composite plots </summary>
 
-Composite plots: plotting several layers and data types
+# Composite plots: plotting several layers and data types
 
 *Simple composite plot*
 
@@ -1973,29 +1977,8 @@ ras_bio_asc_01_cr_sf <- st_as_sf(
   sf_column_name = "geometry" ## sf needs a geometry column and you have to name it
 )
 
-# interactive plot
-tmap_mode(mode = "view")
-
-tm_shape(shp = hillsh, raster.downsample = TRUE)  +  
-    tm_raster(col.scale  = tm_scale_continuous(values = "brewer.greys")) +
-tm_shape(shp = ras_bio_asc_24, raster.downsample = TRUE) + 
-    tm_raster(col.scale  = tm_scale_continuous(values = "viridis"),
-              col_alpha = 0.1) +
-#tm_shape(shp = ras_bio_asc_01, raster.downsample = TRUE) + 
-#    tm_raster(col.scale = tm_scale_continuous(values ="turbo"), 
-#              col_alpha = 0.3) +
-tm_shape(shp = ras_bio_asc_01_cr_sf) + 
-  tm_dots(shape = 20, size = 0.01) 
 
 ```
-
-What do the shape-arguments mean, e.g. `shape = 20`? Have a look here at the symbols:
-https://ggplot2.tidyverse.org/articles/ggplot2-specs.html?q=shape#sec:shape-spec
-
-
-Unfortunately, in `{tmap}` you can only use `shape = 1` and `shape = 20`, 
-only circles are plotted.
-
 
 
 ```{r static-sf-hillshade}
@@ -2004,17 +1987,27 @@ tmap_mode(mode = "plot")
 
 tm_shape(shp = hillsh, raster.downsample = TRUE) + 
     tm_raster(col.scale  = tm_scale_continuous(values = "brewer.greys")) +
-  tm_shape(shp = ras_bio_asc_24, raster.downsample = TRUE) +
-    tm_raster(col.scale  = tm_scale_continuous(values = "viridis"), col_alpha = 0.3) +
-  tm_shape(shp = ras_bio_asc_01_cr_sf) + 
-  tm_dots(shape = 1, size = 0.05) 
+tm_shape(shp = ras_bio_asc_24, raster.downsample = TRUE) +
+    tm_raster(col.scale  = tm_scale_continuous(values = "viridis"), col_alpha = 0.1) +
+tm_shape(shp = ras_bio_asc_01, raster.downsample = TRUE) + 
+    tm_raster(col.scale = tm_scale_continuous(values ="turbo"), 
+              col_alpha = 0.3) +
+tm_shape(shp = ras_bio_asc_01_cr_sf) + 
+  tm_symbols(shape = 1, size = 0.05, col= 'white') ## or tm_dots()
 ```
  
+
+Unfortunately, in `{tmap}` you can only use `shape = 1` and `shape = 20`, 
+only circles are plotted.
+
+https://tmap.geocompx.org/layers
 
 
 *An Advanced Map with `{tmap}`*
 
 At the end, an example of a beautiful map, created with `tmap`: 
+
+To do: transform tmap v3 code into v4:
 
 ```{r tmap-beauty, fig.width=12, fig.height=12}
 tmap_mode(mode = "plot")
