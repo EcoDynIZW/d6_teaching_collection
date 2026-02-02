@@ -1,6 +1,6 @@
 ---
-title: "
-author: ""
+title: "Occupancy modelling with unmarked"
+author: "Rahel Sollmann"
 date: "`r Sys.setlocale('LC_TIME','C'); paste('Last Update', format(Sys.time(), '%B %e, %Y')) `"
 output:
   rmdformats::readthedown:
@@ -42,20 +42,231 @@ Sys.setlocale("LC_TIME", "C")
 ```
 
 
-# Header 1
+# <span class='exercise'>Course 3 Occupancy models</span>
 
-A first-level paragraph.
+# Preparations
+
+## Load libraries
+
+```{r,message=FALSE}
+library(unmarked) #main package 
+library(terra)    #needed for prediction maps
+```
+
+## Set workspace, data directories
+
+```{r}
+### The workspace  (repetition) 
+getwd() # you can also use the package 'here()'
+
+root_wd <- here::here() 
+# relative to work-wd
+
+##detection data
+data_wd <- paste(root_wd,"/","data/data_berlin/animal_data",sep='') 
+
+## covariate maps
+maps_wd <- paste(root_wd,"/","data/data_berlin/geo_raster_current_gtif",sep='')
+
+```
+
+## Load, explore the detection data
+```{r}
+
+## read in detection data - example: raccoon
+y<-readRDS(paste0(data_wd, '/raccoon_spring2019.RDS'))
+
+## Basic data summaries:
+
+##how many locations sampled?
+J=nrow(y)
+##how many repeat samples?
+K=ncol(y)
+
+##naive occupancy (number of sites with detections)
+sum(apply(y,1,sum)>0)/nrow(y)
+
+##number of detections in each sampling occasion
+apply(y,2,sum)
+
+```
+
+## Load, explore covariate data
+
+```{r}
+## read in covariate data
+covs<-readRDS(paste0(data_wd, '/covenv_spring2019.RDS'))
+
+## look at covariates
+head(covs)
+
+## we will create an observation covariate (varies across visits)
+## to test whether detection probability increases or decreases
+## over time (maybe animals are afraid of camera traps = novel
+## objects initially, but gradually get used to them)
+
+time<-matrix((0:3), nrow=J, ncol=K, byrow=T)
+head(time)
+
+##convert to dataframe
+time.df<-data.frame(time)
+colnames(time.df)<-paste0('time.', 1:4)
+
+```
+
+## Format data for analysis
+```{r}
+## create unmarkedFrame
+
+umf<-unmarkedFrameOccu(y=y, #matrix
+                       siteCovs = covs, #dataframe
+                       obsCovs = list(time=time.df)) #list of dataframes
+summary(umf)
+```
 
 
-## Header 2
+# Occupancy modeling
 
-A second-level paragraph.
+## Run simplest occpancy model - no covariates
+```{r}
+##start with null model (no covariates)
+m0<-occu(~1~1, data=umf)
+summary(m0)
 
+##manual backtransformation - occupancy
+exp(0.0381)/(1+exp(0.0381))
+plogis(0.0381)
+##compare to naive occu
 
-# <span class='exercise'>Exercise</span>
+## detection
+plogis(-0.217)
 
-Some exercises.
+## better: use predict() function
+head(predict(m0, type='state')) # state = occupancy
+head(predict(m0, type='det')) # det = detection
+##produces a value for each sampling location (and occasion)
+##more useful for models with covariates
+```
 
+## Run a model with an occupancy covariate
+```{r}
+## run model with tree cover 100 on occupancy
+m.tree100<-occu(~1~tree_cover_100, data=umf)
+summary(m.tree100)
+
+## now, predict will calculate occu probability for each location
+## based on its tree cover value
+head(predict(m.tree100, type='state')) # state = occupancy
+
+##we can use this to plot occupancy probability as a function
+## of tree cover
+pred.tree<-predict(m.tree100, type='state')
+
+plot(covs$tree_cover_100, pred.tree$Predicted)
+
+##IMPORTANT: this simple approach only works for models with
+##           only one covariate
+```
+
+## Run a model with multiple covariates on occupancy
+```{r}
+## let's look at an example with two covariates: 
+## tree cover at the local and the 100-m scale
+
+m.tree2<-occu(~1~tree_cover_100+Local_tree_cover, data=umf)
+
+pred.tree2<-predict(m.tree2, type='state')
+plot(covs$tree_cover_100, pred.tree2$Predicted)
+##this happens because predict considers both variables when
+## calculating the occupancy probability at each location
+## but we can only plot against one covariate
+
+## using predict when there is more than one covariate
+## create a data frame with new predictor values 
+## create a range of values for the predictor you want to look at
+## keep a fixed value (0 or the mean) for the other predictor(s)
+## NOTE: ALL predictors that are in the model must be in the new
+##       data frame; the column names must be identical to those 
+##       in the data
+new.cov<-data.frame(tree_cover_100 = seq(0,100,1),#0-100
+                    Local_tree_cover = mean(covs$Local_tree_cover))
+
+pred.tree3<-predict(m.tree2,newdata=new.cov, type='state')
+plot(new.cov$tree_cover_100, pred.tree3$Predicted)
+```
+
+## Run a model with a detection covariate
+```{r}
+## now let's check for an effect of time on detection
+m.time<-occu(~time~1, data=umf)
+summary(m.time)
+pred.time<-predict(m.time, type='det')
+
+plot(as.vector(t(time)), pred.time$Predicted)
+
+## or using new data
+new.timecov<-data.frame(time=0:3)
+pred.time2<-predict(m.time,newdata=new.timecov, type='det')
+plot(new.timecov$time, pred.time2$Predicted)
+```
+
+## Model selection via AIC
+```{r}
+##fit multiple models: here with and without time, 
+## with and without tree cover
+## (top three are repeats from above)
+m0<-occu(~1~1, data=umf)
+m.tree100<-occu(~1~tree_cover_100, data=umf)
+m.time<-occu(~time~1, data=umf)
+m.tree.time<-occu(~time~tree_cover_100, data=umf)
+
+##which of these is the best model?
+##create a named fitlist
+fl<-fitList(null=m0,
+            tree=m.tree100,
+            time=m.time,
+            treeTime=m.tree.time)
+##perform AIC based model selection
+modSel(fl)
+## treeTime and tree are very similar 
+## and both are better than the two models without tree cover
+```
+
+# Prediction maps
+
+## Read in treecover raster
+```{r}
+## Read in raster of tree cover at 100-m scale
+tree.berlin<-rast(paste0(maps_wd,'/tree_cover_density_2012_100m_3035.tif'))
+## Look at raster
+plot(tree.berlin)
+
+```
+
+## Format treecover raster data for predictions
+```{r}
+## make dataframe with treecover values for predictions
+## select only raster cells that have a value (ie, that are not NA)
+new.tree<-data.frame(tree_cover_100=values(tree.berlin)[!is.na(values(tree.berlin))]/100)
+
+## make predictions from treecover model
+pred.berlin<-predict(m.tree100, newdata=new.tree, type='state')
+
+```
+
+## Create prediction raster (map)
+```{r}
+## create duplicate of treecover data (this maintains resolution, extent etc)
+raccoon.occu<-tree.berlin
+
+## replace treecover values with predictions of raccoon occupancy
+## again, only for non-NA values
+values(raccoon.occu)[!is.na(values(tree.berlin))]<-pred.berlin$Predicted
+
+## plot occupancy raster
+plot(raccoon.occu)
+
+```
 
 <br><hr><br>
 
