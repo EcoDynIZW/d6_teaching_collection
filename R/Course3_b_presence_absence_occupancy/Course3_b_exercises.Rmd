@@ -1,0 +1,261 @@
+---
+title: "Preparation for occupancy modelling with unmarked - Exercises"
+author: "Rahel Sollmann"
+date: "`r Sys.setlocale('LC_TIME','C'); paste('Last Update', format(Sys.time(), '%B %e, %Y')) `"
+output:
+  rmdformats::readthedown:
+    highlight: kate
+    code_folding: show
+    toc_depth: 4
+    toc_float: true
+editor_options:
+  chunk_output_type: console
+params:
+  date: !r Sys.Date()
+---
+
+<style>
+h1 {
+  color: Orange ;
+}
+h2, h3, h4, h5, h6, legend {
+  color: Indigo ;
+}
+p {
+  line-height:170%;
+}
+#sidebar h2 {
+  background-color: Indigo;
+}
+code {
+  color: Indigo ;
+}
+.exercise {
+  color: #824b00;
+}
+</style>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, 
+                      dev = "ragg_png", fig.width = 9, fig.height = 6, dpi = 600, retina = 1)
+Sys.setlocale("LC_TIME", "C")
+```
+
+
+# <span class='exercise'>Course 3 b Exercises</span>
+
+# Exercise 1 - Bernoulli random variables 
+
+```{r,message=FALSE}
+
+## get working directory, load custom function
+wd<-here::here() 
+
+source(paste0(wd, '/R/Course3_b_presence_absence_occupancy/Occu_fun.R'))
+
+##rbinom() - a function for a virtual coin flip
+
+## returns:
+## 1 = heads
+## 0 = tails
+
+## a fair coin (prob=0.5)
+rbinom(n=1, size=1, prob=0.5)
+
+## for species occurrence, each site/location has some 
+## probability of occurrence and whether or not a species
+## actually occurs is a (unfair) coin flip 
+
+## the function returns a hypothetical landscape, in which grid cells are
+## either occupied (black dot) or not by a hypothetical species
+## the color of the grid cells encodes the probability that a cell is occupied
+occu_fun()
+
+```
+
+### How to estimate occupancy probability from the occu_fun output
+
+```{r}
+
+## Imagine the function returned: 
+successes<-55 ## occupied sites
+trials<-100   ## all available sites/cells in the landscape
+
+
+##Likelihood: what is the likelihood of observing x successes
+##            out of n trials for a given value of psi (occupancy probability)
+
+## possible values of psi
+## we leave out 0 and 1 as special cases
+psi<-seq(0.01, 0.99, 0.01)
+
+## dbinom: likelihood
+lik<-dbinom(successes, trials, psi)
+round(lik, dig=3)
+
+## plot the likelihood against possible values of psi
+## mark the point where the likelihood is highest --> maximum likelihood
+plot(psi, lik, type='l')
+abline(v=psi[lik==max(lik)])
+
+## This is the fundamental principle of ML estimation
+
+## in this simple case: closed form estimator of psi
+successes/trials
+
+```
+
+## explore how many cells are occupied for different levels of psi
+```{r}
+occu_fun(psi=0.6)
+
+```
+
+
+# Exercise 2: Imperfect detection
+
+```{r}
+## circles mark occupied sites
+## filled circles are sites at which species is detected
+## open circles are sites at which species is present but 
+## not detected
+set.seed(123) #ensures we all generate the same numbers
+detec_fun()
+
+## Q1: What would be your best estimate of occupancy
+##     probability if you only considered cells with detections
+##     as occupied?
+## Q2: What is the best estimate of detection probability?
+
+
+## play with different levels of p and psi
+## When is the proportion of occupied sites without detections high, when low?
+
+## Remember: p = detection probability, psi = occupancy probability
+detec_fun(p=0.8, psi=0.1)
+
+```
+
+# Exercise 3: Sampling effort and probability of non-detection
+
+```{r}
+## change K (number of visits to each site); default = 1
+
+detec_fun(K=2)
+
+## What happens as K increases?
+
+
+## calculate probability of not detecting the species in K 
+## surveys even though it is present for p=0.5 and a range of K
+## from 1 to 10
+
+K<-1:10
+p<-0.5
+Pnon<-(1-p)^K
+plot(K, Pnon)
+
+## same with p=0.2
+p<-0.2
+Pnon<-(1-p)^K
+plot(K, Pnon)
+
+## visualize the relationship between p(non-detection), p and K
+ps<-seq(0.1, 0.9, 0.1)
+
+plot(K, seq(0, 1, length.out=length(K)), col='white',
+     ylab='P(nondet)')
+for(i in 1:length(ps)){
+  points(K, (1-ps[i])^K, type='l',
+         col=i)
+}
+
+## the lower p, the higher is p(non-detection)
+## the higher K, the lower is p(non-detection)
+## but for very low p, even high K still miss the species a lot
+
+```
+
+
+# Exercise 4: covariates on occupancy and detection
+
+## covariate on occupancy
+```{r}
+## fake landscape with covariate positively affecting occupancy
+
+##lighter color = higher occu prob
+occu_fun(covar=TRUE)
+
+##look at occurrences against covariate gradient by having the 
+## function return the generated data
+
+dat<-occu_fun(covar=TRUE, return=TRUE)
+
+##outcome (here, called 'occ') vs predictor (here, called 'xp')
+plot(dat$xp, dat$occ, pch=19,
+     xlab='X', ylab='Occupancy (probability)')
+
+## occupancy probability (here, called 'z') vs predictor 
+points(dat$xp, dat$z, pch=19, col='forestgreen')
+```
+
+## covariate on detection
+
+```{r}
+detec_fun(covar=TRUE)
+## plot is not helpful as it displays occupancy probability
+
+## so, have function return data
+datp<-detec_fun(covar=TRUE, return=TRUE)
+
+##look at relationship between occupied cells ('occ') and covariate
+## on detection 'xp'
+plot(datp$xp, datp$occ, pch=19,
+     xlab='X', ylab='Occupancy (probability)')
+
+##occupancy probability ('z') vs predictor
+points(datp$xp, datp$z, pch=19, col='forestgreen')
+
+##there is no relationship (because the covariate affects p, not psi) 
+
+##look at relationship of detections ('y') and covariate
+## only consider occupied cells
+plot(datp$xp[dat$occ == 1], datp$y[dat$occ == 1], pch=19,
+     xlab='X', ylab='Detection (probability)')
+
+##detection probability vs predictor
+points(datp$xp, datp$p, pch=19, col='forestgreen')
+```
+
+## OPTIONAL: What if we ignore the covariate effect on detection?
+```{r}
+## Let's look at cells with and cells without detections in
+## relation to the covariate
+## This ignores imperfect detection (ie, cells that are occupied but where we
+## did not detect the species - open circles)
+plot(datp$xp, datp$y, pch=19,
+     xlab='X', ylab='Observed occupancy (probability)')
+
+##logistic regression: observed occupancy (ignoring imperfect detection)
+## as a function of predictor xp, which in truth affects detection probability
+mm<-glm(y~xp, data=datp, family='binomial')
+pp<-predict.glm(mm, type='response')
+points(datp$xp, pp,  pch=19, col='forestgreen')
+
+## We would falsely conclude that the species' occupancy probability is positively
+## related to the predictor variable, when in fact, it's detection probability
+## that is positively related to the predictor
+
+```
+
+<br><hr><br>
+
+<details><summary>Session Info</summary>
+
+```{r sessionInfo}
+Sys.time()
+#git2r::repository() ## uncomment if you are using GitHub
+sessionInfo()
+```
+
+</details>
