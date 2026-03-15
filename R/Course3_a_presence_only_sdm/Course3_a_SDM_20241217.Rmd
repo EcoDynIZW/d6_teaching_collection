@@ -364,7 +364,7 @@ plot(bias1, col = viridis(7)) #or col = grey.colors(7)
 ## if not, paste the path to the filename, i.e. 
 ## filename=paste0(output_wd,"/bias_2023.asc") #or # here(output_wd,"bias_2023.asc")
 getwd()
-terra::writeRaster(bias1, filename="bias_2025.asc",
+terra::writeRaster(bias1, filename="bias_2026.asc",
             overwrite=TRUE,NAflag=-9999)
 ```
 
@@ -404,7 +404,7 @@ NODATA_value  -9999   <br>
 
 +++++++++++++++++++++++++++++++++++++++++++++++++
 <br>
-Exercise: Please run MaxEnt manually first by opening the maxent.jar 
+Exercise: Please run MaxEnt manually first by opening the maxent.jar or maxent.bat 
 (double click -> then the grey GUI should open after some seconds) - see lecture.
 This helps you to understand the principles first before running the code in R.
 <br>
