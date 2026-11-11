@@ -864,7 +864,7 @@ library(plotly)
 kde_mat <- as.matrix(kde_fox_95$ud, wide=TRUE)
 
 fig <- plot_ly(z = ~kde_mat)
-fig <- fig %>% add_surface()
+fig <- add_surface(fig)
 fig
 ```
 
