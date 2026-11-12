@@ -88,7 +88,7 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
 
 #Sys.getenv('JAVA_HOME') ## where the R-package is looking for the java.dll file
      ## set it to the correct path:
-#Sys.setenv(JAVA_HOME='C:\\Program Files (x86)\\Java\\jre1.8.0_1447\\bin') 
+#Sys.setenv(JAVA_HOME='C:\\Program Files (x86)\\Java\\jre1.8.0_1447\\bin') # if this is not working try to remove the \\bin 
      ## and recall the library
 #library(rJava)
 
