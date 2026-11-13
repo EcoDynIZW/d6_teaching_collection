@@ -67,7 +67,7 @@ package.list=c("here",
 
 for (package in package.list) {
   if (!require(package, character.only=T, quietly=T)) {
-    install.packages(package) ##take out for knitting
+    #install.packages(package) ##take out for knitting
     library(package, character.only=T)
   }
 }
