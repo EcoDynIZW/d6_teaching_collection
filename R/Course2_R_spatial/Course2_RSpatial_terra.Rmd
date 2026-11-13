@@ -145,7 +145,7 @@ https://lkcnhm.nus.edu.sg/app/uploads/2017/06/S33rbz018-041-1.pdf
 * *THE* https://r-spatial.org/book/
 
 **2. Check Edzer Pebesma's course materials and publications:**   
-* http://ifgi.uni-muenster.de/~epebe_01/  
+* https://www.uni-muenster.de/Geoinformatics/institute/staff/index.php/119/edzer_pebesma  
 * https://edzer.github.io/UseR2017/   
 
 **3. Geocomputation with R: a open-access book of Robin Lovelace, Jakub Nowosad & Jannes Muenchow**  
@@ -1874,7 +1874,7 @@ ggplot(dach) +
 
 ## `{osmdata}`
 
-[OpenStreetMap](https://www.openstreetmap.org) (https://www.openstreetmap.org) is a collaborative project to create a free editable geographic database of the world. The geodata underlying the maps is considered the primary output of the project and is accessible from R via the `{osmdata}` package.
+[OpenStreetMap](https://www.openstreetmap.org) is a collaborative project to create a free editable geographic database of the world. The geodata underlying the maps is considered the primary output of the project and is accessible from R via the `{osmdata}` package.
 
 We first need to define our query and limit it to a region. You can explore the features and tags (also available as information via OpenStreetMap directly).
 
