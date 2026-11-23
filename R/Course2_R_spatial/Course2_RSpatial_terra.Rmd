@@ -1573,7 +1573,7 @@ tm_shape(shp = Borneo_shp) +
 ```
 
 
-Add spatial points (note: it does not work with `data.frames`) to the plot. 
+Add spatial points (note: it does not work with `data.frame`) to the plot. 
 
 ```{r plot-new-sf-object, fig.height=8}
 tmap_mode(mode = "plot")
